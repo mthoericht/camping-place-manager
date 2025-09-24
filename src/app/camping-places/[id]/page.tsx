@@ -1,0 +1,224 @@
+import Link from 'next/link'
+import { prisma } from '@/lib/prisma'
+import { notFound } from 'next/navigation'
+
+async function getCampingPlace(id: string) {
+  try {
+    const campingPlace = await prisma.campingPlace.findUnique({
+      where: { id },
+      include: {
+        bookings: {
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      }
+    })
+    return campingPlace
+  } catch (error) {
+    console.error('Error fetching camping place:', error)
+    return null
+  }
+}
+
+export default async function CampingPlaceDetailsPage({
+  params
+}: {
+  params: Promise<{ id: string }>
+}) {
+  const { id } = await params
+  const campingPlace = await getCampingPlace(id)
+
+  if (!campingPlace) {
+    notFound()
+  }
+
+  return (
+    <div className="px-4 py-6 sm:px-0">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <Link 
+            href="/camping-places"
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-4 inline-block"
+          >
+            ← Back to Camping Places
+          </Link>
+          <h1 className="text-3xl font-bold text-gray-900">{campingPlace.name}</h1>
+          <p className="text-lg text-gray-600 mt-2">{campingPlace.location}</p>
+        </div>
+
+        {/* Main Content */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Images and Description */}
+          <div className="lg:col-span-2">
+            {/* Images */}
+            <div className="mb-8">
+              {campingPlace.images.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {campingPlace.images.map((image, index) => (
+                    <div key={index} className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                      <img 
+                        src={image} 
+                        alt={`${campingPlace.name} - Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
+                  <div className="text-6xl text-gray-400">🏕️</div>
+                </div>
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">About this place</h2>
+              <p className="text-gray-700 leading-relaxed">
+                {campingPlace.description || 'No description available.'}
+              </p>
+            </div>
+
+            {/* Amenities */}
+            <div className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Amenities</h2>
+              {campingPlace.amenities.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {campingPlace.amenities.map((amenity, index) => (
+                    <span 
+                      key={index}
+                      className="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium"
+                    >
+                      {amenity}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No amenities listed.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column - Booking Info and Actions */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
+              <div className="text-center mb-6">
+                <div className="text-3xl font-bold text-green-600 mb-2">
+                  ${campingPlace.price}
+                </div>
+                <div className="text-gray-600">per night</div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Capacity:</span>
+                  <span className="font-medium">{campingPlace.capacity} guests</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Status:</span>
+                  <span className={`font-medium ${campingPlace.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                    {campingPlace.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Bookings:</span>
+                  <span className="font-medium">{campingPlace.bookings.length}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Link 
+                  href={`/camping-places/${campingPlace.id}/edit`}
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block"
+                >
+                  Edit Place
+                </Link>
+                <Link 
+                  href={`/bookings?campingPlace=${campingPlace.id}`}
+                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition-colors text-center block"
+                >
+                  View Bookings
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Bookings */}
+        {campingPlace.bookings.length > 0 && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-semibold text-gray-900 mb-6">Recent Bookings</h2>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Customer
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Dates
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Guests
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {campingPlace.bookings.slice(0, 5).map((booking) => (
+                      <tr key={booking.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                            <div className="text-sm text-gray-500">{booking.customerEmail}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {booking.guests}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          ${booking.totalPrice}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
+                            booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                            booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                            'bg-blue-100 text-blue-800'
+                          }`}>
+                            {booking.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {campingPlace.bookings.length > 5 && (
+                <div className="bg-gray-50 px-6 py-3 text-center">
+                  <Link 
+                    href={`/bookings?campingPlace=${campingPlace.id}`}
+                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  >
+                    View all {campingPlace.bookings.length} bookings
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
