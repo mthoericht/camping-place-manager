@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+
+export async function GET() {
+  try {
+    const campingPlaces = await prisma.campingPlace.findMany({
+      include: {
+        bookings: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
+    return NextResponse.json(campingPlaces)
+  } catch (error) {
+    console.error('Error fetching camping places:', error)
+    return NextResponse.json({ error: 'Failed to fetch camping places' }, { status: 500 })
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { name, description, location, capacity, price, amenities, images } = body
+
+    if (!name || !location || !capacity || !price) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    const campingPlace = await prisma.campingPlace.create({
+      data: {
+        name,
+        description: description || '',
+        location,
+        capacity: parseInt(capacity),
+        price: parseFloat(price),
+        amenities: amenities || [],
+        images: images || [],
+      }
+    })
+
+    return NextResponse.json(campingPlace, { status: 201 })
+  } catch (error) {
+    console.error('Error creating camping place:', error)
+    return NextResponse.json({ error: 'Failed to create camping place' }, { status: 500 })
+  }
+}
