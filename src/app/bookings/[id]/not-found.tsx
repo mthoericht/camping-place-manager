@@ -7,7 +7,7 @@ export default function NotFound() {
         <div className="text-6xl mb-4">📅</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Booking Not Found</h1>
         <p className="text-gray-600 mb-8">
-          The booking you're looking for doesn't exist or has been removed.
+          The booking you&apos;re looking for doesn&apos;t exist or has been removed.
         </p>
         <div className="space-x-4">
           <Link 

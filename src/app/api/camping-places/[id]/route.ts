@@ -36,7 +36,7 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, description, location, capacity, price, amenities, isActive } = body
+    const { name, description, location, size, price, amenities, isActive } = body
 
     const campingPlace = await prisma.campingPlace.update({
       where: { id },
@@ -44,7 +44,7 @@ export async function PUT(
         name,
         description,
         location,
-        capacity: parseInt(capacity),
+        size: parseInt(size),
         price: parseFloat(price),
         amenities: amenities || [],
         isActive: isActive !== undefined ? isActive : true,

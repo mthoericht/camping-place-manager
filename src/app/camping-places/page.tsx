@@ -79,7 +79,7 @@ export default async function CampingPlacesPage() {
                 
                 <div className="flex justify-between items-center mb-4">
                   <div className="text-sm text-gray-600">
-                    Capacity: {place.capacity} guests
+                    Size: {place.size} m²
                   </div>
                   <div className="text-lg font-semibold text-green-600">
                     ${place.price}/night

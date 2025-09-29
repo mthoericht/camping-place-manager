@@ -15,7 +15,7 @@ model CampingPlace {
   name        String
   description String?
   location    String
-  capacity    Int
+  size        Int
   price       Float
   amenities   String[]
   isActive    Boolean  @default(true)

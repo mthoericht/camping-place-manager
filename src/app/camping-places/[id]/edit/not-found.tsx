@@ -7,7 +7,7 @@ export default function NotFound() {
         <div className="text-6xl mb-4">✏️</div>
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Camping Place Not Found</h1>
         <p className="text-gray-600 mb-8">
-          The camping place you're trying to edit doesn't exist or has been removed.
+          The camping place you&apos;re trying to edit doesn&apos;t exist or has been removed.
         </p>
         <div className="space-x-4">
           <Link 

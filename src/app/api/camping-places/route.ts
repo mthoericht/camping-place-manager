@@ -21,9 +21,9 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description, location, capacity, price, amenities } = body
+    const { name, description, location, size, price, amenities } = body
 
-    if (!name || !location || !capacity || !price) {
+    if (!name || !location || !size || !price) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
         name,
         description: description || '',
         location,
-        capacity: parseInt(capacity),
+        size: parseInt(size),
         price: parseFloat(price),
         amenities: amenities || [],
       }

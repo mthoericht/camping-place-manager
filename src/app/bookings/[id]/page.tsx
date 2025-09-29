@@ -133,8 +133,8 @@ export default async function BookingDetailsPage({
                   <p className="text-gray-900">${booking.campingPlace.price}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Capacity</label>
-                  <p className="text-gray-900">{booking.campingPlace.capacity} guests</p>
+                  <label className="block text-sm font-medium text-gray-700">Size</label>
+                  <p className="text-gray-900">{booking.campingPlace.size} m&#178;</p>
                 </div>
               </div>
               <div className="mt-4">

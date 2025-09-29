@@ -9,7 +9,7 @@ interface CampingPlaceFormProps {
     name?: string
     description?: string
     location?: string
-    capacity?: number
+    size?: number
     price?: number
     amenities?: string[]
     isActive?: boolean
@@ -22,7 +22,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     name: initialData?.name || '',
     description: initialData?.description || '',
     location: initialData?.location || '',
-    capacity: initialData?.capacity || 1,
+    size: initialData?.size || 1,
     price: initialData?.price || 0,
     amenities: initialData?.amenities || [],
     isActive: initialData?.isActive ?? true,
@@ -135,16 +135,16 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="capacity" className="block text-sm font-medium text-gray-700 mb-2">
-              Capacity *
+            <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-2">
+              Size in m² *
             </label>
             <input
               type="number"
-              id="capacity"
+              id="size"
               required
               min="1"
-              value={formData.capacity}
-              onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })}
+              value={formData.size}
+              onChange={(e) => setFormData({ ...formData, size: parseInt(e.target.value) })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

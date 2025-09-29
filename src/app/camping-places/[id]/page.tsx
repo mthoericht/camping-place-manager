@@ -99,8 +99,8 @@ export default async function CampingPlaceDetailsPage({
 
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Capacity:</span>
-                  <span className="font-medium">{campingPlace.capacity} guests</span>
+                  <span className="text-gray-600">Size:</span>
+                  <span className="font-medium">{campingPlace.size} m²</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
