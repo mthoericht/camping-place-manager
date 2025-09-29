@@ -59,12 +59,17 @@ npm run db:generate
 npm run db:push
 ```
 
-7. Start the development server:
+7. Start MongoDB service:
+```bash
+npm run mongo:start
+```
+
+8. Start the development server:
 ```bash
 npm run dev
 ```
 
-8. Open [http://localhost:3000](http://localhost:3000) in your browser.
+9. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Database Schema
 
@@ -95,13 +100,49 @@ npm run dev
 
 ## Available Scripts
 
+### Development
 - `npm run dev`: Start development server
 - `npm run build`: Build for production
 - `npm run start`: Start production server
 - `npm run lint`: Run ESLint
+
+### Database Management
 - `npm run db:generate`: Generate Prisma client
 - `npm run db:push`: Push schema changes to database
 - `npm run db:studio`: Open Prisma Studio
+
+### MongoDB Management
+- `npm run mongo:start`: Start MongoDB service
+- `npm run mongo:stop`: Stop MongoDB service
+- `npm run mongo:status`: Check MongoDB service status
+
+## Quick Start Guide
+
+1. **Clone and install:**
+   ```bash
+   git clone https://github.com/mthoericht/camping-place-manager.git
+   cd camping-place-manager
+   npm install
+   ```
+
+2. **Set up environment:**
+   ```bash
+   # Create .env.local with your MongoDB connection
+   echo 'DATABASE_URL="mongodb://localhost:27017/camping-place-manager"' > .env.local
+   ```
+
+3. **Start services:**
+   ```bash
+   npm run mongo:start    # Start MongoDB
+   npm run db:push        # Sync database schema
+   npm run dev           # Start development server
+   ```
+
+4. **Access the application:**
+   - Open [http://localhost:3000](http://localhost:3000)
+   - Create your first camping place
+   - Make a test booking
+   - View analytics dashboard
 
 ## Project Structure
 

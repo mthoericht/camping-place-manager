@@ -728,3 +728,62 @@ The hydration error was caused by browser extensions modifying the DOM and serve
 - Prisma client must be regenerated after configuration changes
 
 ---
+
+## 2024-12-19 - MongoDB Service Management & Documentation
+
+**Issue**: User requested MongoDB start/stop commands in package.json and README documentation updates.
+
+**Solution Implemented**:
+
+### 1. Added MongoDB Commands to package.json
+```json
+{
+  "scripts": {
+    "mongo:start": "brew services start mongodb-community",
+    "mongo:stop": "brew services stop mongodb-community",
+    "mongo:status": "brew services list | grep mongo"
+  }
+}
+```
+
+### 2. Updated README.md with MongoDB Management
+- **Organized Available Scripts** into categories:
+  - Development scripts
+  - Database Management (Prisma)
+  - MongoDB Management (new section)
+
+- **Updated Getting Started** section:
+  - Added step 7: Start MongoDB service before development server
+  - Updated step numbering
+
+- **Added Quick Start Guide**:
+  - 4-step setup process
+  - Copy-paste commands for easy setup
+  - Clear next steps after installation
+
+### 3. MongoDB Service Status
+- **Current Status**: MongoDB running successfully
+- **Connection**: `mongodb://localhost:27017/camping-place-manager`
+- **Service Management**: Available via npm scripts
+
+**New Commands Available**:
+```bash
+npm run mongo:start    # Start MongoDB service
+npm run mongo:stop     # Stop MongoDB service
+npm run mongo:status   # Check MongoDB service status
+```
+
+**Benefits**:
+- ✅ Easy MongoDB service management
+- ✅ Consistent npm script interface
+- ✅ Better documentation for new users
+- ✅ Quick start guide for faster onboarding
+- ✅ Organized script categories
+
+**Current Status**: 
+- ✅ MongoDB service management documented
+- ✅ README updated with comprehensive setup guide
+- ✅ All npm scripts working correctly
+- ✅ Application fully functional
+
+---

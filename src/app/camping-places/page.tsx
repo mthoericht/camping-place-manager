@@ -70,15 +70,7 @@ export default async function CampingPlacesPage() {
           {campingPlaces.map((place) => (
             <div key={place.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
               <div className="h-48 bg-gray-200 flex items-center justify-center">
-                {place.images.length > 0 ? (
-                  <img 
-                    src={place.images[0]} 
-                    alt={place.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="text-4xl text-gray-400">🏕️</div>
-                )}
+                <div className="text-4xl text-gray-400">🏕️</div>
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{place.name}</h3>

@@ -10,7 +10,10 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "mongo:start": "brew services start mongodb-community",
+    "mongo:stop": "brew services stop mongodb-community",
+    "mongo:status": "brew services list | grep mongo"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

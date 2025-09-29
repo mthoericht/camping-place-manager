@@ -52,25 +52,11 @@ export default async function CampingPlaceDetailsPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column - Images and Description */}
           <div className="lg:col-span-2">
-            {/* Images */}
+            {/* Placeholder Image */}
             <div className="mb-8">
-              {campingPlace.images.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {campingPlace.images.map((image, index) => (
-                    <div key={index} className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                      <img 
-                        src={image} 
-                        alt={`${campingPlace.name} - Image ${index + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
-                  <div className="text-6xl text-gray-400">🏕️</div>
-                </div>
-              )}
+              <div className="aspect-video bg-gray-200 rounded-lg flex items-center justify-center">
+                <div className="text-6xl text-gray-400">🏕️</div>
+              </div>
             </div>
 
             {/* Description */}

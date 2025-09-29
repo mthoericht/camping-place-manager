@@ -12,7 +12,6 @@ interface CampingPlaceFormProps {
     capacity?: number
     price?: number
     amenities?: string[]
-    images?: string[]
     isActive?: boolean
   }
 }
@@ -26,11 +25,9 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     capacity: initialData?.capacity || 1,
     price: initialData?.price || 0,
     amenities: initialData?.amenities || [],
-    images: initialData?.images || [],
     isActive: initialData?.isActive ?? true,
   }))
   const [amenityInput, setAmenityInput] = useState('')
-  const [imageInput, setImageInput] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,22 +81,6 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     })
   }
 
-  const addImage = () => {
-    if (imageInput.trim() && !formData.images.includes(imageInput.trim())) {
-      setFormData({
-        ...formData,
-        images: [...formData.images, imageInput.trim()]
-      })
-      setImageInput('')
-    }
-  }
-
-  const removeImage = (image: string) => {
-    setFormData({
-      ...formData,
-      images: formData.images.filter(i => i !== image)
-    })
-  }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -225,46 +206,6 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Images
-          </label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="url"
-              value={imageInput}
-              onChange={(e) => setImageInput(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Add image URL"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
-            />
-            <button
-              type="button"
-              onClick={addImage}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Add
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            {formData.images.map((image, index) => (
-              <div key={index} className="relative">
-                <img
-                  src={image}
-                  alt={`Camping place ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-md"
-                />
-                <button
-                  type="button"
-                  onClick={() => removeImage(image)}
-                  className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="flex items-center">
           <input
