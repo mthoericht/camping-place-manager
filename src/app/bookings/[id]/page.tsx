@@ -4,13 +4,29 @@ import { notFound } from 'next/navigation'
 
 async function getBooking(id: string) {
   try {
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        campingPlace: true
-      }
+    const bookingResult = await prisma.$runCommandRaw({
+      find: 'bookings',
+      filter: { _id: { $oid: id } }
     })
-    return booking
+    
+    const booking = (bookingResult.cursor as any)?.firstBatch?.[0]
+    if (!booking) return null
+    
+    const campingPlaceResult = await prisma.$runCommandRaw({
+      find: 'camping_places',
+      filter: { _id: booking.campingPlaceId }
+    })
+    
+    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0]
+    
+    return {
+      ...booking,
+      id: booking._id.$oid, // Map MongoDB _id to id
+      campingPlace: {
+        ...campingPlace,
+        id: campingPlace._id.$oid // Map camping place _id to id
+      }
+    }
   } catch (error) {
     console.error('Error fetching booking:', error)
     return null
@@ -29,7 +45,10 @@ export default async function BookingDetailsPage({
     notFound()
   }
 
-  const nights = Math.ceil((new Date(booking.endDate).getTime() - new Date(booking.startDate).getTime()) / (1000 * 60 * 60 * 24))
+  // Handle MongoDB date format
+  const startDate = booking.startDate?.$date ? new Date(booking.startDate.$date) : new Date(booking.startDate)
+  const endDate = booking.endDate?.$date ? new Date(booking.endDate.$date) : new Date(booking.endDate)
+  const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -88,11 +107,11 @@ export default async function BookingDetailsPage({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Check-in Date</label>
-                  <p className="text-lg text-gray-900">{new Date(booking.startDate).toLocaleDateString()}</p>
+                  <p className="text-lg text-gray-900">{startDate.toLocaleDateString()}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Check-out Date</label>
-                  <p className="text-lg text-gray-900">{new Date(booking.endDate).toLocaleDateString()}</p>
+                  <p className="text-lg text-gray-900">{endDate.toLocaleDateString()}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Number of Nights</label>
@@ -201,14 +220,14 @@ export default async function BookingDetailsPage({
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-4"></div>
                 <div>
                   <p className="font-medium text-gray-900">Booking Created</p>
-                  <p className="text-sm text-gray-500">{new Date(booking.createdAt).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">{booking.createdAt?.$date ? new Date(booking.createdAt.$date).toLocaleString() : new Date(booking.createdAt).toLocaleString()}</p>
                 </div>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-4"></div>
                 <div>
                   <p className="font-medium text-gray-900">Last Updated</p>
-                  <p className="text-sm text-gray-500">{new Date(booking.updatedAt).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">{booking.updatedAt?.$date ? new Date(booking.updatedAt.$date).toLocaleString() : new Date(booking.updatedAt).toLocaleString()}</p>
                 </div>
               </div>
             </div>

@@ -7,7 +7,15 @@ interface CampingPlace {
   id: string
   name: string
   price: number
-  capacity: number
+  size: number
+}
+
+interface CampingItem {
+  id: string
+  name: string
+  category: string
+  size: number
+  description?: string
 }
 
 interface BookingFormProps {
@@ -27,6 +35,7 @@ interface BookingFormProps {
 export default function BookingForm({ initialData }: BookingFormProps) {
   const router = useRouter()
   const [campingPlaces, setCampingPlaces] = useState<CampingPlace[]>([])
+  const [campingItems, setCampingItems] = useState<CampingItem[]>([])
   const [formData, setFormData] = useState(() => ({
     campingPlaceId: initialData?.campingPlaceId || '',
     customerName: initialData?.customerName || '',
@@ -37,11 +46,13 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     guests: initialData?.guests || 1,
     notes: initialData?.notes || '',
   }))
+  const [selectedItems, setSelectedItems] = useState<{[key: string]: number}>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedPlace, setSelectedPlace] = useState<CampingPlace | null>(null)
 
   useEffect(() => {
     fetchCampingPlaces()
+    fetchCampingItems()
   }, [])
 
   useEffect(() => {
@@ -63,6 +74,29 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     }
   }
 
+  const fetchCampingItems = async () => {
+    try {
+      const response = await fetch('/api/camping-items')
+      if (response.ok) {
+        const items = await response.json()
+        setCampingItems(items)
+      }
+    } catch (error) {
+      console.error('Error fetching camping items:', error)
+    }
+  }
+
+  const calculateTotalSize = () => {
+    let totalSize = 0
+    Object.entries(selectedItems).forEach(([itemId, quantity]) => {
+      const item = campingItems.find(i => i.id === itemId)
+      if (item) {
+        totalSize += item.size * quantity
+      }
+    })
+    return totalSize
+  }
+
   const calculateTotalPrice = () => {
     if (!selectedPlace || !formData.startDate || !formData.endDate) return 0
     
@@ -71,6 +105,16 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
     
     return nights * selectedPlace.price
+  }
+
+  const updateItemQuantity = (itemId: string, quantity: number) => {
+    const newSelectedItems = { ...selectedItems }
+    if (quantity === 0) {
+      delete newSelectedItems[itemId]
+    } else {
+      newSelectedItems[itemId] = quantity
+    }
+    setSelectedItems(newSelectedItems)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,7 +133,10 @@ export default function BookingForm({ initialData }: BookingFormProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          campingItems: selectedItems
+        }),
       })
 
       if (response.ok) {
@@ -128,7 +175,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             <option value="">Select a camping place</option>
             {campingPlaces.map((place) => (
               <option key={place.id} value={place.id}>
-                {place.name} - ${place.price}/night (Capacity: {place.capacity})
+                {place.name} - ${place.price}/night (Size: {place.size} m&#178;)
               </option>
             ))}
           </select>
@@ -173,14 +220,14 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             id="guests"
             required
             min="1"
-            max={selectedPlace?.capacity || 10}
+            max={selectedPlace?.size || 10}
             value={formData.guests}
             onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {selectedPlace && (
             <p className="text-sm text-gray-500 mt-1">
-              Maximum capacity: {selectedPlace.capacity} guests
+              Maximum capacity: {selectedPlace.size} guests
             </p>
           )}
         </div>
@@ -228,6 +275,51 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             placeholder="Enter customer phone number"
           />
         </div>
+
+        {selectedPlace && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Camping Items
+            </label>
+            <div className="space-y-3">
+              {campingItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">{item.name}</div>
+                    <div className="text-sm text-gray-600">
+                      {item.category} - {item.size} m&#178; {item.description && `- ${item.description}`}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => updateItemQuantity(item.id, (selectedItems[item.id] || 0) - 1)}
+                      disabled={!selectedItems[item.id] || selectedItems[item.id] <= 0}
+                      className="w-8 h-8 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center">{selectedItems[item.id] || 0}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateItemQuantity(item.id, (selectedItems[item.id] || 0) + 1)}
+                      disabled={calculateTotalSize() + item.size > selectedPlace.size}
+                      className="w-8 h-8 rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 text-sm text-gray-600">
+              Total size used: {calculateTotalSize()} m&#178; / {selectedPlace.size} m&#178;
+              {calculateTotalSize() > selectedPlace.size && (
+                <span className="text-red-600 ml-2">⚠️ Exceeds available space</span>
+              )}
+            </div>
+          </div>
+        )}
 
         <div>
           <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">

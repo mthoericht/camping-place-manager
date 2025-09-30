@@ -5,7 +5,12 @@ export async function GET() {
   try {
     const bookings = await prisma.booking.findMany({
       include: {
-        campingPlace: true
+        campingPlace: true,
+        bookingItems: {
+          include: {
+            campingItem: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
@@ -29,7 +34,8 @@ export async function POST(request: NextRequest) {
       startDate, 
       endDate, 
       guests, 
-      notes 
+      notes,
+      campingItems
     } = body
 
     if (!campingPlaceId || !customerName || !customerEmail || !startDate || !endDate || !guests) {
@@ -43,6 +49,25 @@ export async function POST(request: NextRequest) {
 
     if (!campingPlace) {
       return NextResponse.json({ error: 'Camping place not found' }, { status: 404 })
+    }
+
+    // Validate camping items size
+    if (campingItems) {
+      let totalSize = 0
+      for (const [itemId, quantity] of Object.entries(campingItems)) {
+        const item = await prisma.campingItem.findUnique({
+          where: { id: itemId }
+        })
+        if (item) {
+          totalSize += item.size * (quantity as number)
+        }
+      }
+      
+      if (totalSize > campingPlace.size) {
+        return NextResponse.json({ 
+          error: `Total camping items size (${totalSize} m²) exceeds camping place size (${campingPlace.size} m²)` 
+        }, { status: 400 })
+      }
     }
 
     // Calculate total price
@@ -62,9 +87,20 @@ export async function POST(request: NextRequest) {
         guests: parseInt(guests),
         totalPrice,
         notes: notes || null,
+        bookingItems: campingItems ? {
+          create: Object.entries(campingItems).map(([itemId, quantity]) => ({
+            campingItemId: itemId,
+            quantity: quantity as number
+          }))
+        } : undefined
       },
       include: {
-        campingPlace: true
+        campingPlace: true,
+        bookingItems: {
+          include: {
+            campingItem: true
+          }
+        }
       }
     })
 

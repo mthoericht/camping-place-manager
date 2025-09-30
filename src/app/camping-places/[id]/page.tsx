@@ -4,17 +4,31 @@ import { notFound } from 'next/navigation'
 
 async function getCampingPlace(id: string) {
   try {
-    const campingPlace = await prisma.campingPlace.findUnique({
-      where: { id },
-      include: {
-        bookings: {
-          orderBy: {
-            createdAt: 'desc'
-          }
-        }
-      }
+    const campingPlaceResult = await prisma.$runCommandRaw({
+      find: 'camping_places',
+      filter: { _id: { $oid: id } }
     })
-    return campingPlace
+    
+    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0]
+    if (!campingPlace) return null
+    
+    // Get bookings for this camping place
+    const bookingsResult = await prisma.$runCommandRaw({
+      find: 'bookings',
+      filter: { campingPlaceId: campingPlace._id },
+      sort: { createdAt: -1 }
+    })
+    
+    const bookings = (bookingsResult.cursor as any)?.firstBatch || []
+    
+    return {
+      ...campingPlace,
+      id: campingPlace._id.$oid, // Map MongoDB _id to id
+      bookings: bookings.map((booking: any) => ({
+        ...booking,
+        id: booking._id.$oid // Map booking _id to id
+      }))
+    }
   } catch (error) {
     console.error('Error fetching camping place:', error)
     return null
@@ -72,7 +86,7 @@ export default async function CampingPlaceDetailsPage({
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Amenities</h2>
               {campingPlace.amenities.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {campingPlace.amenities.map((amenity, index) => (
+                  {campingPlace.amenities.map((amenity : any, index : any) => (
                     <span 
                       key={index}
                       className="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium"
@@ -159,7 +173,7 @@ export default async function CampingPlaceDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {campingPlace.bookings.slice(0, 5).map((booking) => (
+                    {campingPlace.bookings.slice(0, 5).map((booking : any) => (
                       <tr key={booking.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>

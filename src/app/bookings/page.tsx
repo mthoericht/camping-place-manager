@@ -5,12 +5,18 @@ async function getBookings() {
   try {
     const bookings = await prisma.booking.findMany({
       include: {
-        campingPlace: true
+        campingPlace: true,
+        bookingItems: {
+          include: {
+            campingItem: true
+          }
+        }
       },
       orderBy: {
         createdAt: 'desc'
       }
     })
+    
     return bookings
   } catch (error) {
     console.error('Error fetching bookings:', error)
@@ -88,7 +94,7 @@ export default async function BookingsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking) => (
+              {bookings.map((booking: any) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
@@ -97,8 +103,8 @@ export default async function BookingsPage() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{booking.campingPlace.name}</div>
-                    <div className="text-sm text-gray-500">{booking.campingPlace.location}</div>
+                    <div className="text-sm text-gray-900">{booking.campingPlace?.name || 'Unknown'}</div>
+                    <div className="text-sm text-gray-500">{booking.campingPlace?.location || 'Unknown'}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">

@@ -34,19 +34,51 @@ model Booking {
   customerName   String
   customerEmail  String
   customerPhone  String?
-  startDate     DateTime
-  endDate       DateTime
+  startDate     DateTime?
+  endDate       DateTime?
   guests        Int
   totalPrice    Float
   status        BookingStatus @default(PENDING)
   notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime?
+  updatedAt     DateTime?
   
   // Relations
   campingPlace  CampingPlace @relation(fields: [campingPlaceId], references: [id])
+  bookingItems  BookingItem[]
   
   @@map("bookings")
+}
+
+model CampingItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  category    String
+  size        Int      // Size in square meters
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime?
+  updatedAt   DateTime?
+  
+  // Relations
+  bookingItems BookingItem[]
+  
+  @@map("camping_items")
+}
+
+model BookingItem {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId    String   @db.ObjectId
+  campingItemId String   @db.ObjectId
+  quantity     Int
+  createdAt    DateTime?
+  updatedAt    DateTime?
+  
+  // Relations
+  booking      Booking     @relation(fields: [bookingId], references: [id])
+  campingItem  CampingItem @relation(fields: [campingItemId], references: [id])
+  
+  @@map("booking_items")
 }
 
 enum BookingStatus {

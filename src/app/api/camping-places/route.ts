@@ -3,15 +3,20 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
-    const campingPlaces = await prisma.campingPlace.findMany({
-      include: {
-        bookings: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
+    const campingPlacesResult = await prisma.$runCommandRaw({
+      find: 'camping_places',
+      sort: { createdAt: -1 }
     })
-    return NextResponse.json(campingPlaces)
+    
+    const campingPlaces = (campingPlacesResult.cursor as any)?.firstBatch || []
+    
+    // Map MongoDB _id to id for each camping place
+    const mappedCampingPlaces = campingPlaces.map((place: any) => ({
+      ...place,
+      id: place._id.$oid
+    }))
+    
+    return NextResponse.json(mappedCampingPlaces)
   } catch (error) {
     console.error('Error fetching camping places:', error)
     return NextResponse.json({ error: 'Failed to fetch camping places' }, { status: 500 })
