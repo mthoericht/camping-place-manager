@@ -3,97 +3,137 @@ import { prisma } from '@/lib/prisma';
 
 async function getAnalyticsData() {
   try {
-    // Get basic counts
-    const totalPlaces = await prisma.campingPlace.count();
-    const totalBookings = await prisma.booking.count();
-    const activeBookings = await prisma.booking.count({
-      where: {
-        status: {
-          in: ['PENDING', 'CONFIRMED'],
+    // Get basic counts using raw MongoDB queries
+    const placesResult = await prisma.$runCommandRaw({
+      count: 'camping_places'
+    });
+    
+    const bookingsResult = await prisma.$runCommandRaw({
+      count: 'bookings'
+    });
+    
+    const activeBookingsResult = await prisma.$runCommandRaw({
+      count: 'bookings',
+      query: {
+        status: { $in: ['PENDING', 'CONFIRMED'] }
+      }
+    });
+    
+    const totalPlaces = placesResult.n || 0;
+    const totalBookings = bookingsResult.n || 0;
+    const activeBookings = activeBookingsResult.n || 0;
+
+    // Get booking status breakdown using aggregation
+    const statusBreakdownResult = await prisma.$runCommandRaw({
+      aggregate: 'bookings',
+      pipeline: [
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ]
+    });
+    
+    const bookingStatusBreakdown = (statusBreakdownResult.cursor as any)?.firstBatch || [];
+
+    // Get revenue data using aggregation
+    const revenueResult = await prisma.$runCommandRaw({
+      aggregate: 'bookings',
+      pipeline: [
+        {
+          $match: {
+            status: { $in: ['CONFIRMED', 'COMPLETED'] }
+          }
         },
-      },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$totalPrice' }
+          }
+        }
+      ]
     });
+    
+    const totalRevenue = (revenueResult.cursor as any)?.firstBatch?.[0]?.totalRevenue || 0;
 
-    // Get booking status breakdown
-    const bookingStatusBreakdown = await prisma.booking.groupBy({
-      by: ['status'],
-      _count: {
-        status: true,
-      },
-    });
-
-    // Get revenue data
-    const totalRevenue = await prisma.booking.aggregate({
-      _sum: {
-        totalPrice: true,
-      },
-      where: {
-        status: {
-          in: ['CONFIRMED', 'COMPLETED'],
-        },
-      },
-    });
-
-    // Get monthly booking trends (last 6 months)
+    // Get monthly booking trends (last 6 months) using aggregation
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-
-    const monthlyBookings = await prisma.booking.groupBy({
-      by: ['createdAt'],
-      _count: {
-        id: true,
-      },
-      _sum: {
-        totalPrice: true,
-      },
-      where: {
-        createdAt: {
-          gte: sixMonthsAgo,
+    
+    const monthlyBookingsResult = await prisma.$runCommandRaw({
+      aggregate: 'bookings',
+      pipeline: [
+        {
+          $match: {
+            createdAt: { $gte: sixMonthsAgo }
+          }
         },
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
+        {
+          $group: {
+            _id: {
+              year: { $year: '$createdAt' },
+              month: { $month: '$createdAt' }
+            },
+            count: { $sum: 1 },
+            totalRevenue: { $sum: '$totalPrice' }
+          }
+        },
+        {
+          $sort: { '_id.year': 1, '_id.month': 1 }
+        }
+      ]
     });
+    
+    const monthlyBookings = (monthlyBookingsResult.cursor as any)?.firstBatch || [];
 
-    // Get top camping places by bookings
-    const topPlaces = await prisma.campingPlace.findMany({
-      include: {
-        _count: {
-          select: {
-            bookings: true,
-          },
+    // Get top camping places by bookings using aggregation
+    const topPlacesResult = await prisma.$runCommandRaw({
+      aggregate: 'bookings',
+      pipeline: [
+        {
+          $group: {
+            _id: '$campingPlaceId',
+            bookingCount: { $sum: 1 },
+            totalRevenue: { $sum: '$totalPrice' }
+          }
         },
-      },
-      orderBy: {
-        bookings: {
-          _count: 'desc',
+        {
+          $sort: { bookingCount: -1 }
         },
-      },
-      take: 5,
+        {
+          $limit: 5
+        }
+      ]
     });
+    
+    const topPlaces = (topPlacesResult.cursor as any)?.firstBatch || [];
 
-    // Get average booking value
-    const avgBookingValue = await prisma.booking.aggregate({
-      _avg: {
-        totalPrice: true,
-      },
-      where: {
-        status: {
-          in: ['CONFIRMED', 'COMPLETED'],
-        },
-      },
+    // Get average booking value using aggregation
+    const avgBookingResult = await prisma.$runCommandRaw({
+      aggregate: 'bookings',
+      pipeline: [
+        {
+          $group: {
+            _id: null,
+            avgValue: { $avg: '$totalPrice' }
+          }
+        }
+      ]
     });
+    
+    const averageBookingValue = (avgBookingResult.cursor as any)?.firstBatch?.[0]?.avgValue || 0;
 
     return {
       totalPlaces,
       totalBookings,
       activeBookings,
       bookingStatusBreakdown,
-      totalRevenue: totalRevenue._sum.totalPrice || 0,
+      totalRevenue: totalRevenue || 0,
       monthlyBookings,
       topPlaces,
-      avgBookingValue: avgBookingValue._avg.totalPrice || 0,
+      avgBookingValue: averageBookingValue || 0,
     };
   } catch (error) {
     console.error('Error fetching analytics data:', error);
@@ -137,7 +177,7 @@ export default async function AnalyticsPage() {
               <div className="text-3xl text-blue-600 mr-4">🏕️</div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Places</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.totalPlaces}</p>
+                <p className="text-2xl font-bold text-gray-900">{Number(analytics.totalPlaces) || 0}</p>
               </div>
             </div>
           </div>
@@ -147,7 +187,7 @@ export default async function AnalyticsPage() {
               <div className="text-3xl text-green-600 mr-4">📅</div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.totalBookings}</p>
+                <p className="text-2xl font-bold text-gray-900">{Number(analytics.totalBookings) || 0}</p>
               </div>
             </div>
           </div>
@@ -157,7 +197,7 @@ export default async function AnalyticsPage() {
               <div className="text-3xl text-yellow-600 mr-4">⏳</div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{analytics.activeBookings}</p>
+                <p className="text-2xl font-bold text-gray-900">{Number(analytics.activeBookings) || 0}</p>
               </div>
             </div>
           </div>
@@ -180,23 +220,23 @@ export default async function AnalyticsPage() {
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Booking Status Breakdown</h2>
             <div className="space-y-3">
-              {analytics.bookingStatusBreakdown.map(status => (
-                <div key={status.status} className="flex justify-between items-center">
+              {analytics.bookingStatusBreakdown.map((status: any) => (
+                <div key={status._id} className="flex justify-between items-center">
                   <div className="flex items-center">
                     <div
                       className={`w-3 h-3 rounded-full mr-3 ${
-                        status.status === 'CONFIRMED'
+                        status._id === 'CONFIRMED'
                           ? 'bg-green-500'
-                          : status.status === 'PENDING'
+                          : status._id === 'PENDING'
                             ? 'bg-yellow-500'
-                            : status.status === 'CANCELLED'
+                            : status._id === 'CANCELLED'
                               ? 'bg-red-500'
                               : 'bg-blue-500'
                       }`}
                     ></div>
-                    <span className="text-gray-700 capitalize">{status.status.toLowerCase()}</span>
+                    <span className="text-gray-700 capitalize">{status._id?.toLowerCase()}</span>
                   </div>
-                  <span className="font-semibold text-gray-900">{status._count.status}</span>
+                  <span className="font-semibold text-gray-900">{status.count}</span>
                 </div>
               ))}
             </div>
@@ -222,9 +262,9 @@ export default async function AnalyticsPage() {
             </h2>
             {analytics.topPlaces.length > 0 ? (
               <div className="space-y-4">
-                {analytics.topPlaces.map((place, index) => (
+                {analytics.topPlaces.map((place: any, index: number) => (
                   <div
-                    key={place.id}
+                    key={place._id}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center">
@@ -232,15 +272,15 @@ export default async function AnalyticsPage() {
                         {index + 1}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">{place.name}</h3>
-                        <p className="text-sm text-gray-600">{place.location}</p>
+                        <h3 className="font-semibold text-gray-900">Camping Place ID: {place._id}</h3>
+                        <p className="text-sm text-gray-600">Revenue: ${place.totalRevenue?.toFixed(2) || 0}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="font-semibold text-gray-900">
-                        {place._count.bookings} bookings
+                        {place.bookingCount} bookings
                       </div>
-                      <div className="text-sm text-gray-600">${place.price}/night</div>
+                      <div className="text-sm text-gray-600">Total Revenue</div>
                     </div>
                   </div>
                 ))}

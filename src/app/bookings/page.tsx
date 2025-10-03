@@ -1,23 +1,43 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 
-async function getBookings() {
-  try {
-    const bookings = await prisma.booking.findMany({
-      include: {
-        campingPlace: true,
-        bookingItems: {
-          include: {
-            campingItem: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+interface Booking {
+  id: string;
+  campingPlaceId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  startDate: string;
+  endDate: string;
+  guests: number;
+  totalPrice: number;
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  campingPlace?: {
+    id: string;
+    name: string;
+    location: string;
+  };
+}
 
-    return bookings;
+async function getBookings(): Promise<Booking[]> {
+  try {
+    const bookingsResult = await prisma.$runCommandRaw({
+      find: 'bookings',
+      sort: { createdAt: -1 }
+    });
+    
+    const bookings = (bookingsResult.cursor as any)?.firstBatch || [];
+    
+    // Map MongoDB _id to id for each booking
+    const mappedBookings = bookings.map((booking: any): Booking => ({
+      ...booking,
+      id: booking._id.$oid
+    }));
+    
+    return mappedBookings;
   } catch (error) {
     console.error('Error fetching bookings:', error);
     return [];
@@ -25,7 +45,7 @@ async function getBookings() {
 }
 
 export default async function BookingsPage() {
-  let bookings: Awaited<ReturnType<typeof getBookings>> = [];
+  let bookings: Booking[] = [];
   let error: Error | null = null;
 
   try {
@@ -98,7 +118,7 @@ export default async function BookingsPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {bookings.map((booking: any) => (
+              {bookings.map((booking: Booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>

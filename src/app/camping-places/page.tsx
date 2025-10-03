@@ -1,30 +1,55 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 
-async function getCampingPlaces() {
-  try {
-    const places = await prisma.campingPlace.findMany({
-      include: {
-        bookings: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+interface CampingPlace {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  size: number;
+  price: number;
+  amenities: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  bookings?: any[];
+}
+
+async function getCampingPlaces(): Promise<CampingPlace[]> 
+{
+  try 
+  {
+    const campingPlacesResult = await prisma.$runCommandRaw({
+      find: 'camping_places',
+      sort: { createdAt: -1 }
     });
-    return places;
-  } catch (error) {
+    
+    const campingPlaces = (campingPlacesResult.cursor as any)?.firstBatch || [];
+    
+    // Map MongoDB _id to id for each camping place
+    const mappedCampingPlaces = campingPlaces.map((place: any): CampingPlace => ({
+      ...place,
+      id: place._id.$oid
+    }));
+    
+    return mappedCampingPlaces;
+  } catch (error) 
+  {
     console.error('Error fetching camping places:', error);
     return [];
   }
 }
 
-export default async function CampingPlacesPage() {
-  let campingPlaces: Awaited<ReturnType<typeof getCampingPlaces>> = [];
+export default async function CampingPlacesPage() 
+{
+  let campingPlaces: CampingPlace[] = [];
   let error: Error | null = null;
 
-  try {
+  try 
+  {
     campingPlaces = await getCampingPlaces();
-  } catch (err) {
+  } catch (err) 
+  {
     error = err as Error;
     console.error('Error in CampingPlacesPage:', err);
   }
@@ -69,7 +94,7 @@ export default async function CampingPlacesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {campingPlaces.map(place => (
+          {campingPlaces.map((place: CampingPlace) => (
             <div
               key={place.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -88,7 +113,7 @@ export default async function CampingPlacesPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {place.amenities.slice(0, 3).map((amenity, index) => (
+                  {place.amenities.slice(0, 3).map((amenity: string, index: number) => (
                     <span
                       key={index}
                       className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
@@ -104,7 +129,7 @@ export default async function CampingPlacesPage() {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-600">{place.bookings.length} bookings</div>
+                  <div className="text-sm text-gray-600">{place.bookings?.length || 0} bookings</div>
                   <div className="flex space-x-2">
                     <Link
                       href={`/camping-places/${place.id}`}
