@@ -1,61 +1,63 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
 async function getBooking(id: string) {
   try {
     const bookingResult = await prisma.$runCommandRaw({
       find: 'bookings',
-      filter: { _id: { $oid: id } }
-    })
-    
-    const booking = (bookingResult.cursor as any)?.firstBatch?.[0]
-    if (!booking) return null
-    
+      filter: { _id: { $oid: id } },
+    });
+
+    const booking = (bookingResult.cursor as any)?.firstBatch?.[0];
+    if (!booking) {
+      return null;
+    }
+
     const campingPlaceResult = await prisma.$runCommandRaw({
       find: 'camping_places',
-      filter: { _id: booking.campingPlaceId }
-    })
-    
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0]
-    
+      filter: { _id: booking.campingPlaceId },
+    });
+
+    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+
     return {
       ...booking,
       id: booking._id.$oid, // Map MongoDB _id to id
       campingPlace: {
         ...campingPlace,
-        id: campingPlace._id.$oid // Map camping place _id to id
-      }
-    }
+        id: campingPlace._id.$oid, // Map camping place _id to id
+      },
+    };
   } catch (error) {
-    console.error('Error fetching booking:', error)
-    return null
+    console.error('Error fetching booking:', error);
+    return null;
   }
 }
 
-export default async function BookingDetailsPage({
-  params
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-  const booking = await getBooking(id)
+export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const booking = await getBooking(id);
 
   if (!booking) {
-    notFound()
+    notFound();
   }
 
   // Handle MongoDB date format
-  const startDate = booking.startDate?.$date ? new Date(booking.startDate.$date) : new Date(booking.startDate)
-  const endDate = booking.endDate?.$date ? new Date(booking.endDate.$date) : new Date(booking.endDate)
-  const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
+  const startDate = booking.startDate?.$date
+    ? new Date(booking.startDate.$date)
+    : new Date(booking.startDate);
+  const endDate = booking.endDate?.$date
+    ? new Date(booking.endDate.$date)
+    : new Date(booking.endDate);
+  const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link 
+          <Link
             href="/bookings"
             className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-4 inline-block"
           >
@@ -89,12 +91,17 @@ export default async function BookingDetailsPage({
                 )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Booking Status</label>
-                  <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                    booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                    booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                    booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>
+                  <span
+                    className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+                      booking.status === 'CONFIRMED'
+                        ? 'bg-green-100 text-green-800'
+                        : booking.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : booking.status === 'CANCELLED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                    }`}
+                  >
                     {booking.status}
                   </span>
                 </div>
@@ -114,11 +121,15 @@ export default async function BookingDetailsPage({
                   <p className="text-lg text-gray-900">{endDate.toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Number of Nights</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Number of Nights
+                  </label>
                   <p className="text-lg text-gray-900">{nights}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Number of Guests</label>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Number of Guests
+                  </label>
                   <p className="text-lg text-gray-900">{booking.guests}</p>
                 </div>
               </div>
@@ -157,7 +168,7 @@ export default async function BookingDetailsPage({
                 </div>
               </div>
               <div className="mt-4">
-                <Link 
+                <Link
                   href={`/camping-places/${booking.campingPlace.id}`}
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                 >
@@ -194,13 +205,13 @@ export default async function BookingDetailsPage({
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
               <div className="space-y-3">
-                <Link 
+                <Link
                   href={`/bookings/${booking.id}/edit`}
                   className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block"
                 >
                   Edit Booking
                 </Link>
-                <Link 
+                <Link
                   href={`/camping-places/${booking.campingPlace.id}`}
                   className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition-colors text-center block"
                 >
@@ -220,14 +231,22 @@ export default async function BookingDetailsPage({
                 <div className="w-3 h-3 bg-green-500 rounded-full mr-4"></div>
                 <div>
                   <p className="font-medium text-gray-900">Booking Created</p>
-                  <p className="text-sm text-gray-500">{booking.createdAt?.$date ? new Date(booking.createdAt.$date).toLocaleString() : new Date(booking.createdAt).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">
+                    {booking.createdAt?.$date
+                      ? new Date(booking.createdAt.$date).toLocaleString()
+                      : new Date(booking.createdAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-4"></div>
                 <div>
                   <p className="font-medium text-gray-900">Last Updated</p>
-                  <p className="text-sm text-gray-500">{booking.updatedAt?.$date ? new Date(booking.updatedAt.$date).toLocaleString() : new Date(booking.updatedAt).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">
+                    {booking.updatedAt?.$date
+                      ? new Date(booking.updatedAt.$date).toLocaleString()
+                      : new Date(booking.updatedAt).toLocaleString()}
+                  </p>
                 </div>
               </div>
             </div>
@@ -235,5 +254,5 @@ export default async function BookingDetailsPage({
         </div>
       </div>
     </div>
-  )
+  );
 }

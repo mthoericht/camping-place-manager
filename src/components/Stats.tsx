@@ -1,18 +1,18 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 interface StatsProps {
-  totalPlaces: number
-  activeBookings: number
+  totalPlaces: number;
+  activeBookings: number;
 }
 
 export default function Stats({ totalPlaces, activeBookings }: StatsProps) {
-  const [mounted, setMounted] = useState(false)
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return (
@@ -29,7 +29,7 @@ export default function Stats({ totalPlaces, activeBookings }: StatsProps) {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -46,5 +46,5 @@ export default function Stats({ totalPlaces, activeBookings }: StatsProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

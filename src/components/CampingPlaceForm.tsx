@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CampingPlaceFormProps {
   initialData?: {
-    id?: string
-    name?: string
-    description?: string
-    location?: string
-    size?: number
-    price?: number
-    amenities?: string[]
-    isActive?: boolean
-  }
+    id?: string;
+    name?: string;
+    description?: string;
+    location?: string;
+    size?: number;
+    price?: number;
+    amenities?: string[];
+    isActive?: boolean;
+  };
 }
 
 export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps) {
-  const router = useRouter()
+  const router = useRouter();
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -26,20 +26,18 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     price: initialData?.price || 0,
     amenities: initialData?.amenities || [],
     isActive: initialData?.isActive ?? true,
-  }))
-  const [amenityInput, setAmenityInput] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  }));
+  const [amenityInput, setAmenityInput] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const url = initialData?.id 
-        ? `/api/camping-places/${initialData.id}`
-        : '/api/camping-places'
-      
-      const method = initialData?.id ? 'PUT' : 'POST'
+      const url = initialData?.id ? `/api/camping-places/${initialData.id}` : '/api/camping-places';
+
+      const method = initialData?.id ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
@@ -47,40 +45,39 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        router.push('/camping-places')
-        router.refresh()
+        router.push('/camping-places');
+        router.refresh();
       } else {
-        const error = await response.json()
-        alert(`Error: ${error.error}`)
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error submitting form:', error)
-      alert('An error occurred while submitting the form')
+      console.error('Error submitting form:', error);
+      alert('An error occurred while submitting the form');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const addAmenity = () => {
     if (amenityInput.trim() && !formData.amenities.includes(amenityInput.trim())) {
       setFormData({
         ...formData,
-        amenities: [...formData.amenities, amenityInput.trim()]
-      })
-      setAmenityInput('')
+        amenities: [...formData.amenities, amenityInput.trim()],
+      });
+      setAmenityInput('');
     }
-  }
+  };
 
   const removeAmenity = (amenity: string) => {
     setFormData({
       ...formData,
-      amenities: formData.amenities.filter(a => a !== amenity)
-    })
-  }
-
+      amenities: formData.amenities.filter(a => a !== amenity),
+    });
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -98,7 +95,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             id="name"
             required
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter camping place name"
           />
@@ -112,7 +109,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             id="description"
             rows={3}
             value={formData.description}
-            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            onChange={e => setFormData({ ...formData, description: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe the camping place"
           />
@@ -127,7 +124,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             id="location"
             required
             value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            onChange={e => setFormData({ ...formData, location: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter location"
           />
@@ -144,7 +141,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
               required
               min="1"
               value={formData.size}
-              onChange={(e) => setFormData({ ...formData, size: parseInt(e.target.value) })}
+              onChange={e => setFormData({ ...formData, size: parseInt(e.target.value) })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -160,24 +157,22 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
               min="0"
               step="0.01"
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+              onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Amenities
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
           <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={amenityInput}
-              onChange={(e) => setAmenityInput(e.target.value)}
+              onChange={e => setAmenityInput(e.target.value)}
               className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Add amenity (e.g., WiFi, Pool, BBQ)"
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
+              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
             />
             <button
               type="button"
@@ -206,13 +201,12 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           </div>
         </div>
 
-
         <div className="flex items-center">
           <input
             type="checkbox"
             id="isActive"
             checked={formData.isActive}
-            onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+            onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
@@ -233,10 +227,10 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             disabled={isSubmitting}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {isSubmitting ? 'Saving...' : (initialData?.id ? 'Update' : 'Create')}
+            {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
           </button>
         </div>
       </form>
     </div>
-  )
+  );
 }

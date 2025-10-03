@@ -22,49 +22,57 @@ A modern camping place management application built with Next.js, React, TypeScr
 
 ### Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - MongoDB (local or cloud instance)
 - npm or yarn
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/mthoericht/camping-place-manager.git
 cd camping-place-manager
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.local.example .env.local
 ```
 
 4. Update the `DATABASE_URL` in `.env.local` with your MongoDB connection string:
+
 ```
 DATABASE_URL="mongodb://localhost:27017/camping-place-manager"
 ```
 
 5. Generate Prisma client:
+
 ```bash
 npm run db:generate
 ```
 
 6. Push the database schema:
+
 ```bash
 npm run db:push
 ```
 
 7. Start MongoDB service:
+
 ```bash
 npm run mongo:start
 ```
 
 8. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -74,6 +82,7 @@ npm run dev
 ## Database Schema
 
 ### CampingPlace
+
 - `id`: Unique identifier
 - `name`: Name of the camping place
 - `description`: Description of the place
@@ -86,6 +95,7 @@ npm run dev
 - `createdAt`/`updatedAt`: Timestamps
 
 ### Booking
+
 - `id`: Unique identifier
 - `campingPlaceId`: Reference to camping place
 - `customerName`: Customer's name
@@ -101,17 +111,20 @@ npm run dev
 ## Available Scripts
 
 ### Development
+
 - `npm run dev`: Start development server
 - `npm run build`: Build for production
 - `npm run start`: Start production server
 - `npm run lint`: Run ESLint
 
 ### Database Management
+
 - `npm run db:generate`: Generate Prisma client
 - `npm run db:push`: Push schema changes to database
 - `npm run db:studio`: Open Prisma Studio
 
 ### MongoDB Management
+
 - `npm run mongo:start`: Start MongoDB service
 - `npm run mongo:stop`: Stop MongoDB service
 - `npm run mongo:status`: Check MongoDB service status
@@ -119,6 +132,7 @@ npm run dev
 ## Quick Start Guide
 
 1. **Clone and install:**
+
    ```bash
    git clone https://github.com/mthoericht/camping-place-manager.git
    cd camping-place-manager
@@ -126,12 +140,14 @@ npm run dev
    ```
 
 2. **Set up environment:**
+
    ```bash
    # Create .env.local with your MongoDB connection
    echo 'DATABASE_URL="mongodb://localhost:27017/camping-place-manager"' > .env.local
    ```
 
 3. **Start services:**
+
    ```bash
    npm run mongo:start    # Start MongoDB
    npm run db:push        # Sync database schema

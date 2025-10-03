@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 
 async function getBookings() {
   try {
@@ -8,38 +8,38 @@ async function getBookings() {
         campingPlace: true,
         bookingItems: {
           include: {
-            campingItem: true
-          }
-        }
+            campingItem: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    
-    return bookings
+        createdAt: 'desc',
+      },
+    });
+
+    return bookings;
   } catch (error) {
-    console.error('Error fetching bookings:', error)
-    return []
+    console.error('Error fetching bookings:', error);
+    return [];
   }
 }
 
 export default async function BookingsPage() {
-  let bookings: Awaited<ReturnType<typeof getBookings>> = []
-  let error: Error | null = null
+  let bookings: Awaited<ReturnType<typeof getBookings>> = [];
+  let error: Error | null = null;
 
   try {
-    bookings = await getBookings()
+    bookings = await getBookings();
   } catch (err) {
-    error = err as Error
-    console.error('Error in BookingsPage:', err)
+    error = err as Error;
+    console.error('Error in BookingsPage:', err);
   }
 
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Bookings</h1>
-        <Link 
+        <Link
           href="/bookings/new"
           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
         >
@@ -51,8 +51,10 @@ export default async function BookingsPage() {
         <div className="text-center py-12">
           <div className="text-6xl mb-4">⚠️</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Database Connection Error</h3>
-          <p className="text-gray-600 mb-6">Unable to connect to the database. Please check your MongoDB connection.</p>
-          <Link 
+          <p className="text-gray-600 mb-6">
+            Unable to connect to the database. Please check your MongoDB connection.
+          </p>
+          <Link
             href="/"
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
           >
@@ -63,7 +65,9 @@ export default async function BookingsPage() {
         <div className="text-center py-12">
           <div className="text-6xl mb-4">📅</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No bookings yet</h3>
-          <p className="text-gray-600 mb-6">Bookings will appear here once customers start making reservations</p>
+          <p className="text-gray-600 mb-6">
+            Bookings will appear here once customers start making reservations
+          </p>
         </div>
       ) : (
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
@@ -98,13 +102,19 @@ export default async function BookingsPage() {
                 <tr key={booking.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                      <div className="text-sm font-medium text-gray-900">
+                        {booking.customerName}
+                      </div>
                       <div className="text-sm text-gray-500">{booking.customerEmail}</div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{booking.campingPlace?.name || 'Unknown'}</div>
-                    <div className="text-sm text-gray-500">{booking.campingPlace?.location || 'Unknown'}</div>
+                    <div className="text-sm text-gray-900">
+                      {booking.campingPlace?.name || 'Unknown'}
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      {booking.campingPlace?.location || 'Unknown'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
@@ -121,17 +131,22 @@ export default async function BookingsPage() {
                     ${booking.totalPrice.toFixed(2)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                      booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        booking.status === 'CONFIRMED'
+                          ? 'bg-green-100 text-green-800'
+                          : booking.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : booking.status === 'CANCELLED'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-blue-100 text-blue-800'
+                      }`}
+                    >
                       {booking.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <Link 
+                    <Link
                       href={`/bookings/${booking.id}`}
                       className="text-blue-600 hover:text-blue-900"
                     >
@@ -145,5 +160,5 @@ export default async function BookingsPage() {
         </div>
       )}
     </div>
-  )
+  );
 }

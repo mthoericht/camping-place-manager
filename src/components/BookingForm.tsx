@@ -1,41 +1,41 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface CampingPlace {
-  id: string
-  name: string
-  price: number
-  size: number
+  id: string;
+  name: string;
+  price: number;
+  size: number;
 }
 
 interface CampingItem {
-  id: string
-  name: string
-  category: string
-  size: number
-  description?: string
+  id: string;
+  name: string;
+  category: string;
+  size: number;
+  description?: string;
 }
 
 interface BookingFormProps {
   initialData?: {
-    id?: string
-    campingPlaceId?: string
-    customerName?: string
-    customerEmail?: string
-    customerPhone?: string
-    startDate?: string
-    endDate?: string
-    guests?: number
-    notes?: string
-  }
+    id?: string;
+    campingPlaceId?: string;
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    startDate?: string;
+    endDate?: string;
+    guests?: number;
+    notes?: string;
+  };
 }
 
 export default function BookingForm({ initialData }: BookingFormProps) {
-  const router = useRouter()
-  const [campingPlaces, setCampingPlaces] = useState<CampingPlace[]>([])
-  const [campingItems, setCampingItems] = useState<CampingItem[]>([])
+  const router = useRouter();
+  const [campingPlaces, setCampingPlaces] = useState<CampingPlace[]>([]);
+  const [campingItems, setCampingItems] = useState<CampingItem[]>([]);
   const [formData, setFormData] = useState(() => ({
     campingPlaceId: initialData?.campingPlaceId || '',
     customerName: initialData?.customerName || '',
@@ -45,88 +45,88 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     endDate: initialData?.endDate || '',
     guests: initialData?.guests || 1,
     notes: initialData?.notes || '',
-  }))
-  const [selectedItems, setSelectedItems] = useState<{[key: string]: number}>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedPlace, setSelectedPlace] = useState<CampingPlace | null>(null)
+  }));
+  const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<CampingPlace | null>(null);
 
   useEffect(() => {
-    fetchCampingPlaces()
-    fetchCampingItems()
-  }, [])
+    fetchCampingPlaces();
+    fetchCampingItems();
+  }, []);
 
   useEffect(() => {
     if (formData.campingPlaceId) {
-      const place = campingPlaces.find(p => p.id === formData.campingPlaceId)
-      setSelectedPlace(place || null)
+      const place = campingPlaces.find(p => p.id === formData.campingPlaceId);
+      setSelectedPlace(place || null);
     }
-  }, [formData.campingPlaceId, campingPlaces])
+  }, [formData.campingPlaceId, campingPlaces]);
 
   const fetchCampingPlaces = async () => {
     try {
-      const response = await fetch('/api/camping-places')
+      const response = await fetch('/api/camping-places');
       if (response.ok) {
-        const places = await response.json()
-        setCampingPlaces(places.filter((place: any) => place.isActive))
+        const places = await response.json();
+        setCampingPlaces(places.filter((place: any) => place.isActive));
       }
     } catch (error) {
-      console.error('Error fetching camping places:', error)
+      console.error('Error fetching camping places:', error);
     }
-  }
+  };
 
   const fetchCampingItems = async () => {
     try {
-      const response = await fetch('/api/camping-items')
+      const response = await fetch('/api/camping-items');
       if (response.ok) {
-        const items = await response.json()
-        setCampingItems(items)
+        const items = await response.json();
+        setCampingItems(items);
       }
     } catch (error) {
-      console.error('Error fetching camping items:', error)
+      console.error('Error fetching camping items:', error);
     }
-  }
+  };
 
   const calculateTotalSize = () => {
-    let totalSize = 0
+    let totalSize = 0;
     Object.entries(selectedItems).forEach(([itemId, quantity]) => {
-      const item = campingItems.find(i => i.id === itemId)
+      const item = campingItems.find(i => i.id === itemId);
       if (item) {
-        totalSize += item.size * quantity
+        totalSize += item.size * quantity;
       }
-    })
-    return totalSize
-  }
+    });
+    return totalSize;
+  };
 
   const calculateTotalPrice = () => {
-    if (!selectedPlace || !formData.startDate || !formData.endDate) return 0
-    
-    const start = new Date(formData.startDate)
-    const end = new Date(formData.endDate)
-    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
-    
-    return nights * selectedPlace.price
-  }
+    if (!selectedPlace || !formData.startDate || !formData.endDate) {
+      return 0;
+    }
+
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+
+    return nights * selectedPlace.price;
+  };
 
   const updateItemQuantity = (itemId: string, quantity: number) => {
-    const newSelectedItems = { ...selectedItems }
+    const newSelectedItems = { ...selectedItems };
     if (quantity === 0) {
-      delete newSelectedItems[itemId]
+      delete newSelectedItems[itemId];
     } else {
-      newSelectedItems[itemId] = quantity
+      newSelectedItems[itemId] = quantity;
     }
-    setSelectedItems(newSelectedItems)
-  }
+    setSelectedItems(newSelectedItems);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      const url = initialData?.id 
-        ? `/api/bookings/${initialData.id}`
-        : '/api/bookings'
-      
-      const method = initialData?.id ? 'PUT' : 'POST'
+      const url = initialData?.id ? `/api/bookings/${initialData.id}` : '/api/bookings';
+
+      const method = initialData?.id ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
         method,
@@ -135,24 +135,24 @@ export default function BookingForm({ initialData }: BookingFormProps) {
         },
         body: JSON.stringify({
           ...formData,
-          campingItems: selectedItems
+          campingItems: selectedItems,
         }),
-      })
+      });
 
       if (response.ok) {
-        router.push('/bookings')
-        router.refresh()
+        router.push('/bookings');
+        router.refresh();
       } else {
-        const error = await response.json()
-        alert(`Error: ${error.error}`)
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
       }
     } catch (error) {
-      console.error('Error submitting form:', error)
-      alert('An error occurred while submitting the form')
+      console.error('Error submitting form:', error);
+      alert('An error occurred while submitting the form');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -169,11 +169,11 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             id="campingPlaceId"
             required
             value={formData.campingPlaceId}
-            onChange={(e) => setFormData({ ...formData, campingPlaceId: e.target.value })}
+            onChange={e => setFormData({ ...formData, campingPlaceId: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select a camping place</option>
-            {campingPlaces.map((place) => (
+            {campingPlaces.map(place => (
               <option key={place.id} value={place.id}>
                 {place.name} - ${place.price}/night (Size: {place.size} m&#178;)
               </option>
@@ -191,7 +191,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
               id="startDate"
               required
               value={formData.startDate}
-              onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+              onChange={e => setFormData({ ...formData, startDate: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -205,7 +205,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
               id="endDate"
               required
               value={formData.endDate}
-              onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+              onChange={e => setFormData({ ...formData, endDate: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -222,7 +222,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             min="1"
             max={selectedPlace?.size || 10}
             value={formData.guests}
-            onChange={(e) => setFormData({ ...formData, guests: parseInt(e.target.value) })}
+            onChange={e => setFormData({ ...formData, guests: parseInt(e.target.value) })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {selectedPlace && (
@@ -241,7 +241,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             id="customerName"
             required
             value={formData.customerName}
-            onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
+            onChange={e => setFormData({ ...formData, customerName: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer name"
           />
@@ -256,7 +256,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             id="customerEmail"
             required
             value={formData.customerEmail}
-            onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })}
+            onChange={e => setFormData({ ...formData, customerEmail: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer email"
           />
@@ -270,7 +270,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             type="tel"
             id="customerPhone"
             value={formData.customerPhone}
-            onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })}
+            onChange={e => setFormData({ ...formData, customerPhone: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer phone number"
           />
@@ -278,16 +278,18 @@ export default function BookingForm({ initialData }: BookingFormProps) {
 
         {selectedPlace && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Camping Items
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Camping Items</label>
             <div className="space-y-3">
-              {campingItems.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-md">
+              {campingItems.map(item => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
+                >
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">{item.name}</div>
                     <div className="text-sm text-gray-600">
-                      {item.category} - {item.size} m&#178; {item.description && `- ${item.description}`}
+                      {item.category} - {item.size} m&#178;{' '}
+                      {item.description && `- ${item.description}`}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -329,7 +331,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             id="notes"
             rows={3}
             value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            onChange={e => setFormData({ ...formData, notes: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Any special requests or notes"
           />
@@ -350,7 +352,11 @@ export default function BookingForm({ initialData }: BookingFormProps) {
               <div className="flex justify-between">
                 <span>Number of nights:</span>
                 <span>
-                  {Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24))}
+                  {Math.ceil(
+                    (new Date(formData.endDate).getTime() -
+                      new Date(formData.startDate).getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )}
                 </span>
               </div>
               <div className="flex justify-between font-semibold text-lg">
@@ -367,7 +373,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             disabled={isSubmitting}
             className="flex-1 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors"
           >
-            {isSubmitting ? 'Processing...' : (initialData?.id ? 'Update Booking' : 'Create Booking')}
+            {isSubmitting ? 'Processing...' : initialData?.id ? 'Update Booking' : 'Create Booking'}
           </button>
           <button
             type="button"
@@ -379,5 +385,5 @@ export default function BookingForm({ initialData }: BookingFormProps) {
         </div>
       </form>
     </div>
-  )
+  );
 }

@@ -1,50 +1,52 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { notFound } from 'next/navigation'
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
 async function getCampingPlace(id: string) {
   try {
     const campingPlaceResult = await prisma.$runCommandRaw({
       find: 'camping_places',
-      filter: { _id: { $oid: id } }
-    })
-    
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0]
-    if (!campingPlace) return null
-    
+      filter: { _id: { $oid: id } },
+    });
+
+    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+    if (!campingPlace) {
+      return null;
+    }
+
     // Get bookings for this camping place
     const bookingsResult = await prisma.$runCommandRaw({
       find: 'bookings',
       filter: { campingPlaceId: campingPlace._id },
-      sort: { createdAt: -1 }
-    })
-    
-    const bookings = (bookingsResult.cursor as any)?.firstBatch || []
-    
+      sort: { createdAt: -1 },
+    });
+
+    const bookings = (bookingsResult.cursor as any)?.firstBatch || [];
+
     return {
       ...campingPlace,
       id: campingPlace._id.$oid, // Map MongoDB _id to id
       bookings: bookings.map((booking: any) => ({
         ...booking,
-        id: booking._id.$oid // Map booking _id to id
-      }))
-    }
+        id: booking._id.$oid, // Map booking _id to id
+      })),
+    };
   } catch (error) {
-    console.error('Error fetching camping place:', error)
-    return null
+    console.error('Error fetching camping place:', error);
+    return null;
   }
 }
 
 export default async function CampingPlaceDetailsPage({
-  params
+  params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params
-  const campingPlace = await getCampingPlace(id)
+  const { id } = await params;
+  const campingPlace = await getCampingPlace(id);
 
   if (!campingPlace) {
-    notFound()
+    notFound();
   }
 
   return (
@@ -52,7 +54,7 @@ export default async function CampingPlaceDetailsPage({
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Link 
+          <Link
             href="/camping-places"
             className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-4 inline-block"
           >
@@ -86,8 +88,8 @@ export default async function CampingPlaceDetailsPage({
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Amenities</h2>
               {campingPlace.amenities.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {campingPlace.amenities.map((amenity : any, index : any) => (
-                    <span 
+                  {campingPlace.amenities.map((amenity: any, index: any) => (
+                    <span
                       key={index}
                       className="bg-blue-100 text-blue-800 px-3 py-2 rounded-full text-sm font-medium"
                     >
@@ -105,9 +107,7 @@ export default async function CampingPlaceDetailsPage({
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-green-600 mb-2">
-                  ${campingPlace.price}
-                </div>
+                <div className="text-3xl font-bold text-green-600 mb-2">${campingPlace.price}</div>
                 <div className="text-gray-600">per night</div>
               </div>
 
@@ -118,7 +118,9 @@ export default async function CampingPlaceDetailsPage({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Status:</span>
-                  <span className={`font-medium ${campingPlace.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                  <span
+                    className={`font-medium ${campingPlace.isActive ? 'text-green-600' : 'text-red-600'}`}
+                  >
                     {campingPlace.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -129,13 +131,13 @@ export default async function CampingPlaceDetailsPage({
               </div>
 
               <div className="space-y-3">
-                <Link 
+                <Link
                   href={`/camping-places/${campingPlace.id}/edit`}
                   className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block"
                 >
                   Edit Place
                 </Link>
-                <Link 
+                <Link
                   href={`/bookings?campingPlace=${campingPlace.id}`}
                   className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition-colors text-center block"
                 >
@@ -173,16 +175,19 @@ export default async function CampingPlaceDetailsPage({
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {campingPlace.bookings.slice(0, 5).map((booking : any) => (
+                    {campingPlace.bookings.slice(0, 5).map((booking: any) => (
                       <tr key={booking.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{booking.customerName}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {booking.customerName}
+                            </div>
                             <div className="text-sm text-gray-500">{booking.customerEmail}</div>
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                          {new Date(booking.startDate).toLocaleDateString()} -{' '}
+                          {new Date(booking.endDate).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {booking.guests}
@@ -191,12 +196,17 @@ export default async function CampingPlaceDetailsPage({
                           ${booking.totalPrice}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-800' :
-                            booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                            booking.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                            'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              booking.status === 'CONFIRMED'
+                                ? 'bg-green-100 text-green-800'
+                                : booking.status === 'PENDING'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : booking.status === 'CANCELLED'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-blue-100 text-blue-800'
+                            }`}
+                          >
                             {booking.status}
                           </span>
                         </td>
@@ -207,7 +217,7 @@ export default async function CampingPlaceDetailsPage({
               </div>
               {campingPlace.bookings.length > 5 && (
                 <div className="bg-gray-50 px-6 py-3 text-center">
-                  <Link 
+                  <Link
                     href={`/bookings?campingPlace=${campingPlace.id}`}
                     className="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
@@ -220,5 +230,5 @@ export default async function CampingPlaceDetailsPage({
         )}
       </div>
     </div>
-  )
+  );
 }

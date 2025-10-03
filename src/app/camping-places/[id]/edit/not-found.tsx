@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
@@ -10,19 +10,19 @@ export default function NotFound() {
           The camping place you&apos;re trying to edit doesn&apos;t exist or has been removed.
         </p>
         <div className="space-x-4">
-          <Link 
+          <Link
             href="/camping-places"
             className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
           >
             View All Places
           </Link>
-          <Link 
+          <Link
             href="/camping-places/new"
             className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition-colors"
           >
             Create New Place
           </Link>
-          <Link 
+          <Link
             href="/"
             className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition-colors"
           >
@@ -31,5 +31,5 @@ export default function NotFound() {
         </div>
       </div>
     </div>
-  )
+  );
 }
