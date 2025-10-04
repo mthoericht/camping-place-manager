@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       size: parseInt(size),
       description,
       isActive: isActive !== undefined ? isActive : true,
-      updatedAt: new Date(),
+      updatedAt: { $date: new Date().toISOString() },// Ensure proper DateTime format (Several API routes were using prisma.$runCommandRaw() with new Date() objects, which MongoDB was storing as strings instead of proper DateTime objects.)
     };
 
     await prisma.$runCommandRaw({

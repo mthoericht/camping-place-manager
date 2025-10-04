@@ -55,14 +55,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       customerEmail,
       customerPhone: customerPhone || null,
       notes: notes || null,
-      updatedAt: new Date(),
+      updatedAt: { $date: new Date().toISOString() }, // Ensure proper DateTime format
     };
 
     if (startDate) {
-      updateData.startDate = new Date(startDate);
+      updateData.startDate = { $date: new Date(startDate).toISOString() };
     }
     if (endDate) {
-      updateData.endDate = new Date(endDate);
+      updateData.endDate = { $date: new Date(endDate).toISOString() };
     }
     if (guests) {
       updateData.guests = parseInt(guests);
@@ -82,8 +82,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         bookingId: id,
         campingItemId: itemId,
         quantity: quantity as number,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        createdAt: { $date: new Date().toISOString() },  // Ensure proper DateTime format (Several API routes were using prisma.$runCommandRaw() with new Date() objects, which MongoDB was storing as strings instead of proper DateTime objects.)
+        updatedAt: { $date: new Date().toISOString() },
       }));
 
       if (itemsToCreate.length > 0) {
