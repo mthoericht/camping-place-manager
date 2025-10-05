@@ -51,9 +51,6 @@ export default async function CampingItemDetailPage({
         </div>
 
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
-          <div className="h-64 bg-gray-200 flex items-center justify-center">
-            <div className="text-6xl text-gray-400">🎒</div>
-          </div>
           
           <div className="p-8">
             <div className="flex justify-between items-start mb-6">

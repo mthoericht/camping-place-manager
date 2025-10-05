@@ -5,6 +5,7 @@ A modern camping place management application built with Next.js, React, TypeScr
 ## Features
 
 - 🏕️ **Camping Place Management**: Add, edit, and manage camping places
+- 🎒 **Camping Items Management**: Manage camping equipment and items inventory
 - 📅 **Booking System**: Handle customer bookings and reservations
 - 🎨 **Modern UI**: Beautiful, responsive interface with Tailwind CSS
 - 🗄️ **Database**: MongoDB with Prisma ORM for data management
@@ -94,6 +95,16 @@ npm run dev
 - `isActive`: Whether the place is available for booking
 - `createdAt`/`updatedAt`: Timestamps
 
+### CampingItem
+
+- `id`: Unique identifier
+- `name`: Name of the camping item
+- `category`: Item category (Tent, Van, Trailer, Pavillon/Awning, etc.)
+- `size`: Size in square meters
+- `description`: Description of the item
+- `isActive`: Whether the item is available for booking
+- `createdAt`/`updatedAt`: Timestamps
+
 ### Booking
 
 - `id`: Unique identifier
@@ -107,6 +118,41 @@ npm run dev
 - `status`: Booking status (PENDING, CONFIRMED, CANCELLED, COMPLETED)
 - `notes`: Additional notes
 - `createdAt`/`updatedAt`: Timestamps
+
+### BookingItem
+
+- `id`: Unique identifier
+- `bookingId`: Reference to booking
+- `campingItemId`: Reference to camping item
+- `quantity`: Number of items booked
+- `createdAt`/`updatedAt`: Timestamps
+
+## Camping Items Management
+
+The camping items management system allows you to maintain an inventory of camping equipment and items that can be rented out to customers.
+
+### Features
+
+- **Add Items**: Create new camping items with name, category, size, and description
+- **Edit Items**: Update existing item details and availability status
+- **Delete Items**: Remove items from inventory with confirmation
+- **View Details**: Detailed view of individual camping items
+- **Category Management**: Predefined categories including Tent, Van, Trailer, Pavillon/Awning
+- **Status Tracking**: Mark items as active/inactive for availability
+
+### Available Categories
+
+- Tent
+- Van
+- Trailer
+- Pavillon/Awning
+
+### Navigation
+
+Access camping items management through:
+- Main navigation bar: "Camping Items"
+- Homepage dashboard: "Manage Items" card
+- Direct URL: `/camping-items`
 
 ## Available Scripts
 
@@ -157,6 +203,7 @@ npm run dev
 4. **Access the application:**
    - Open [http://localhost:3000](http://localhost:3000)
    - Create your first camping place
+   - Add camping items to your inventory
    - Make a test booking
    - View analytics dashboard
 
@@ -166,12 +213,20 @@ npm run dev
 src/
 ├── app/                    # Next.js app directory
 │   ├── api/               # API routes
+│   │   ├── camping-items/ # Camping items API endpoints
+│   │   ├── camping-places/# Camping places API endpoints
+│   │   └── bookings/      # Bookings API endpoints
+│   ├── camping-items/     # Camping items management pages
 │   ├── camping-places/    # Camping places pages
 │   ├── bookings/          # Bookings pages
+│   ├── analytics/         # Analytics dashboard
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
 ├── components/            # Reusable components
+│   ├── CampingItemForm.tsx# Camping item form component
+│   ├── CampingPlaceForm.tsx# Camping place form component
+│   └── BookingForm.tsx    # Booking form component
 └── lib/                   # Utility functions
     └── prisma.ts          # Prisma client setup
 ```

@@ -101,9 +101,6 @@ export default async function CampingItemsPage()
               key={item.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
-              <div className="h-48 bg-gray-200 flex items-center justify-center">
-                <div className="text-4xl text-gray-400">🎒</div>
-              </div>
               <div className="p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.name}</h3>
                 <p className="text-gray-600 mb-2">
