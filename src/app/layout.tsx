@@ -25,6 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <Link href="/camping-places" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                     Camping Places
                   </Link>
+                  <Link href="/camping-items" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                    Camping Items
+                  </Link>
                   <Link href="/bookings" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                     Bookings
                   </Link>

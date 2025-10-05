@@ -5,15 +5,25 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 {
   try {
     const { id } = await params;
-    const campingItem = await prisma.campingItem.findUnique({
-      where: { id },
+    
+    const campingItemResult = await prisma.$runCommandRaw({
+      find: 'camping_items',
+      filter: { _id: { $oid: id } },
     });
+
+    const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
 
     if (!campingItem) {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
-    return NextResponse.json(campingItem);
+    // Map MongoDB _id to id
+    const mappedCampingItem = {
+      ...campingItem,
+      id: campingItem._id.$oid,
+    };
+
+    return NextResponse.json(mappedCampingItem);
   } catch (error) {
     console.error('Error fetching camping item:', error);
     return NextResponse.json({ error: 'Failed to fetch camping item' }, { status: 500 });
@@ -78,9 +88,23 @@ export async function DELETE(  request: NextRequest,  { params }: { params: Prom
   try 
   {
     const { id } = await params;
-    await prisma.campingItem.delete({
-      where: { id },
+    
+    // Use raw MongoDB delete to avoid replica set requirement
+    const deleteResult = await prisma.$runCommandRaw({
+      delete: 'camping_items',
+      deletes: [
+        {
+          q: { _id: { $oid: id } },
+          limit: 1
+        }
+      ]
     });
+
+    const deletedCount = (deleteResult as any).deletedCount || (deleteResult as any).n;
+    
+    if (deletedCount === 0) {
+      return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Camping item deleted successfully' });
   } catch (error) {

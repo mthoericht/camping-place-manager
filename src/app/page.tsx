@@ -20,6 +20,15 @@ export default function Home() {
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
+            <div className="text-3xl mb-4">🎒</div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Camping Items</h3>
+            <p className="text-gray-600 mb-4">Manage camping equipment and items</p>
+            <Link href="/camping-items" className="inline-block bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors">
+              Manage Items
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
             <div className="text-3xl mb-4">📅</div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Bookings</h3>
             <p className="text-gray-600 mb-4">Track and manage customer bookings</p>
