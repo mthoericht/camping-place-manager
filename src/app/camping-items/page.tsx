@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { DateUtil } from '@/lib/DateUtil';
 
 interface CampingItem {
   id: string;
@@ -33,12 +34,6 @@ async function getCampingItems(): Promise<CampingItem[]> {
     console.error('Error fetching camping items:', error);
     return [];
   }
-}
-
-function formatDate(date: string) 
-{
-  let dateObj: Date = new Date(date);
-  return dateObj.getDate() + "." + (dateObj.getMonth() + 1) + "." + dateObj.getFullYear();
 }
 
 export default async function CampingItemsPage() 
@@ -123,7 +118,7 @@ export default async function CampingItemsPage()
 
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">
-                    Created: {formatDate(item.createdAt.$date)}
+                    Created: {DateUtil.formatDate(item.createdAt.$date)}
                   </div>
                   <div className="flex space-x-2">
                     <Link
