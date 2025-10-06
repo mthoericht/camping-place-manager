@@ -4,23 +4,125 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        campingPlace: true,
-        bookingItems: {
-          include: {
-            campingItem: true,
-          },
-        },
-      },
+    console.log('API: Fetching booking with ID:', id);
+    
+    // Use raw MongoDB queries for more reliable data fetching
+    const bookingResult = await prisma.$runCommandRaw({
+      find: 'bookings',
+      filter: { _id: { $oid: id } },
     });
+
+    const booking = (bookingResult.cursor as any)?.firstBatch?.[0];
+    console.log('API: Found booking:', booking);
 
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
-    return NextResponse.json(booking);
+    // Get camping place
+    const campingPlaceResult = await prisma.$runCommandRaw({
+      find: 'camping_places',
+      filter: { _id: booking.campingPlaceId },
+    });
+
+    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+    console.log('API: Found camping place:', campingPlace);
+
+    // Get booking items
+    const bookingItemsResult = await prisma.$runCommandRaw({
+      find: 'booking_items',
+      filter: { bookingId: id },
+    });
+
+    const bookingItems = (bookingItemsResult.cursor as any)?.firstBatch || [];
+    console.log('API: Found booking items:', bookingItems);
+
+    let bookingItemsWithCampingItems = [];
+
+    if (bookingItems.length > 0) {
+      // Get camping items for these booking items
+      const campingItemIds = bookingItems.map((item: any) => {
+        return typeof item.campingItemId === 'object' && item.campingItemId.$oid 
+          ? item.campingItemId.$oid 
+          : item.campingItemId;
+      });
+
+      console.log('API: Camping item IDs to fetch:', campingItemIds);
+
+      const campingItemsResult = await prisma.$runCommandRaw({
+        find: 'camping_items',
+        filter: { _id: { $in: campingItemIds.map((id: string) => ({ $oid: id })) } },
+      });
+
+      const campingItems = (campingItemsResult.cursor as any)?.firstBatch || [];
+      console.log('API: Found camping items:', campingItems);
+
+      // Transform the data
+      bookingItemsWithCampingItems = bookingItems.map((item: any) => {
+        // Handle both ObjectId and string formats for campingItemId
+        const itemCampingItemId = typeof item.campingItemId === 'object' && item.campingItemId.$oid 
+          ? item.campingItemId.$oid 
+          : item.campingItemId;
+        
+        const campingItem = campingItems.find((ci: any) => {
+          const ciId = typeof ci._id === 'object' && ci._id.$oid ? ci._id.$oid : ci._id;
+          return ciId === itemCampingItemId;
+        });
+
+        console.log('Matching camping item for booking item:', {
+          bookingItemId: item._id.$oid,
+          campingItemId: itemCampingItemId,
+          foundCampingItem: campingItem
+        });
+
+        return {
+          id: item._id.$oid,
+          bookingId: item.bookingId,
+          campingItemId: itemCampingItemId,
+          quantity: item.quantity,
+          campingItem: campingItem ? {
+            id: typeof campingItem._id === 'object' && campingItem._id.$oid ? campingItem._id.$oid : campingItem._id,
+            name: campingItem.name,
+            category: campingItem.category,
+            size: campingItem.size,
+            description: campingItem.description
+          } : null,
+        };
+      });
+    }
+
+    // Construct the final booking object
+    const finalBooking = {
+      id: booking._id.$oid,
+      campingPlaceId: booking.campingPlaceId,
+      customerName: booking.customerName,
+      customerEmail: booking.customerEmail,
+      customerPhone: booking.customerPhone,
+      startDate: booking.startDate,
+      endDate: booking.endDate,
+      guests: booking.guests,
+      totalPrice: booking.totalPrice,
+      status: booking.status,
+      notes: booking.notes,
+      createdAt: booking.createdAt,
+      updatedAt: booking.updatedAt,
+      campingPlace: campingPlace ? {
+        id: campingPlace._id.$oid,
+        name: campingPlace.name,
+        description: campingPlace.description,
+        location: campingPlace.location,
+        size: campingPlace.size,
+        price: campingPlace.price,
+        amenities: campingPlace.amenities,
+        isActive: campingPlace.isActive,
+        createdAt: campingPlace.createdAt,
+        updatedAt: campingPlace.updatedAt
+      } : null,
+      bookingItems: bookingItemsWithCampingItems
+    };
+
+    console.log('API: Final booking object:', finalBooking);
+    return NextResponse.json(finalBooking);
   } catch (error) {
     console.error('Error fetching booking:', error);
     return NextResponse.json({ error: 'Failed to fetch booking' }, { status: 500 });

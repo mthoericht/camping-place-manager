@@ -4,30 +4,28 @@ import { notFound } from 'next/navigation';
 
 async function getBooking(id: string) {
   try {
-    const bookingResult = await prisma.$runCommandRaw({
-      find: 'bookings',
-      filter: { _id: { $oid: id } },
+    // Use the API route to get booking with all related data including camping items
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/bookings/${id}`, {
+      cache: 'no-store'
     });
-
-    const booking = (bookingResult.cursor as any)?.firstBatch?.[0];
-    if (!booking) {
+    
+    if (!response.ok) {
       return null;
     }
-
-    const campingPlaceResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      filter: { _id: booking.campingPlaceId },
-    });
-
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
-
+    
+    const booking = await response.json();
+    console.log('Booking details page - Raw booking data:', booking);
+    console.log('Booking details page - Booking items:', booking.bookingItems);
+    
+    // Transform the booking data to match the expected format
     return {
       ...booking,
-      id: booking._id.$oid, // Map MongoDB _id to id
+      id: booking.id,
       campingPlace: {
-        ...campingPlace,
-        id: campingPlace._id.$oid, // Map camping place _id to id
+        ...booking.campingPlace,
+        id: booking.campingPlace.id,
       },
+      bookingItems: booking.bookingItems || [],
     };
   } catch (error) {
     console.error('Error fetching booking:', error);
@@ -135,6 +133,57 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
               </div>
             </div>
 
+            {/* Camping Items */}
+            {booking.bookingItems && booking.bookingItems.length > 0 && (
+              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-4">Selected Camping Items</h2>
+                <div className="space-y-3">
+                  {booking.bookingItems.map((bookingItem: any) => {
+                    console.log('Rendering booking item:', bookingItem);
+                    console.log('Camping item data:', bookingItem.campingItem);
+                    return (
+                    <div
+                      key={bookingItem.id}
+                      className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
+                    >
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">
+                          {bookingItem.campingItem?.name || 'Unknown Item'}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {bookingItem.campingItem?.category || 'Unknown Category'} - {bookingItem.campingItem?.size || 0} m&#178;
+                          {bookingItem.campingItem?.description && ` - ${bookingItem.campingItem.description}`}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium text-gray-900">Quantity: {bookingItem.quantity}</div>
+                        <div className="text-sm text-gray-600">
+                          Total size: {(bookingItem.campingItem?.size || 0) * bookingItem.quantity} m&#178;
+                        </div>
+                      </div>
+                    </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">Total Items Selected:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {booking.bookingItems.reduce((total: number, item: any) => total + item.quantity, 0)} items
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm font-medium text-gray-700">Total Size Used:</span>
+                    <span className="text-sm font-medium text-gray-900">
+                      {booking.bookingItems.reduce((total: number, item: any) => 
+                        total + ((item.campingItem?.size || 0) * item.quantity), 0
+                      )} m&#178;
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Notes */}
             {booking.notes && (
               <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -193,6 +242,12 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                   <span className="text-gray-600">Number of guests:</span>
                   <span>{booking.guests}</span>
                 </div>
+                {booking.bookingItems && booking.bookingItems.length > 0 && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Camping items:</span>
+                    <span>{booking.bookingItems.reduce((total: number, item: any) => total + item.quantity, 0)} items</span>
+                  </div>
+                )}
                 <hr className="my-2" />
                 <div className="flex justify-between font-semibold text-lg">
                   <span>Total Price:</span>

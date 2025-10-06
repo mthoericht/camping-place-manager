@@ -29,6 +29,7 @@ interface BookingFormProps {
     endDate?: string;
     guests?: number;
     notes?: string;
+    campingItems?: { [key: string]: number };
   };
 }
 
@@ -46,7 +47,11 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     guests: initialData?.guests || 1,
     notes: initialData?.notes || '',
   }));
-  const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
+  const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>(() => {
+    console.log('BookingForm initialData:', initialData);
+    console.log('BookingForm initial camping items:', initialData?.campingItems);
+    return initialData?.campingItems || {};
+  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<CampingPlace | null>(null);
 
@@ -62,6 +67,10 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     }
   }, [formData.campingPlaceId, campingPlaces]);
 
+  useEffect(() => {
+    console.log('selectedItems state changed:', selectedItems);
+  }, [selectedItems]);
+
   const fetchCampingPlaces = async () => {
     try {
       const response = await fetch('/api/camping-places');
@@ -75,10 +84,14 @@ export default function BookingForm({ initialData }: BookingFormProps) {
   };
 
   const fetchCampingItems = async () => {
-    try {
+    try 
+    {
       const response = await fetch('/api/camping-items');
-      if (response.ok) {
+
+      if (response.ok) 
+      {
         const items = await response.json();
+        console.log("Camping items from API:", items);
         setCampingItems(items);
       }
     } catch (error) {
@@ -280,7 +293,9 @@ export default function BookingForm({ initialData }: BookingFormProps) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Camping Items</label>
             <div className="space-y-3">
-              {campingItems.map(item => (
+              {campingItems.map(item => {
+                console.log(`Item ${item.id} (${item.name}) selected quantity:`, selectedItems[item.id]);
+                return (
                 <div
                   key={item.id}
                   className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
@@ -312,7 +327,8 @@ export default function BookingForm({ initialData }: BookingFormProps) {
                     </button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-2 text-sm text-gray-600">
               Total size used: {calculateTotalSize()} m&#178; / {selectedPlace.size} m&#178;

@@ -5,30 +5,29 @@ import { notFound } from 'next/navigation';
 
 async function getBooking(id: string) {
   try {
-    const bookingResult = await prisma.$runCommandRaw({
-      find: 'bookings',
-      filter: { _id: { $oid: id } },
+    // Use the API route to get booking with all related data including camping items
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/bookings/${id}`, {
+      cache: 'no-store'
     });
-
-    const booking = (bookingResult.cursor as any)?.firstBatch?.[0];
-    if (!booking) {
+    
+    if (!response.ok) {
+      console.error('API response not ok:', response.status, response.statusText);
       return null;
     }
-
-    const campingPlaceResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      filter: { _id: booking.campingPlaceId },
-    });
-
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
-
+    
+    const booking = await response.json();
+    console.log('Raw API response:', booking);
+    console.log('Booking items from API:', booking.bookingItems);
+    
+    // Transform the booking data to match the expected format
     return {
       ...booking,
-      id: booking._id.$oid, // Map MongoDB _id to id
+      id: booking.id,
       campingPlace: {
-        ...campingPlace,
-        id: campingPlace._id.$oid, // Map camping place _id to id
+        ...booking.campingPlace,
+        id: booking.campingPlace.id,
       },
+      bookingItems: booking.bookingItems || [],
     };
   } catch (error) {
     console.error('Error fetching booking:', error);
@@ -62,6 +61,19 @@ export default async function EditBookingPage({ params }: { params: Promise<{ id
       .split('T')[0], // Convert to YYYY-MM-DD format
     guests: booking.guests,
     notes: booking.notes || undefined,
+    campingItems: (() => {
+      console.log('Booking bookingItems:', booking.bookingItems);
+      const items = booking.bookingItems?.reduce((acc: { [key: string]: number }, item: any) => {
+        console.log('Processing booking item:', item);
+        // Prisma returns campingItemId as a string, not ObjectId
+        const itemId = item.campingItemId;
+        console.log('Item ID:', itemId, 'Quantity:', item.quantity);
+        acc[itemId] = item.quantity;
+        return acc;
+      }, {}) || {};
+      console.log('Transformed camping items:', items);
+      return items;
+    })(),
   };
 
   return (
