@@ -4,16 +4,20 @@
   "description": "Tool to handle camping-areas with time-slots and a simple database written in next.js/react",
   "private": true,
   "scripts": {
+    "setup": "npm install && npm run db:generate",
+    "clean": "rm -rf .next out .vercel *.tsbuildinfo",
+    "clean:all": "npm run clean && rm -rf node_modules",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "mongo:start": "brew services start mongodb-community",
-    "mongo:stop": "brew services stop mongodb-community",
-    "mongo:status": "brew services list | grep mongo"
+    "db:studio": "./studio.sh",
+    "db:start": "./start-db.sh",
+    "db:stop": "./stop-db.sh",
+    "db:restart": "./restart-db.sh",
+    "db:status": "./logs.sh"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

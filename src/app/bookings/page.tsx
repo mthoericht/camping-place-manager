@@ -22,6 +22,21 @@ interface Booking {
   };
 }
 
+// Helper function to parse MongoDB date format
+function parseMongoDate(date: any): string {
+  if (!date) return '';
+  if (date.$date) {
+    return date.$date;
+  }
+  if (date instanceof Date) {
+    return date.toISOString();
+  }
+  if (typeof date === 'string') {
+    return date;
+  }
+  return '';
+}
+
 async function getBookings(): Promise<Booking[]> {
   try {
     const bookingsResult = await prisma.$runCommandRaw({
@@ -31,11 +46,53 @@ async function getBookings(): Promise<Booking[]> {
     
     const bookings = (bookingsResult.cursor as any)?.firstBatch || [];
     
-    // Map MongoDB _id to id for each booking
-    const mappedBookings = bookings.map((booking: any): Booking => ({
-      ...booking,
-      id: booking._id.$oid
-    }));
+    // Get all camping places to map them to bookings
+    const placesResult = await prisma.$runCommandRaw({
+      find: 'camping_places'
+    });
+    const campingPlaces = (placesResult.cursor as any)?.firstBatch || [];
+    const placesMap = new Map(
+      campingPlaces.map((place: any) => [
+        place._id.$oid,
+        {
+          id: place._id.$oid,
+          name: place.name,
+          location: place.location
+        }
+      ])
+    );
+    
+    // Map MongoDB _id to id and include camping place data
+    const mappedBookings = bookings.map((booking: any): Booking => {
+      // Handle campingPlaceId - it might be ObjectId or string
+      let campingPlaceId: string;
+      if (booking.campingPlaceId?.$oid) {
+        campingPlaceId = booking.campingPlaceId.$oid;
+      } else if (typeof booking.campingPlaceId === 'string') {
+        campingPlaceId = booking.campingPlaceId;
+      } else {
+        campingPlaceId = String(booking.campingPlaceId);
+      }
+      
+      const campingPlace = campingPlaceId ? placesMap.get(campingPlaceId) : undefined;
+      
+      return {
+        id: booking._id.$oid,
+        campingPlaceId: campingPlaceId,
+        customerName: booking.customerName,
+        customerEmail: booking.customerEmail,
+        customerPhone: booking.customerPhone,
+        startDate: parseMongoDate(booking.startDate),
+        endDate: parseMongoDate(booking.endDate),
+        guests: booking.guests,
+        totalPrice: booking.totalPrice,
+        status: booking.status as 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED',
+        notes: booking.notes,
+        createdAt: parseMongoDate(booking.createdAt),
+        updatedAt: parseMongoDate(booking.updatedAt),
+        campingPlace: campingPlace as { id: string; name: string; location: string } | undefined
+      };
+    });
     
     return mappedBookings;
   } catch (error) {

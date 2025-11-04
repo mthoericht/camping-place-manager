@@ -37,3 +37,9 @@ next-env.d.ts
 
 # prisma
 /prisma/migrations
+
+# mongodb local data
+/data/db/*
+!/data/db/.gitkeep
+!/data/db/logs/.gitkeep
+/data/db/logs/*.log
