@@ -1,6 +1,7 @@
 {
   "name": "camping-place-manager",
   "version": "1.0.0",
+  "type": "module",
   "description": "Tool to handle camping-areas with time-slots and a simple database written in next.js/react",
   "private": true,
   "scripts": {
@@ -10,7 +11,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "./studio.sh",

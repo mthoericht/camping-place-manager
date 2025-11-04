@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) : Promise<NextResponse>
 {
-  try {
+  try 
+  {
     const { id } = await params;
     
     const campingItemResult = await prisma.$runCommandRaw({
@@ -13,7 +14,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
 
-    if (!campingItem) {
+    if (!campingItem) 
+    {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
@@ -24,7 +26,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     return NextResponse.json(mappedCampingItem);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error fetching camping item:', error);
     return NextResponse.json({ error: 'Failed to fetch camping item' }, { status: 500 });
   }
@@ -66,7 +70,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
 
-    if (!campingItem) {
+    if (!campingItem) 
+    {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
@@ -77,7 +82,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     return NextResponse.json(mappedCampingItem);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error updating camping item:', error);
     return NextResponse.json({ error: 'Failed to update camping item' }, { status: 500 });
   }
@@ -102,12 +109,15 @@ export async function DELETE(  request: NextRequest,  { params }: { params: Prom
 
     const deletedCount = (deleteResult as any).deletedCount || (deleteResult as any).n;
     
-    if (deletedCount === 0) {
+    if (deletedCount === 0) 
+    {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
     return NextResponse.json({ message: 'Camping item deleted successfully' });
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error deleting camping item:', error);
     return NextResponse.json({ error: 'Failed to delete camping item' }, { status: 500 });
   }

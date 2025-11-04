@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
-  try {
+export async function GET() 
+{
+  try 
+  {
     const bookings = await prisma.booking.findMany({
       include: {
         campingPlace: true,
@@ -17,14 +19,18 @@ export async function GET() {
       },
     });
     return NextResponse.json(bookings);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error fetching bookings:', error);
     return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
+export async function POST(request: NextRequest) 
+{
+  try 
+  {
     const body = await request.json();
     const {
       campingPlaceId,
@@ -38,7 +44,8 @@ export async function POST(request: NextRequest) {
       campingItems
     } = body;
 
-    if (!campingPlaceId || !customerName || !customerEmail || !startDate || !endDate || !guests) {
+    if (!campingPlaceId || !customerName || !customerEmail || !startDate || !endDate || !guests) 
+    {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -47,23 +54,28 @@ export async function POST(request: NextRequest) {
       where: { id: campingPlaceId },
     });
 
-    if (!campingPlace) {
+    if (!campingPlace) 
+    {
       return NextResponse.json({ error: 'Camping place not found' }, { status: 404 });
     }
 
     // Validate camping items size
-    if (campingItems) {
+    if (campingItems) 
+    {
       let totalSize = 0;
-      for (const [itemId, quantity] of Object.entries(campingItems)) {
+      for (const [itemId, quantity] of Object.entries(campingItems)) 
+      {
         const item = await prisma.campingItem.findUnique({
           where: { id: itemId },
         });
-        if (item) {
+        if (item) 
+        {
           totalSize += item.size * (quantity as number);
         }
       }
 
-      if (totalSize > campingPlace.size) {
+      if (totalSize > campingPlace.size) 
+      {
         return NextResponse.json(
           {
             error: `Total camping items size (${totalSize} m²) exceeds camping place size (${campingPlace.size} m²)`,
@@ -92,11 +104,11 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
         bookingItems: campingItems
           ? {
-              create: Object.entries(campingItems).map(([itemId, quantity]) => ({
-                campingItemId: itemId,
-                quantity: quantity as number,
-              })),
-            }
+            create: Object.entries(campingItems).map(([itemId, quantity]) => ({
+              campingItemId: itemId,
+              quantity: quantity as number,
+            })),
+          }
           : undefined,
       },
       include: {
@@ -110,7 +122,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(booking, { status: 201 });
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error creating booking:', error);
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 });
   }

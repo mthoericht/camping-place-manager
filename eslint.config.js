@@ -4,7 +4,7 @@ import tsparser from '@typescript-eslint/parser';
 import globals from 'globals';
 
 export default [
-  { ignores: ['dist', 'node_modules', '**/node_modules/**', '**/dist/**', 'data/**'] },
+  { ignores: ['dist', 'node_modules', '**/node_modules/**', '**/dist/**', 'data/**', '.next/**', '**/.next/**'] },
   {
     files: ['**/*.{js,mjs,cjs,ts}'],
     languageOptions: {

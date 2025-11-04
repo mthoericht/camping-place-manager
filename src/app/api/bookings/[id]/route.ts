@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) 
+{
+  try 
+  {
     const { id } = await params;
     console.log('API: Fetching booking with ID:', id);
     
@@ -15,7 +17,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const booking = (bookingResult.cursor as any)?.firstBatch?.[0];
     console.log('API: Found booking:', booking);
 
-    if (!booking) {
+    if (!booking) 
+    {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
 
@@ -39,9 +42,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     let bookingItemsWithCampingItems = [];
 
-    if (bookingItems.length > 0) {
+    if (bookingItems.length > 0) 
+    {
       // Get camping items for these booking items
-      const campingItemIds = bookingItems.map((item: any) => {
+      const campingItemIds = bookingItems.map((item: any) => 
+      {
         return typeof item.campingItemId === 'object' && item.campingItemId.$oid 
           ? item.campingItemId.$oid 
           : item.campingItemId;
@@ -58,13 +63,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       console.log('API: Found camping items:', campingItems);
 
       // Transform the data
-      bookingItemsWithCampingItems = bookingItems.map((item: any) => {
+      bookingItemsWithCampingItems = bookingItems.map((item: any) => 
+      {
         // Handle both ObjectId and string formats for campingItemId
         const itemCampingItemId = typeof item.campingItemId === 'object' && item.campingItemId.$oid 
           ? item.campingItemId.$oid 
           : item.campingItemId;
         
-        const campingItem = campingItems.find((ci: any) => {
+        const campingItem = campingItems.find((ci: any) => 
+        {
           const ciId = typeof ci._id === 'object' && ci._id.$oid ? ci._id.$oid : ci._id;
           return ciId === itemCampingItemId;
         });
@@ -123,14 +130,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     console.log('API: Final booking object:', finalBooking);
     return NextResponse.json(finalBooking);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error fetching booking:', error);
     return NextResponse.json({ error: 'Failed to fetch booking' }, { status: 500 });
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  try {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) 
+{
+  try 
+  {
     const { id } = await params;
     const body = await request.json();
     const {
@@ -160,16 +171,20 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       updatedAt: { $date: new Date().toISOString() }, // Ensure proper DateTime format
     };
 
-    if (startDate) {
+    if (startDate) 
+    {
       updateData.startDate = { $date: new Date(startDate).toISOString() };
     }
-    if (endDate) {
+    if (endDate) 
+    {
       updateData.endDate = { $date: new Date(endDate).toISOString() };
     }
-    if (guests) {
+    if (guests) 
+    {
       updateData.guests = parseInt(guests);
     }
-    if (status) {
+    if (status) 
+    {
       updateData.status = status;
     }
 
@@ -179,7 +194,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     });
 
     // Create new booking items if provided
-    if (campingItems) {
+    if (campingItems) 
+    {
       const itemsToCreate = Object.entries(campingItems).map(([itemId, quantity]) => ({
         bookingId: id,
         campingItemId: itemId,
@@ -188,7 +204,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         updatedAt: { $date: new Date().toISOString() },
       }));
 
-      if (itemsToCreate.length > 0) {
+      if (itemsToCreate.length > 0) 
+      {
         await prisma.$runCommandRaw({
           insert: 'booking_items',
           documents: itemsToCreate,
@@ -232,7 +249,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     };
 
     return NextResponse.json(updatedBooking);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error updating booking:', error);
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 });
   }
@@ -241,15 +260,19 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+) 
+{
+  try 
+  {
     const { id } = await params;
     await prisma.booking.delete({
       where: { id },
     });
 
     return NextResponse.json({ message: 'Booking deleted successfully' });
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error deleting booking:', error);
     return NextResponse.json({ error: 'Failed to delete booking' }, { status: 500 });
   }

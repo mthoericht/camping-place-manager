@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-export async function GET() {
-  try {
+export async function GET() 
+{
+  try 
+  {
     const campingItems = await prisma.campingItem.findMany({
       where: {
         isActive: true
@@ -12,18 +14,23 @@ export async function GET() {
       }
     });
     return NextResponse.json(campingItems);
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error fetching camping items:', error);
     return NextResponse.json({ error: 'Failed to fetch camping items' }, { status: 500 });
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
+export async function POST(request: NextRequest) 
+{
+  try 
+  {
     const body = await request.json();
     const { name, category, size, description } = body;
 
-    if (!name || !category || !size) {
+    if (!name || !category || !size) 
+    {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -52,7 +59,8 @@ export async function POST(request: NextRequest) {
 
     const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
     
-    if (!campingItem) {
+    if (!campingItem) 
+    {
       return NextResponse.json({ error: 'Failed to retrieve created camping item' }, { status: 500 });
     }
 
@@ -63,7 +71,9 @@ export async function POST(request: NextRequest) {
     };
 
     return NextResponse.json(mappedCampingItem, { status: 201 });
-  } catch (error) {
+  }
+  catch (error) 
+  {
     console.error('Error creating camping item:', error);
     return NextResponse.json({ error: 'Failed to create camping item' }, { status: 500 });
   }
