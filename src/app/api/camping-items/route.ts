@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { CampingItemService } from '@/lib/services/CampingItemService';
+import { MongoDbHelper } from '@/lib/MongoDbHelper';
 
 export async function GET() 
 {
@@ -43,8 +45,8 @@ export async function POST(request: NextRequest)
         size: parseInt(size),
         description: description || '',
         isActive: true,
-        createdAt: { $date: new Date().toISOString() },
-        updatedAt: { $date: new Date().toISOString() }
+        createdAt: MongoDbHelper.createMongoDate(),
+        updatedAt: MongoDbHelper.createMongoDate()
       }]
     });
 
@@ -52,25 +54,14 @@ export async function POST(request: NextRequest)
     const insertedIds = (insertResult as any).insertedIds || (insertResult as any).inserted;
     const insertedId = Array.isArray(insertedIds) ? insertedIds[0] : insertedIds;
     
-    const campingItemResult = await prisma.$runCommandRaw({
-      find: 'camping_items',
-      filter: { _id: insertedId }
-    });
-
-    const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
+    const campingItem = await CampingItemService.getCampingItem(MongoDbHelper.extractObjectId(insertedId));
     
     if (!campingItem) 
     {
       return NextResponse.json({ error: 'Failed to retrieve created camping item' }, { status: 500 });
     }
 
-    // Map MongoDB _id to id
-    const mappedCampingItem = {
-      ...campingItem,
-      id: campingItem._id.$oid,
-    };
-
-    return NextResponse.json(mappedCampingItem, { status: 201 });
+    return NextResponse.json(campingItem, { status: 201 });
   }
   catch (error) 
   {

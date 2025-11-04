@@ -1,31 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { CampingItemService } from '@/lib/services/CampingItemService';
+import { MongoDbHelper } from '@/lib/MongoDbHelper';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) : Promise<NextResponse>
 {
   try 
   {
     const { id } = await params;
-    
-    const campingItemResult = await prisma.$runCommandRaw({
-      find: 'camping_items',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
+    const campingItem = await CampingItemService.getCampingItem(id);
 
     if (!campingItem) 
     {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
-    // Map MongoDB _id to id
-    const mappedCampingItem = {
-      ...campingItem,
-      id: campingItem._id.$oid,
-    };
-
-    return NextResponse.json(mappedCampingItem);
+    return NextResponse.json(campingItem);
   }
   catch (error) 
   {
@@ -49,39 +39,28 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       size: parseInt(size),
       description,
       isActive: isActive !== undefined ? isActive : true,
-      updatedAt: { $date: new Date().toISOString() },// Ensure proper DateTime format (Several API routes were using prisma.$runCommandRaw() with new Date() objects, which MongoDB was storing as strings instead of proper DateTime objects.)
+      updatedAt: MongoDbHelper.createMongoDate(),// Ensure proper DateTime format
     };
 
     await prisma.$runCommandRaw({
       update: 'camping_items',
       updates: [
         {
-          q: { _id: { $oid: id } },
+          q: { _id: MongoDbHelper.toObjectId(id) },
           u: { $set: updateData },
         },
       ],
     });
 
     // Fetch the updated camping item
-    const campingItemResult = await prisma.$runCommandRaw({
-      find: 'camping_items',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
+    const campingItem = await CampingItemService.getCampingItem(id);
 
     if (!campingItem) 
     {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
 
-    // Map MongoDB _id to id
-    const mappedCampingItem = {
-      ...campingItem,
-      id: campingItem._id.$oid,
-    };
-
-    return NextResponse.json(mappedCampingItem);
+    return NextResponse.json(campingItem);
   }
   catch (error) 
   {
@@ -101,7 +80,7 @@ export async function DELETE(  request: NextRequest,  { params }: { params: Prom
       delete: 'camping_items',
       deletes: [
         {
-          q: { _id: { $oid: id } },
+          q: { _id: MongoDbHelper.toObjectId(id) },
           limit: 1
         }
       ]

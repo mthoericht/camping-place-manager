@@ -1,45 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
+import { MongoDbHelper } from '@/lib/MongoDbHelper';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) 
 {
   try 
   {
     const { id } = await params;
-
-    // Use raw MongoDB query to avoid transaction requirements
-    const campingPlaceResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+    const campingPlace = await CampingPlaceService.getCampingPlace(id);
 
     if (!campingPlace) 
     {
       return NextResponse.json({ error: 'Camping place not found' }, { status: 404 });
     }
 
-    // Get bookings for this camping place
-    const bookingsResult = await prisma.$runCommandRaw({
-      find: 'bookings',
-      filter: { campingPlaceId: { $oid: id } },
-      sort: { createdAt: -1 },
-    });
-
-    const bookings = (bookingsResult.cursor as any)?.firstBatch || [];
-
-    // Map MongoDB _id to id and include bookings
-    const mappedCampingPlace = {
-      ...campingPlace,
-      id: campingPlace._id.$oid,
-      bookings: bookings.map((booking: any) => ({
-        ...booking,
-        id: booking._id.$oid,
-      })),
-    };
-
-    return NextResponse.json(mappedCampingPlace);
+    return NextResponse.json(campingPlace);
   }
   catch (error) 
   {
@@ -65,39 +41,28 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       price: parseFloat(price),
       amenities: amenities || [],
       isActive: isActive !== undefined ? isActive : true,
-      updatedAt: { $date: new Date().toISOString() }, /// Ensure proper DateTime format (Several API routes were using prisma.$runCommandRaw() with new Date() objects, which MongoDB was storing as strings instead of proper DateTime objects.)
+      updatedAt: MongoDbHelper.createMongoDate(), /// Ensure proper DateTime format
     };
 
     await prisma.$runCommandRaw({
       update: 'camping_places',
       updates: [
         {
-          q: { _id: { $oid: id } },
+          q: { _id: MongoDbHelper.toObjectId(id) },
           u: { $set: updateData },
         },
       ],
     });
 
     // Fetch the updated camping place
-    const campingPlaceResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+    const campingPlace = await CampingPlaceService.getCampingPlace(id);
 
     if (!campingPlace) 
     {
       return NextResponse.json({ error: 'Camping place not found' }, { status: 404 });
     }
 
-    // Map MongoDB _id to id
-    const mappedCampingPlace = {
-      ...campingPlace,
-      id: campingPlace._id.$oid,
-    };
-
-    return NextResponse.json(mappedCampingPlace);
+    return NextResponse.json(campingPlace);
   }
   catch (error) 
   {

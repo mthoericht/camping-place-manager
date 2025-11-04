@@ -1,40 +1,6 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { CampingItemService, CampingItem } from '@/lib/services/CampingItemService';
 import { DateUtil } from '@/lib/DateUtil';
-
-interface CampingItem {
-  id: string;
-  name: string;
-  category: string;
-  size: number;
-  description: string;
-  isActive: boolean;
-  createdAt: { $date: string };
-  updatedAt: { $date: string };
-}
-
-async function getCampingItems(): Promise<CampingItem[]> {
-  try 
-  {
-    const campingItemsResult = await prisma.$runCommandRaw({
-      find: 'camping_items',
-      sort: { createdAt: -1 }
-    });
-    
-    const campingItems = (campingItemsResult.cursor as any)?.firstBatch || [];
-    
-    // Map MongoDB _id to id for each camping item
-    const mappedCampingItems = campingItems.map((item: any): CampingItem => ({
-      ...item,
-      id: item._id.$oid
-    }));
-    
-    return mappedCampingItems;
-  } catch (error) {
-    console.error('Error fetching camping items:', error);
-    return [];
-  }
-}
 
 export default async function CampingItemsPage() 
 {
@@ -43,8 +9,7 @@ export default async function CampingItemsPage()
 
   try 
   {
-    campingItems = await getCampingItems();
-    //console.log(campingItems);
+    campingItems = await CampingItemService.getCampingItems();
   } catch (err) 
   {
     error = err as Error;
@@ -118,7 +83,7 @@ export default async function CampingItemsPage()
 
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">
-                    Created: {DateUtil.formatDate(item.createdAt.$date)}
+                    Created: {DateUtil.formatDate(item.createdAt)}
                   </div>
                   <div className="flex space-x-2">
                     <Link

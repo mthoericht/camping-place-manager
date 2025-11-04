@@ -1,44 +1,5 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-
-interface CampingPlace {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  size: number;
-  price: number;
-  amenities: string[];
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  bookings?: any[];
-}
-
-async function getCampingPlaces(): Promise<CampingPlace[]> 
-{
-  try 
-  {
-    const campingPlacesResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      sort: { createdAt: -1 }
-    });
-    
-    const campingPlaces = (campingPlacesResult.cursor as any)?.firstBatch || [];
-    
-    // Map MongoDB _id to id for each camping place
-    const mappedCampingPlaces = campingPlaces.map((place: any): CampingPlace => ({
-      ...place,
-      id: place._id.$oid
-    }));
-    
-    return mappedCampingPlaces;
-  } catch (error) 
-  {
-    console.error('Error fetching camping places:', error);
-    return [];
-  }
-}
+import { CampingPlaceService, CampingPlace } from '@/lib/services/CampingPlaceService';
 
 export default async function CampingPlacesPage() 
 {
@@ -47,7 +8,7 @@ export default async function CampingPlacesPage()
 
   try 
   {
-    campingPlaces = await getCampingPlaces();
+    campingPlaces = await CampingPlaceService.getCampingPlaces();
   } catch (err) 
   {
     error = err as Error;

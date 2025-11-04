@@ -1,24 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
 
 export async function GET() 
 {
   try 
   {
-    const campingPlacesResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      sort: { createdAt: -1 }
-    });
-
-    const campingPlaces = (campingPlacesResult.cursor as any)?.firstBatch || [];
-
-    // Map MongoDB _id to id for each camping place
-    const mappedCampingPlaces = campingPlaces.map((place: any) => ({
-      ...place,
-      id: place._id.$oid
-    }));
-
-    return NextResponse.json(mappedCampingPlaces);
+    const campingPlaces = await CampingPlaceService.getCampingPlaces();
+    return NextResponse.json(campingPlaces);
   }
   catch (error) 
   {

@@ -1,53 +1,20 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
+import { BookingService } from '@/lib/services/BookingService';
+import { MongoDbHelper } from '@/lib/MongoDbHelper';
 import { notFound } from 'next/navigation';
-
-async function getBooking(id: string) {
-  try {
-    // Use the API route to get booking with all related data including camping items
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/bookings/${id}`, {
-      cache: 'no-store'
-    });
-    
-    if (!response.ok) {
-      return null;
-    }
-    
-    const booking = await response.json();
-    console.log('Booking details page - Raw booking data:', booking);
-    console.log('Booking details page - Booking items:', booking.bookingItems);
-    
-    // Transform the booking data to match the expected format
-    return {
-      ...booking,
-      id: booking.id,
-      campingPlace: {
-        ...booking.campingPlace,
-        id: booking.campingPlace.id,
-      },
-      bookingItems: booking.bookingItems || [],
-    };
-  } catch (error) {
-    console.error('Error fetching booking:', error);
-    return null;
-  }
-}
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const booking = await getBooking(id);
+  const booking = await BookingService.getBookingFromAPI(id);
 
-  if (!booking) {
+  if (!booking) 
+  {
     notFound();
   }
 
   // Handle MongoDB date format
-  const startDate = booking.startDate?.$date
-    ? new Date(booking.startDate.$date)
-    : new Date(booking.startDate);
-  const endDate = booking.endDate?.$date
-    ? new Date(booking.endDate.$date)
-    : new Date(booking.endDate);
+  const startDate = new Date(MongoDbHelper.parseMongoDate(booking.startDate));
+  const endDate = new Date(MongoDbHelper.parseMongoDate(booking.endDate));
   const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
@@ -287,9 +254,9 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                 <div>
                   <p className="font-medium text-gray-900">Booking Created</p>
                   <p className="text-sm text-gray-500">
-                    {booking.createdAt?.$date
-                      ? new Date(booking.createdAt.$date).toLocaleString()
-                      : new Date(booking.createdAt).toLocaleString()}
+                    {MongoDbHelper.parseMongoDate(booking.createdAt) 
+                      ? new Date(MongoDbHelper.parseMongoDate(booking.createdAt)).toLocaleString()
+                      : 'Unknown'}
                   </p>
                 </div>
               </div>
@@ -298,9 +265,9 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                 <div>
                   <p className="font-medium text-gray-900">Last Updated</p>
                   <p className="text-sm text-gray-500">
-                    {booking.updatedAt?.$date
-                      ? new Date(booking.updatedAt.$date).toLocaleString()
-                      : new Date(booking.updatedAt).toLocaleString()}
+                    {MongoDbHelper.parseMongoDate(booking.updatedAt) 
+                      ? new Date(MongoDbHelper.parseMongoDate(booking.updatedAt)).toLocaleString()
+                      : 'Unknown'}
                   </p>
                 </div>
               </div>
