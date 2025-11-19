@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
 
 interface CampingPlaceFormProps {
   initialData?: {
@@ -48,6 +49,8 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
       });
 
       if (response.ok) {
+        // Clear cache so fresh data is fetched next time
+        useCampingPlacesStore.getState().clearCache();
         router.push('/camping-places');
         router.refresh();
       } else {

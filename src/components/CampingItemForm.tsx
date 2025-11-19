@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
 
 interface CampingItemFormProps {
   initialData?: {
@@ -42,6 +43,8 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
       });
 
       if (response.ok) {
+        // Clear cache so fresh data is fetched next time
+        useCampingItemsStore.getState().clearCache();
         router.push('/camping-items');
         router.refresh();
       } else {
@@ -69,6 +72,8 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
       });
 
       if (response.ok) {
+        // Clear cache so fresh data is fetched next time
+        useCampingItemsStore.getState().clearCache();
         router.push('/camping-items');
         router.refresh();
       } else {

@@ -2,21 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface CampingPlace {
-  id: string;
-  name: string;
-  price: number;
-  size: number;
-}
-
-interface CampingItem {
-  id: string;
-  name: string;
-  category: string;
-  size: number;
-  description?: string;
-}
+import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
+import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
 
 interface BookingFormProps {
   initialData?: {
@@ -35,8 +22,25 @@ interface BookingFormProps {
 
 export default function BookingForm({ initialData }: BookingFormProps) {
   const router = useRouter();
-  const [campingPlaces, setCampingPlaces] = useState<CampingPlace[]>([]);
-  const [campingItems, setCampingItems] = useState<CampingItem[]>([]);
+  
+  // Zustand stores
+  const {
+    getActivePlaces,
+    getPlaceById,
+    fetchCampingPlaces,
+    loading: placesLoading,
+    error: placesError,
+  } = useCampingPlacesStore();
+  
+  const {
+    campingItems,
+    fetchCampingItems,
+    loading: itemsLoading,
+    error: itemsError,
+  } = useCampingItemsStore();
+
+  const campingPlaces = getActivePlaces();
+
   const [formData, setFormData] = useState(() => ({
     campingPlaceId: initialData?.campingPlaceId || '',
     customerName: initialData?.customerName || '',
@@ -53,51 +57,17 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     return initialData?.campingItems || {};
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<CampingPlace | null>(null);
 
+  // Fetch data on mount
   useEffect(() => {
     fetchCampingPlaces();
     fetchCampingItems();
   }, []);
 
-  useEffect(() => {
-    if (formData.campingPlaceId) {
-      const place = campingPlaces.find(p => p.id === formData.campingPlaceId);
-      setSelectedPlace(place || null);
-    }
-  }, [formData.campingPlaceId, campingPlaces]);
-
-  useEffect(() => {
-    console.log('selectedItems state changed:', selectedItems);
-  }, [selectedItems]);
-
-  const fetchCampingPlaces = async () => {
-    try {
-      const response = await fetch('/api/camping-places');
-      if (response.ok) {
-        const places = await response.json();
-        setCampingPlaces(places.filter((place: any) => place.isActive));
-      }
-    } catch (error) {
-      console.error('Error fetching camping places:', error);
-    }
-  };
-
-  const fetchCampingItems = async () => {
-    try 
-    {
-      const response = await fetch('/api/camping-items');
-
-      if (response.ok) 
-      {
-        const items = await response.json();
-        console.log("Camping items from API:", items);
-        setCampingItems(items);
-      }
-    } catch (error) {
-      console.error('Error fetching camping items:', error);
-    }
-  };
+  // Get selected place from store
+  const selectedPlace = formData.campingPlaceId
+    ? getPlaceById(formData.campingPlaceId) || null
+    : null;
 
   const calculateTotalSize = () => {
     let totalSize = 0;
@@ -153,6 +123,9 @@ export default function BookingForm({ initialData }: BookingFormProps) {
       });
 
       if (response.ok) {
+        // Clear cache so fresh data is fetched next time
+        useCampingPlacesStore.getState().clearCache();
+        useCampingItemsStore.getState().clearCache();
         router.push('/bookings');
         router.refresh();
       } else {
@@ -174,6 +147,16 @@ export default function BookingForm({ initialData }: BookingFormProps) {
       </h1>
 
       <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
+        {(placesLoading || itemsLoading) && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md">
+            Loading camping places and items...
+          </div>
+        )}
+        {(placesError || itemsError) && (
+          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+            Error loading data: {placesError || itemsError}
+          </div>
+        )}
         <div>
           <label htmlFor="campingPlaceId" className="block text-sm font-medium text-gray-700 mb-2">
             Camping Place *
@@ -184,6 +167,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             value={formData.campingPlaceId}
             onChange={e => setFormData({ ...formData, campingPlaceId: e.target.value })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={placesLoading}
           >
             <option value="">Select a camping place</option>
             {campingPlaces.map(place => (
