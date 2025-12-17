@@ -1,15 +1,8 @@
 import { create } from 'zustand';
+import { campingItemsApi, type CampingItem, type CampingItemFormData } from '@/lib/api/campingItemsApi';
 
-export interface CampingItem {
-  id: string;
-  name: string;
-  category: string;
-  size: number;
-  description?: string;
-  isActive?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+// Re-export types for convenience
+export type { CampingItem, CampingItemFormData };
 
 interface CampingItemsState {
   campingItems: CampingItem[];
@@ -20,6 +13,9 @@ interface CampingItemsState {
   getActiveItems: () => CampingItem[];
   getItemById: (id: string) => CampingItem | undefined;
   clearCache: () => void;
+  createCampingItem: (data: CampingItemFormData) => Promise<{ success: boolean; error?: string }>;
+  updateCampingItem: (id: string, data: CampingItemFormData) => Promise<{ success: boolean; error?: string }>;
+  deleteCampingItem: (id: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -44,12 +40,7 @@ export const useCampingItemsStore = create<CampingItemsState>((set, get) => ({
 
     try 
     {
-      const response = await fetch('/api/camping-items');
-      if (!response.ok) 
-      {
-        throw new Error('Failed to fetch camping items');
-      }
-      const items = await response.json();
+      const items = await campingItemsApi.getAll();
       set({
         campingItems: items,
         loading: false,
@@ -79,6 +70,57 @@ export const useCampingItemsStore = create<CampingItemsState>((set, get) => ({
   clearCache: () => 
   {
     set({ lastFetched: null });
+  },
+
+  createCampingItem: async (data: CampingItemFormData) => 
+  {
+    try 
+    {
+      await campingItemsApi.create(data);
+      get().clearCache();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while creating the camping item' 
+      };
+    }
+  },
+
+  updateCampingItem: async (id: string, data: CampingItemFormData) => 
+  {
+    try 
+    {
+      await campingItemsApi.update(id, data);
+      get().clearCache();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while updating the camping item' 
+      };
+    }
+  },
+
+  deleteCampingItem: async (id: string) => 
+  {
+    try 
+    {
+      await campingItemsApi.delete(id);
+      get().clearCache();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while deleting the camping item' 
+      };
+    }
   },
 }));
 

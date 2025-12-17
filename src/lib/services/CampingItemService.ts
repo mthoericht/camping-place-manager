@@ -1,16 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import type { CampingItemServer } from '@/lib/types';
 
-export interface CampingItem {
-  id: string;
-  name: string;
-  category: string;
-  size: number;
-  description: string;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+// Re-export as CampingItem for backward compatibility
+export type { CampingItemServer as CampingItem };
 
 /**
  * Service class for camping item-related operations
@@ -20,7 +13,7 @@ export class CampingItemService
   /**
    * Get all camping items
    */
-  static async getCampingItems(): Promise<CampingItem[]> 
+  static async getCampingItems(): Promise<CampingItemServer[]> 
   {
     try 
     {
@@ -32,7 +25,7 @@ export class CampingItemService
       const campingItems = (campingItemsResult.cursor as any)?.firstBatch || [];
       
       // Map MongoDB _id to id for each camping item
-      const mappedCampingItems = campingItems.map((item: any): CampingItem => ({
+      const mappedCampingItems = campingItems.map((item: any): CampingItemServer => ({
         ...item,
         id: MongoDbHelper.extractObjectId(item._id),
         createdAt: MongoDbHelper.parseMongoDate(item.createdAt),
@@ -51,7 +44,7 @@ export class CampingItemService
   /**
    * Get a single camping item by ID
    */
-  static async getCampingItem(id: string): Promise<CampingItem | null> 
+  static async getCampingItem(id: string): Promise<CampingItemServer | null> 
   {
     try 
     {
@@ -68,7 +61,7 @@ export class CampingItemService
       }
 
       // Map MongoDB _id to id
-      const mappedCampingItem: CampingItem = {
+      const mappedCampingItem: CampingItemServer = {
         ...campingItem,
         id: MongoDbHelper.extractObjectId(campingItem._id),
         createdAt: MongoDbHelper.parseMongoDate(campingItem.createdAt),
@@ -81,6 +74,120 @@ export class CampingItemService
     {
       console.error('Error fetching camping item:', error);
       return null;
+    }
+  }
+
+  /**
+   * Create a new camping item
+   */
+  static async createCampingItem(data: {
+    name: string;
+    category: string;
+    size: number;
+    description?: string;
+    isActive?: boolean;
+  }): Promise<CampingItemServer | null> 
+  {
+    try 
+    {
+      const insertResult = await prisma.$runCommandRaw({
+        insert: 'camping_items',
+        documents: [{
+          name: data.name,
+          category: data.category,
+          size: parseInt(String(data.size)),
+          description: data.description || '',
+          isActive: data.isActive !== undefined ? data.isActive : true,
+          createdAt: MongoDbHelper.createMongoDate(),
+          updatedAt: MongoDbHelper.createMongoDate()
+        }]
+      });
+
+      // Get the inserted document
+      const insertedIds = (insertResult as any).insertedIds || (insertResult as any).inserted;
+      const insertedId = Array.isArray(insertedIds) ? insertedIds[0] : insertedIds;
+      const id = MongoDbHelper.extractObjectId(insertedId);
+      
+      // Fetch the created camping item
+      return await this.getCampingItem(id);
+    }
+    catch (error) 
+    {
+      console.error('Error creating camping item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing camping item
+   */
+  static async updateCampingItem(
+    id: string,
+    data: {
+      name?: string;
+      category?: string;
+      size?: number;
+      description?: string;
+      isActive?: boolean;
+    }
+  ): Promise<CampingItemServer | null> 
+  {
+    try 
+    {
+      const updateData: any = {
+        updatedAt: MongoDbHelper.createMongoDate(),
+      };
+
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.category !== undefined) updateData.category = data.category;
+      if (data.size !== undefined) updateData.size = parseInt(String(data.size));
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+
+      await prisma.$runCommandRaw({
+        update: 'camping_items',
+        updates: [
+          {
+            q: { _id: MongoDbHelper.toObjectId(id) },
+            u: { $set: updateData },
+          },
+        ],
+      });
+
+      // Fetch the updated camping item
+      return await this.getCampingItem(id);
+    }
+    catch (error) 
+    {
+      console.error('Error updating camping item:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a camping item
+   */
+  static async deleteCampingItem(id: string): Promise<boolean> 
+  {
+    try 
+    {
+      const deleteResult = await prisma.$runCommandRaw({
+        delete: 'camping_items',
+        deletes: [
+          {
+            q: { _id: MongoDbHelper.toObjectId(id) },
+            limit: 1
+          }
+        ]
+      });
+
+      const deletedCount = (deleteResult as any).deletedCount || (deleteResult as any).n;
+      return deletedCount > 0;
+    }
+    catch (error) 
+    {
+      console.error('Error deleting camping item:', error);
+      throw error;
     }
   }
 }

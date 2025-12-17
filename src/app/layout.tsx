@@ -8,6 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const navLinkClass = "text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium";
+  
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body suppressHydrationWarning={true}>
@@ -19,16 +21,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   <h1 className="text-xl font-semibold text-gray-900">🏕️ Camping Place Manager</h1>
                 </div>
                 <div className="flex items-center space-x-4">
-                  <Link href="/" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                  <Link href="/" className={navLinkClass}>
                     Home
                   </Link>
-                  <Link href="/camping-places" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                  <Link href="/camping-places" className={navLinkClass}>
                     Camping Places
                   </Link>
-                  <Link href="/camping-items" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                  <Link href="/camping-items" className={navLinkClass}>
                     Camping Items
                   </Link>
-                  <Link href="/bookings" className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                  <Link href="/bookings" className={navLinkClass}>
                     Bookings
                   </Link>
                 </div>

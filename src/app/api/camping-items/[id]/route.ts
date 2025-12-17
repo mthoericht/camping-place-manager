@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { CampingItemService } from '@/lib/services/CampingItemService';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) : Promise<NextResponse>
 {
@@ -19,8 +17,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
   catch (error) 
   {
-    console.error('Error fetching camping item:', error);
-    return NextResponse.json({ error: 'Failed to fetch camping item' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error fetching camping item:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: 'Failed to fetch camping item' },
+      { status: 500 }
+    );
   }
 }
 
@@ -32,28 +38,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const { name, category, size, description, isActive } = body;
 
-    // Use raw MongoDB update to avoid transaction requirements
-    const updateData = {
+    const campingItem = await CampingItemService.updateCampingItem(id, {
       name,
       category,
-      size: parseInt(size),
+      size: size !== undefined ? parseInt(String(size)) : undefined,
       description,
-      isActive: isActive !== undefined ? isActive : true,
-      updatedAt: MongoDbHelper.createMongoDate(),// Ensure proper DateTime format
-    };
-
-    await prisma.$runCommandRaw({
-      update: 'camping_items',
-      updates: [
-        {
-          q: { _id: MongoDbHelper.toObjectId(id) },
-          u: { $set: updateData },
-        },
-      ],
+      isActive,
     });
-
-    // Fetch the updated camping item
-    const campingItem = await CampingItemService.getCampingItem(id);
 
     if (!campingItem) 
     {
@@ -64,8 +55,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
   catch (error) 
   {
-    console.error('Error updating camping item:', error);
-    return NextResponse.json({ error: 'Failed to update camping item' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error updating camping item:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: errorMessage || 'Failed to update camping item' },
+      { status: 500 }
+    );
   }
 }
 
@@ -74,21 +73,9 @@ export async function DELETE(  request: NextRequest,  { params }: { params: Prom
   try 
   {
     const { id } = await params;
+    const deleted = await CampingItemService.deleteCampingItem(id);
     
-    // Use raw MongoDB delete to avoid replica set requirement
-    const deleteResult = await prisma.$runCommandRaw({
-      delete: 'camping_items',
-      deletes: [
-        {
-          q: { _id: MongoDbHelper.toObjectId(id) },
-          limit: 1
-        }
-      ]
-    });
-
-    const deletedCount = (deleteResult as any).deletedCount || (deleteResult as any).n;
-    
-    if (deletedCount === 0) 
+    if (!deleted) 
     {
       return NextResponse.json({ error: 'Camping item not found' }, { status: 404 });
     }
@@ -97,7 +84,15 @@ export async function DELETE(  request: NextRequest,  { params }: { params: Prom
   }
   catch (error) 
   {
-    console.error('Error deleting camping item:', error);
-    return NextResponse.json({ error: 'Failed to delete camping item' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error deleting camping item:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: errorMessage || 'Failed to delete camping item' },
+      { status: 500 }
+    );
   }
 }

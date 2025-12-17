@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
 
 export async function GET() 
@@ -11,8 +10,15 @@ export async function GET()
   }
   catch (error) 
   {
-    console.error('Error fetching camping places:', error);
-    return NextResponse.json({ error: 'Failed to fetch camping places' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error fetching camping places:', {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: 'Failed to fetch camping places' },
+      { status: 500 }
+    );
   }
 }
 
@@ -21,29 +27,46 @@ export async function POST(request: NextRequest)
   try 
   {
     const body = await request.json();
-    const { name, description, location, size, price, amenities } = body;
+    const { name, description, location, size, price, amenities, isActive } = body;
 
     if (!name || !location || !size || !price) 
     {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Missing required fields: name, location, size, and price are required' },
+        { status: 400 }
+      );
     }
 
-    const campingPlace = await prisma.campingPlace.create({
-      data: {
-        name,
-        description: description || '',
-        location,
-        size: parseInt(size),
-        price: parseFloat(price),
-        amenities: amenities || []
-      }
+    const campingPlace = await CampingPlaceService.createCampingPlace({
+      name,
+      description,
+      location,
+      size: parseInt(String(size)),
+      price: parseFloat(String(price)),
+      amenities: amenities || [],
+      isActive,
     });
+
+    if (!campingPlace) 
+    {
+      return NextResponse.json(
+        { error: 'Failed to create camping place' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(campingPlace, { status: 201 });
   }
   catch (error) 
   {
-    console.error('Error creating camping place:', error);
-    return NextResponse.json({ error: 'Failed to create camping place' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error creating camping place:', {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: errorMessage || 'Failed to create camping place' },
+      { status: 500 }
+    );
   }
 }

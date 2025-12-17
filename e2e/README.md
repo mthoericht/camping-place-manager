@@ -4,6 +4,13 @@ This directory contains end-to-end (e2e) tests for the Camping Place Manager app
 
 > **📖 See also**: [Main README.md](../README.md) for general project information and setup instructions.
 
+## Architecture Note
+
+E2E tests interact with the application through the UI, which means they test the complete flow:
+- **UI Components** → **Zustand Stores** → **API Services** → **API Routes** → **Services** → **Database**
+
+This ensures that all layers of the application work together correctly, including the client-side API service layer and state management stores.
+
 ## Overview
 
 The e2e tests verify the complete user workflows across the application:

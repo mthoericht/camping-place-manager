@@ -1,157 +1,12 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
-
-async function getAnalyticsData() {
-  try {
-    // Get basic counts using raw MongoDB queries
-    const placesResult = await prisma.$runCommandRaw({
-      count: 'camping_places'
-    });
-    
-    const bookingsResult = await prisma.$runCommandRaw({
-      count: 'bookings'
-    });
-    
-    const activeBookingsResult = await prisma.$runCommandRaw({
-      count: 'bookings',
-      query: {
-        status: { $in: ['PENDING', 'CONFIRMED'] }
-      }
-    });
-    
-    const totalPlaces = placesResult.n || 0;
-    const totalBookings = bookingsResult.n || 0;
-    const activeBookings = activeBookingsResult.n || 0;
-
-    // Get booking status breakdown using aggregation
-    const statusBreakdownResult = await prisma.$runCommandRaw({
-      aggregate: 'bookings',
-      pipeline: [
-        {
-          $group: {
-            _id: '$status',
-            count: { $sum: 1 }
-          }
-        }
-      ]
-    });
-    
-    const bookingStatusBreakdown = (statusBreakdownResult.cursor as any)?.firstBatch || [];
-
-    // Get revenue data using aggregation
-    const revenueResult = await prisma.$runCommandRaw({
-      aggregate: 'bookings',
-      pipeline: [
-        {
-          $match: {
-            status: { $in: ['CONFIRMED', 'COMPLETED'] }
-          }
-        },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: '$totalPrice' }
-          }
-        }
-      ]
-    });
-    
-    const totalRevenue = (revenueResult.cursor as any)?.firstBatch?.[0]?.totalRevenue || 0;
-
-    // Get monthly booking trends (last 6 months) using aggregation
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    
-    const monthlyBookingsResult = await prisma.$runCommandRaw({
-      aggregate: 'bookings',
-      pipeline: [
-        {
-          $match: {
-            createdAt: { $gte: sixMonthsAgo }
-          }
-        },
-        {
-          $group: {
-            _id: {
-              year: { $year: '$createdAt' },
-              month: { $month: '$createdAt' }
-            },
-            count: { $sum: 1 },
-            totalRevenue: { $sum: '$totalPrice' }
-          }
-        },
-        {
-          $sort: { '_id.year': 1, '_id.month': 1 }
-        }
-      ]
-    });
-    
-    const monthlyBookings = (monthlyBookingsResult.cursor as any)?.firstBatch || [];
-
-    // Get top camping places by bookings using aggregation
-    const topPlacesResult = await prisma.$runCommandRaw({
-      aggregate: 'bookings',
-      pipeline: [
-        {
-          $group: {
-            _id: '$campingPlaceId',
-            bookingCount: { $sum: 1 },
-            totalRevenue: { $sum: '$totalPrice' }
-          }
-        },
-        {
-          $sort: { bookingCount: -1 }
-        },
-        {
-          $limit: 5
-        }
-      ]
-    });
-    
-    const topPlaces = (topPlacesResult.cursor as any)?.firstBatch || [];
-
-    // Get average booking value using aggregation
-    const avgBookingResult = await prisma.$runCommandRaw({
-      aggregate: 'bookings',
-      pipeline: [
-        {
-          $group: {
-            _id: null,
-            avgValue: { $avg: '$totalPrice' }
-          }
-        }
-      ]
-    });
-    
-    const averageBookingValue = (avgBookingResult.cursor as any)?.firstBatch?.[0]?.avgValue || 0;
-
-    return {
-      totalPlaces,
-      totalBookings,
-      activeBookings,
-      bookingStatusBreakdown,
-      totalRevenue: totalRevenue || 0,
-      monthlyBookings,
-      topPlaces,
-      avgBookingValue: averageBookingValue || 0,
-    };
-  } catch (error) {
-    console.error('Error fetching analytics data:', error);
-    return {
-      totalPlaces: 0,
-      totalBookings: 0,
-      activeBookings: 0,
-      bookingStatusBreakdown: [],
-      totalRevenue: 0,
-      monthlyBookings: [],
-      topPlaces: [],
-      avgBookingValue: 0,
-    };
-  }
-}
+import { AnalyticsService } from '@/lib/services/AnalyticsService';
 
 export default async function AnalyticsPage() {
-  const analytics = await getAnalyticsData();
+  const analytics = await AnalyticsService.getAnalyticsData();
+
+  const metricCardClass = "bg-white rounded-lg shadow-md p-6";
+  const sectionCardClass = "bg-white rounded-lg shadow-md p-6";
+  const actionButtonClass = "bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block";
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -172,7 +27,7 @@ export default async function AnalyticsPage() {
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={metricCardClass}>
             <div className="flex items-center">
               <div className="text-3xl text-blue-600 mr-4">🏕️</div>
               <div>
@@ -182,7 +37,7 @@ export default async function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={metricCardClass}>
             <div className="flex items-center">
               <div className="text-3xl text-green-600 mr-4">📅</div>
               <div>
@@ -192,7 +47,7 @@ export default async function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={metricCardClass}>
             <div className="flex items-center">
               <div className="text-3xl text-yellow-600 mr-4">⏳</div>
               <div>
@@ -202,7 +57,7 @@ export default async function AnalyticsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={metricCardClass}>
             <div className="flex items-center">
               <div className="text-3xl text-purple-600 mr-4">💰</div>
               <div>
@@ -217,7 +72,7 @@ export default async function AnalyticsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Booking Status Breakdown */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={sectionCardClass}>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Booking Status Breakdown</h2>
             <div className="space-y-3">
               {analytics.bookingStatusBreakdown.map((status: any) => (
@@ -243,7 +98,7 @@ export default async function AnalyticsPage() {
           </div>
 
           {/* Average Booking Value */}
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={sectionCardClass}>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Average Booking Value</h2>
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 mb-2">
@@ -256,7 +111,7 @@ export default async function AnalyticsPage() {
 
         {/* Top Camping Places */}
         <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={sectionCardClass}>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Top Camping Places by Bookings
             </h2>
@@ -264,7 +119,7 @@ export default async function AnalyticsPage() {
               <div className="space-y-4">
                 {analytics.topPlaces.map((place: any, index: number) => (
                   <div
-                    key={place._id}
+                    key={AnalyticsService.objectIdToString(place._id)}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center">
@@ -272,7 +127,7 @@ export default async function AnalyticsPage() {
                         {index + 1}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900">Camping Place ID: {place._id}</h3>
+                        <h3 className="font-semibold text-gray-900">Camping Place ID: {AnalyticsService.objectIdToString(place._id)}</h3>
                         <p className="text-sm text-gray-600">Revenue: ${place.totalRevenue?.toFixed(2) || 0}</p>
                       </div>
                     </div>
@@ -296,12 +151,12 @@ export default async function AnalyticsPage() {
 
         {/* Quick Actions */}
         <div className="mt-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className={sectionCardClass}>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/camping-places/new"
-                className="bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block"
+                className={actionButtonClass}
               >
                 Add New Place
               </Link>

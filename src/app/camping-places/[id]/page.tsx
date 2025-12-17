@@ -1,41 +1,6 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
-
-async function getCampingPlace(id: string) {
-  try {
-    const campingPlaceResult = await prisma.$runCommandRaw({
-      find: 'camping_places',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
-    if (!campingPlace) {
-      return null;
-    }
-
-    // Get bookings for this camping place
-    const bookingsResult = await prisma.$runCommandRaw({
-      find: 'bookings',
-      filter: { campingPlaceId: campingPlace._id },
-      sort: { createdAt: -1 },
-    });
-
-    const bookings = (bookingsResult.cursor as any)?.firstBatch || [];
-
-    return {
-      ...campingPlace,
-      id: campingPlace._id.$oid, // Map MongoDB _id to id
-      bookings: bookings.map((booking: any) => ({
-        ...booking,
-        id: booking._id.$oid, // Map booking _id to id
-      })),
-    };
-  } catch (error) {
-    console.error('Error fetching camping place:', error);
-    return null;
-  }
-}
+import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
 
 export default async function CampingPlaceDetailsPage({
   params,
@@ -43,11 +8,14 @@ export default async function CampingPlaceDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const campingPlace = await getCampingPlace(id);
+  const campingPlace = await CampingPlaceService.getCampingPlace(id);
 
   if (!campingPlace) {
     notFound();
   }
+
+  const tableHeaderClass = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+  const tableCellClass = "px-6 py-4 whitespace-nowrap text-sm text-gray-900";
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -126,7 +94,7 @@ export default async function CampingPlaceDetailsPage({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Total Bookings:</span>
-                  <span className="font-medium">{campingPlace.bookings.length}</span>
+                  <span className="font-medium">{campingPlace.bookings?.length || 0}</span>
                 </div>
               </div>
 
@@ -149,7 +117,7 @@ export default async function CampingPlaceDetailsPage({
         </div>
 
         {/* Recent Bookings */}
-        {campingPlace.bookings.length > 0 && (
+        {campingPlace.bookings && campingPlace.bookings.length > 0 && (
           <div className="mt-12">
             <h2 className="text-2xl font-semibold text-gray-900 mb-6">Recent Bookings</h2>
             <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -157,25 +125,25 @@ export default async function CampingPlaceDetailsPage({
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={tableHeaderClass}>
                         Customer
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={tableHeaderClass}>
                         Dates
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={tableHeaderClass}>
                         Guests
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={tableHeaderClass}>
                         Total
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th className={tableHeaderClass}>
                         Status
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {campingPlace.bookings.slice(0, 5).map((booking: any) => (
+                    {(campingPlace.bookings || []).slice(0, 5).map((booking: any) => (
                       <tr key={booking.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>
@@ -185,14 +153,14 @@ export default async function CampingPlaceDetailsPage({
                             <div className="text-sm text-gray-500">{booking.customerEmail}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className={tableCellClass}>
                           {new Date(booking.startDate).toLocaleDateString()} -{' '}
                           {new Date(booking.endDate).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className={tableCellClass}>
                           {booking.guests}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className={tableCellClass}>
                           ${booking.totalPrice}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -215,7 +183,7 @@ export default async function CampingPlaceDetailsPage({
                   </tbody>
                 </table>
               </div>
-              {campingPlace.bookings.length > 5 && (
+              {campingPlace.bookings && campingPlace.bookings.length > 5 && (
                 <div className="bg-gray-50 px-6 py-3 text-center">
                   <Link
                     href={`/bookings?campingPlace=${campingPlace.id}`}

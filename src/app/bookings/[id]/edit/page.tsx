@@ -1,8 +1,8 @@
-import Link from 'next/link';
 import BookingForm from '@/components/BookingForm';
 import { BookingService } from '@/lib/services/BookingService';
 import { MongoDbHelper } from '@/lib/MongoDbHelper';
 import { notFound } from 'next/navigation';
+import { BackLink, PageContainer } from '@/components/ui';
 
 export default async function EditBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,19 +43,12 @@ export default async function EditBookingPage({ params }: { params: Promise<{ id
   };
 
   return (
-    <div className="px-4 py-6 sm:px-0">
+    <PageContainer>
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Link
-            href={`/bookings/${id}`}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-4 inline-block"
-          >
-            ← Back to Booking Details
-          </Link>
-        </div>
+        <BackLink href={`/bookings/${id}`} text="Back to Booking Details" />
 
         <BookingForm initialData={initialData} />
       </div>
-    </div>
+    </PageContainer>
   );
 }

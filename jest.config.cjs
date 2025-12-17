@@ -20,6 +20,7 @@ const customJestConfig = {
     '/node_modules/',
     '/e2e/',
     '/.next/',
+    'helpers.ts',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
+import { FormField, Input, Textarea, Select, Checkbox, Button, FormContainer } from '@/components/ui';
 
 interface CampingItemFormProps {
   initialData?: {
@@ -17,6 +18,7 @@ interface CampingItemFormProps {
 
 export default function CampingItemForm({ initialData }: CampingItemFormProps) {
   const router = useRouter();
+  const { createCampingItem, updateCampingItem, deleteCampingItem } = useCampingItemsStore();
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
     category: initialData?.category || '',
@@ -31,25 +33,15 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
     setIsSubmitting(true);
 
     try {
-      const url = initialData?.id ? `/api/camping-items/${initialData.id}` : '/api/camping-items';
-      const method = initialData?.id ? 'PUT' : 'POST';
+      const result = initialData?.id
+        ? await updateCampingItem(initialData.id, formData)
+        : await createCampingItem(formData);
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        // Clear cache so fresh data is fetched next time
-        useCampingItemsStore.getState().clearCache();
+      if (result.success) {
         router.push('/camping-items');
         router.refresh();
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
+        alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -67,18 +59,13 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
     }
 
     try {
-      const response = await fetch(`/api/camping-items/${initialData.id}`, {
-        method: 'DELETE',
-      });
+      const result = await deleteCampingItem(initialData.id);
 
-      if (response.ok) {
-        // Clear cache so fresh data is fetched next time
-        useCampingItemsStore.getState().clearCache();
+      if (result.success) {
         router.push('/camping-items');
         router.refresh();
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
+        alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error deleting camping item:', error);
@@ -87,118 +74,79 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        {initialData?.id ? 'Edit Camping Item' : 'Add New Camping Item'}
-      </h1>
-
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Name *
-          </label>
-          <input
+    <FormContainer title={initialData?.id ? 'Edit Camping Item' : 'Add New Camping Item'}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FormField label="Name" htmlFor="name" required>
+          <Input
             type="text"
             id="name"
             required
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter camping item name"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-            Category *
-          </label>
-          <select
+        <FormField label="Category" htmlFor="category" required>
+          <Select
             id="category"
             required
             value={formData.category}
             onChange={e => setFormData({ ...formData, category: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select a category</option>
             <option value="Tent">Tent</option>
-            <option value="Sleeping Bag">Van</option>
-            <option value="Sleeping Bag">Trailer</option>
-            <option value="Sleeping Bag">Pavillon/Awning</option>
-          </select>
-        </div>
+            <option value="Van">Van</option>
+            <option value="Trailer">Trailer</option>
+            <option value="Pavillon/Awning">Pavillon/Awning</option>
+          </Select>
+        </FormField>
 
-        <div>
-          <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-2">
-            Size in m² *
-          </label>
-          <input
+        <FormField label="Size in m²" htmlFor="size" required>
+          <Input
             type="number"
             id="size"
             required
             min="1"
             value={formData.size}
             onChange={e => setFormData({ ...formData, size: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter size in square meters"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <textarea
+        <FormField label="Description" htmlFor="description">
+          <Textarea
             id="description"
-            rows={3}
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe the camping item"
           />
-        </div>
+        </FormField>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="isActive"
-            checked={formData.isActive}
-            onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-            Active (available for booking)
-          </label>
-        </div>
+        <Checkbox
+          id="isActive"
+          label="Active (available for booking)"
+          checked={formData.isActive}
+          onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+        />
 
         <div className="flex justify-between">
           <div className="flex space-x-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" onClick={() => router.back()}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
-            </button>
+            </Button>
           </div>
           
           {initialData?.id && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
+            <Button type="button" variant="danger" onClick={handleDelete}>
               Delete
-            </button>
+            </Button>
           )}
         </div>
       </form>
-    </div>
+    </FormContainer>
   );
 }

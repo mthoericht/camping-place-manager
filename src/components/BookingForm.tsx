@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
 import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
+import { useBookingsStore } from '@/stores/useBookingsStore';
+import { FormField, Input, Textarea, Select, Button, FormContainer } from '@/components/ui';
 
 interface BookingFormProps {
   initialData?: {
@@ -38,6 +40,8 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     loading: itemsLoading,
     error: itemsError,
   } = useCampingItemsStore();
+
+  const { createBooking, updateBooking } = useBookingsStore();
 
   const campingPlaces = getActivePlaces();
 
@@ -107,30 +111,21 @@ export default function BookingForm({ initialData }: BookingFormProps) {
     setIsSubmitting(true);
 
     try {
-      const url = initialData?.id ? `/api/bookings/${initialData.id}` : '/api/bookings';
+      const result = initialData?.id
+        ? await updateBooking(initialData.id, {
+            ...formData,
+            campingItems: selectedItems,
+          })
+        : await createBooking({
+            ...formData,
+            campingItems: selectedItems,
+          });
 
-      const method = initialData?.id ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          campingItems: selectedItems,
-        }),
-      });
-
-      if (response.ok) {
-        // Clear cache so fresh data is fetched next time
-        useCampingPlacesStore.getState().clearCache();
-        useCampingItemsStore.getState().clearCache();
+      if (result.success) {
         router.push('/bookings');
         router.refresh();
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
+        alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -141,12 +136,8 @@ export default function BookingForm({ initialData }: BookingFormProps) {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        {initialData?.id ? 'Edit Booking' : 'New Booking'}
-      </h1>
-
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
+    <FormContainer title={initialData?.id ? 'Edit Booking' : 'New Booking'}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         {(placesLoading || itemsLoading) && (
           <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-md">
             Loading camping places and items...
@@ -157,16 +148,12 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             Error loading data: {placesError || itemsError}
           </div>
         )}
-        <div>
-          <label htmlFor="campingPlaceId" className="block text-sm font-medium text-gray-700 mb-2">
-            Camping Place *
-          </label>
-          <select
+        <FormField label="Camping Place" htmlFor="campingPlaceId" required>
+          <Select
             id="campingPlaceId"
             required
             value={formData.campingPlaceId}
             onChange={e => setFormData({ ...formData, campingPlaceId: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={placesLoading}
           >
             <option value="">Select a camping place</option>
@@ -175,44 +162,38 @@ export default function BookingForm({ initialData }: BookingFormProps) {
                 {place.name} - ${place.price}/night (Size: {place.size} m&#178;)
               </option>
             ))}
-          </select>
-        </div>
+          </Select>
+        </FormField>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Check-in Date *
-            </label>
-            <input
+          <FormField label="Check-in Date" htmlFor="startDate" required>
+            <Input
               type="date"
               id="startDate"
               required
               value={formData.startDate}
               onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-              Check-out Date *
-            </label>
-            <input
+          <FormField label="Check-out Date" htmlFor="endDate" required>
+            <Input
               type="date"
               id="endDate"
               required
               value={formData.endDate}
               onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </FormField>
         </div>
 
-        <div>
-          <label htmlFor="guests" className="block text-sm font-medium text-gray-700 mb-2">
-            Number of Guests *
-          </label>
-          <input
+        <FormField
+          label="Number of Guests"
+          htmlFor="guests"
+          required
+          helpText={selectedPlace ? `Maximum capacity: ${selectedPlace.size} guests` : undefined}
+        >
+          <Input
             type="number"
             id="guests"
             required
@@ -220,58 +201,40 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             max={selectedPlace?.size || 10}
             value={formData.guests}
             onChange={e => setFormData({ ...formData, guests: parseInt(e.target.value) })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          {selectedPlace && (
-            <p className="text-sm text-gray-500 mt-1">
-              Maximum capacity: {selectedPlace.size} guests
-            </p>
-          )}
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
-            Customer Name *
-          </label>
-          <input
+        <FormField label="Customer Name" htmlFor="customerName" required>
+          <Input
             type="text"
             id="customerName"
             required
             value={formData.customerName}
             onChange={e => setFormData({ ...formData, customerName: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer name"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700 mb-2">
-            Customer Email *
-          </label>
-          <input
+        <FormField label="Customer Email" htmlFor="customerEmail" required>
+          <Input
             type="email"
             id="customerEmail"
             required
             value={formData.customerEmail}
             onChange={e => setFormData({ ...formData, customerEmail: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer email"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700 mb-2">
-            Customer Phone
-          </label>
-          <input
+        <FormField label="Customer Phone" htmlFor="customerPhone">
+          <Input
             type="tel"
             id="customerPhone"
             value={formData.customerPhone}
             onChange={e => setFormData({ ...formData, customerPhone: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter customer phone number"
           />
-        </div>
+        </FormField>
 
         {selectedPlace && (
           <div>
@@ -323,19 +286,14 @@ export default function BookingForm({ initialData }: BookingFormProps) {
           </div>
         )}
 
-        <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-2">
-            Notes
-          </label>
-          <textarea
+        <FormField label="Notes" htmlFor="notes">
+          <Textarea
             id="notes"
-            rows={3}
             value={formData.notes}
             onChange={e => setFormData({ ...formData, notes: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Any special requests or notes"
           />
-        </div>
+        </FormField>
 
         {selectedPlace && formData.startDate && formData.endDate && (
           <div className="bg-blue-50 p-4 rounded-md">
@@ -368,22 +326,19 @@ export default function BookingForm({ initialData }: BookingFormProps) {
         )}
 
         <div className="flex space-x-4">
-          <button
+          <Button
             type="submit"
+            variant="success"
             disabled={isSubmitting}
-            className="flex-1 bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors"
+            className="flex-1"
           >
             {isSubmitting ? 'Processing...' : initialData?.id ? 'Update Booking' : 'Create Booking'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-          >
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => router.back()}>
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </FormContainer>
   );
 }

@@ -1,17 +1,8 @@
 import { create } from 'zustand';
+import { campingPlacesApi, type CampingPlace, type CampingPlaceFormData } from '@/lib/api/campingPlacesApi';
 
-export interface CampingPlace {
-  id: string;
-  name: string;
-  price: number;
-  size: number;
-  description?: string;
-  location?: string;
-  amenities?: string[];
-  isActive?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+// Re-export types for convenience
+export type { CampingPlace, CampingPlaceFormData };
 
 interface CampingPlacesState {
   campingPlaces: CampingPlace[];
@@ -22,6 +13,8 @@ interface CampingPlacesState {
   getActivePlaces: () => CampingPlace[];
   getPlaceById: (id: string) => CampingPlace | undefined;
   clearCache: () => void;
+  createCampingPlace: (data: CampingPlaceFormData) => Promise<{ success: boolean; error?: string }>;
+  updateCampingPlace: (id: string, data: CampingPlaceFormData) => Promise<{ success: boolean; error?: string }>;
 }
 
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -46,12 +39,7 @@ export const useCampingPlacesStore = create<CampingPlacesState>((set, get) => ({
 
     try 
     {
-      const response = await fetch('/api/camping-places');
-      if (!response.ok) 
-      {
-        throw new Error('Failed to fetch camping places');
-      }
-      const places = await response.json();
+      const places = await campingPlacesApi.getAll();
       set({
         campingPlaces: places,
         loading: false,
@@ -81,6 +69,40 @@ export const useCampingPlacesStore = create<CampingPlacesState>((set, get) => ({
   clearCache: () => 
   {
     set({ lastFetched: null });
+  },
+
+  createCampingPlace: async (data: CampingPlaceFormData) => 
+  {
+    try 
+    {
+      await campingPlacesApi.create(data);
+      get().clearCache();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while creating the camping place' 
+      };
+    }
+  },
+
+  updateCampingPlace: async (id: string, data: CampingPlaceFormData) => 
+  {
+    try 
+    {
+      await campingPlacesApi.update(id, data);
+      get().clearCache();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while updating the camping place' 
+      };
+    }
   },
 }));
 

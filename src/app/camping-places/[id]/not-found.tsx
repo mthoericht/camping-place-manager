@@ -1,29 +1,22 @@
-import Link from 'next/link';
+import { NotFound } from '@/components/ui';
 
-export default function NotFound() {
+export default function CampingPlaceNotFound() {
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="text-center py-12">
-        <div className="text-6xl mb-4">🏕️</div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Camping Place Not Found</h1>
-        <p className="text-gray-600 mb-8">
-          The camping place you&apos;re looking for doesn&apos;t exist or has been removed.
-        </p>
-        <div className="space-x-4">
-          <Link
-            href="/camping-places"
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            View All Places
-          </Link>
-          <Link
-            href="/"
-            className="bg-gray-600 text-white px-6 py-3 rounded-md hover:bg-gray-700 transition-colors"
-          >
-            Go Home
-          </Link>
-        </div>
-      </div>
-    </div>
+    <NotFound
+      icon="🏕️"
+      title="Camping Place Not Found"
+      message="The camping place you're looking for doesn't exist or has been removed."
+      backLink={{
+        href: '/camping-places',
+        text: 'View All Places',
+      }}
+      additionalLinks={[
+        {
+          href: '/',
+          text: 'Go Home',
+          variant: 'secondary',
+        },
+      ]}
+    />
   );
 }

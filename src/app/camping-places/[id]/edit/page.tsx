@@ -1,19 +1,7 @@
-import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import CampingPlaceForm from '@/components/CampingPlaceForm';
 import { notFound } from 'next/navigation';
-
-async function getCampingPlace(id: string) {
-  try {
-    const campingPlace = await prisma.campingPlace.findUnique({
-      where: { id },
-    });
-    return campingPlace;
-  } catch (error) {
-    console.error('Error fetching camping place:', error);
-    return null;
-  }
-}
+import { BackLink, PageContainer } from '@/components/ui';
+import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
 
 export default async function EditCampingPlacePage({
   params,
@@ -21,23 +9,16 @@ export default async function EditCampingPlacePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const campingPlace = await getCampingPlace(id);
+  const campingPlace = await CampingPlaceService.getCampingPlace(id);
 
   if (!campingPlace) {
     notFound();
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
+    <PageContainer>
       <div className="max-w-4xl mx-auto">
-        <div className="mb-6">
-          <Link
-            href={`/camping-places/${id}`}
-            className="text-blue-600 hover:text-blue-800 text-sm font-medium mb-4 inline-block"
-          >
-            ← Back to {campingPlace.name}
-          </Link>
-        </div>
+        <BackLink href={`/camping-places/${id}`} text={`Back to ${campingPlace.name}`} />
 
         <CampingPlaceForm
           initialData={{
@@ -46,6 +27,6 @@ export default async function EditCampingPlacePage({
           }}
         />
       </div>
-    </div>
+    </PageContainer>
   );
 }

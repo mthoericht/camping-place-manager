@@ -1,56 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import type { BookingServer, BookingWithDetails } from '@/lib/types';
 
-export interface Booking {
-  id: string;
-  campingPlaceId: string;
-  customerName: string;
-  customerEmail: string;
-  customerPhone?: string;
-  startDate: string;
-  endDate: string;
-  guests: number;
-  totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
-  notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  campingPlace?: {
-    id: string;
-    name: string;
-    location: string;
-  };
-}
-
-export interface BookingWithDetails extends Omit<Booking, 'startDate' | 'endDate'> {
-  startDate: string | { $date: string };
-  endDate: string | { $date: string };
-  campingPlace: {
-    id: string;
-    name: string;
-    description: string;
-    location: string;
-    size: number;
-    price: number;
-    amenities: string[];
-    isActive: boolean;
-    createdAt: any;
-    updatedAt: any;
-  };
-  bookingItems?: Array<{
-    id: string;
-    bookingId: string;
-    campingItemId: string;
-    quantity: number;
-    campingItem?: {
-      id: string;
-      name: string;
-      category: string;
-      size: number;
-      description: string;
-    };
-  }>;
-}
+// Re-export as Booking for backward compatibility
+export type { BookingServer as Booking, BookingWithDetails };
 
 /**
  * Service class for booking-related operations
@@ -60,7 +13,7 @@ export class BookingService
   /**
    * Get all bookings with camping place information
    */
-  static async getBookings(): Promise<Booking[]> 
+  static async getBookings(): Promise<BookingServer[]> 
   {
     try 
     {
@@ -88,7 +41,7 @@ export class BookingService
       );
       
       // Map MongoDB _id to id and include camping place data
-      const mappedBookings = bookings.map((booking: any): Booking => 
+      const mappedBookings = bookings.map((booking: any): BookingServer => 
       {
         const campingPlaceId = MongoDbHelper.extractCampingPlaceId(booking);
         const campingPlace = campingPlaceId ? placesMap.get(campingPlaceId) : undefined;
@@ -283,6 +236,234 @@ export class BookingService
     {
       console.error('Error fetching booking:', error);
       return null;
+    }
+  }
+
+  /**
+   * Create a new booking
+   */
+  static async createBooking(data: {
+    campingPlaceId: string;
+    customerName: string;
+    customerEmail: string;
+    customerPhone?: string;
+    startDate: string;
+    endDate: string;
+    guests: number;
+    notes?: string;
+    campingItems?: { [key: string]: number };
+  }): Promise<BookingWithDetails | null> 
+  {
+    try 
+    {
+      // Get camping place to calculate price
+      const campingPlaceResult = await prisma.$runCommandRaw({
+        find: 'camping_places',
+        filter: { _id: MongoDbHelper.toObjectId(data.campingPlaceId) },
+      });
+
+      const campingPlace = (campingPlaceResult.cursor as any)?.firstBatch?.[0];
+
+      if (!campingPlace) 
+      {
+        throw new Error('Camping place not found');
+      }
+
+      // Validate camping items size
+      if (data.campingItems) 
+      {
+        let totalSize = 0;
+        const itemIds = Object.keys(data.campingItems);
+        
+        if (itemIds.length > 0) 
+        {
+          const campingItemsResult = await prisma.$runCommandRaw({
+            find: 'camping_items',
+            filter: { _id: { $in: itemIds.map(id => MongoDbHelper.toObjectId(id)) } },
+          });
+
+          const campingItems = (campingItemsResult.cursor as any)?.firstBatch || [];
+          
+          for (const [itemId, quantity] of Object.entries(data.campingItems)) 
+          {
+            const item = campingItems.find((ci: any) => 
+              MongoDbHelper.extractObjectId(ci._id) === itemId
+            );
+            if (item) 
+            {
+              totalSize += item.size * (quantity as number);
+            }
+          }
+
+          if (totalSize > campingPlace.size) 
+          {
+            throw new Error(
+              `Total camping items size (${totalSize} m²) exceeds camping place size (${campingPlace.size} m²)`
+            );
+          }
+        }
+      }
+
+      // Calculate total price
+      const start = new Date(data.startDate);
+      const end = new Date(data.endDate);
+      const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      const totalPrice = nights * campingPlace.price;
+
+      // Create booking
+      const insertResult = await prisma.$runCommandRaw({
+        insert: 'bookings',
+        documents: [{
+          campingPlaceId: MongoDbHelper.toObjectId(data.campingPlaceId),
+          customerName: data.customerName,
+          customerEmail: data.customerEmail,
+          customerPhone: data.customerPhone || null,
+          startDate: MongoDbHelper.createMongoDate(start),
+          endDate: MongoDbHelper.createMongoDate(end),
+          guests: parseInt(String(data.guests)),
+          totalPrice,
+          status: 'PENDING',
+          notes: data.notes || null,
+          createdAt: MongoDbHelper.createMongoDate(),
+          updatedAt: MongoDbHelper.createMongoDate(),
+        }]
+      });
+
+      // Get the inserted booking ID
+      const insertedIds = (insertResult as any).insertedIds || (insertResult as any).inserted;
+      const insertedId = Array.isArray(insertedIds) ? insertedIds[0] : insertedIds;
+      const bookingId = MongoDbHelper.extractObjectId(insertedId);
+
+      // Create booking items if provided
+      if (data.campingItems && Object.keys(data.campingItems).length > 0) 
+      {
+        const itemsToCreate = Object.entries(data.campingItems).map(([itemId, quantity]) => ({
+          bookingId,
+          campingItemId: MongoDbHelper.toObjectId(itemId),
+          quantity: quantity as number,
+          createdAt: MongoDbHelper.createMongoDate(),
+          updatedAt: MongoDbHelper.createMongoDate(),
+        }));
+
+        await prisma.$runCommandRaw({
+          insert: 'booking_items',
+          documents: itemsToCreate,
+        });
+      }
+
+      // Fetch the created booking with all details
+      return await this.getBooking(bookingId);
+    }
+    catch (error) 
+    {
+      console.error('Error creating booking:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing booking
+   */
+  static async updateBooking(
+    id: string,
+    data: {
+      customerName?: string;
+      customerEmail?: string;
+      customerPhone?: string;
+      startDate?: string;
+      endDate?: string;
+      guests?: number;
+      status?: string;
+      notes?: string;
+      campingItems?: { [key: string]: number };
+    }
+  ): Promise<BookingWithDetails | null> 
+  {
+    try 
+    {
+      // First, delete existing booking items
+      await prisma.$runCommandRaw({
+        delete: 'booking_items',
+        deletes: [{ q: { bookingId: id }, limit: 0 }],
+      });
+
+      // Update the booking
+      const updateData: any = {
+        updatedAt: MongoDbHelper.createMongoDate(),
+      };
+
+      if (data.customerName !== undefined) updateData.customerName = data.customerName;
+      if (data.customerEmail !== undefined) updateData.customerEmail = data.customerEmail;
+      if (data.customerPhone !== undefined) updateData.customerPhone = data.customerPhone || null;
+      if (data.startDate) updateData.startDate = MongoDbHelper.createMongoDate(new Date(data.startDate));
+      if (data.endDate) updateData.endDate = MongoDbHelper.createMongoDate(new Date(data.endDate));
+      if (data.guests !== undefined) updateData.guests = parseInt(String(data.guests));
+      if (data.status !== undefined) updateData.status = data.status;
+      if (data.notes !== undefined) updateData.notes = data.notes || null;
+
+      await prisma.$runCommandRaw({
+        update: 'bookings',
+        updates: [{ q: { _id: MongoDbHelper.toObjectId(id) }, u: { $set: updateData } }],
+      });
+
+      // Create new booking items if provided
+      if (data.campingItems && Object.keys(data.campingItems).length > 0) 
+      {
+        const itemsToCreate = Object.entries(data.campingItems).map(([itemId, quantity]) => ({
+          bookingId: id,
+          campingItemId: MongoDbHelper.toObjectId(itemId),
+          quantity: quantity as number,
+          createdAt: MongoDbHelper.createMongoDate(),
+          updatedAt: MongoDbHelper.createMongoDate(),
+        }));
+
+        await prisma.$runCommandRaw({
+          insert: 'booking_items',
+          documents: itemsToCreate,
+        });
+      }
+
+      // Fetch the updated booking with all details
+      return await this.getBooking(id);
+    }
+    catch (error) 
+    {
+      console.error('Error updating booking:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a booking
+   */
+  static async deleteBooking(id: string): Promise<boolean> 
+  {
+    try 
+    {
+      // First delete booking items
+      await prisma.$runCommandRaw({
+        delete: 'booking_items',
+        deletes: [{ q: { bookingId: id }, limit: 0 }],
+      });
+
+      // Then delete the booking
+      const deleteResult = await prisma.$runCommandRaw({
+        delete: 'bookings',
+        deletes: [
+          {
+            q: { _id: MongoDbHelper.toObjectId(id) },
+            limit: 1
+          }
+        ]
+      });
+
+      const deletedCount = (deleteResult as any).deletedCount || (deleteResult as any).n;
+      return deletedCount > 0;
+    }
+    catch (error) 
+    {
+      console.error('Error deleting booking:', error);
+      throw error;
     }
   }
 }

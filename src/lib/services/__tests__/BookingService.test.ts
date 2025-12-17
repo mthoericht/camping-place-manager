@@ -1,6 +1,18 @@
 import { BookingService } from '../BookingService';
 import { prisma } from '@/lib/prisma';
 import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import {
+  mockPrismaFindResult,
+  mockPrismaEmptyResult,
+  setupPrismaMocks,
+  mockPrismaError,
+  setupMongoDbHelperMocks,
+  mockExtractCampingPlaceId,
+  setupConsoleErrorSpy,
+  mockFetchSuccess,
+  mockFetchFailure,
+  mockFetchError,
+} from './helpers';
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -22,12 +34,10 @@ describe('BookingService', () =>
   {
     it('should return empty array when no bookings exist', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [] },
-      });
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [] },
-      });
+      setupPrismaMocks([
+        mockPrismaEmptyResult(),
+        mockPrismaEmptyResult(),
+      ]);
 
       const result = await BookingService.getBookings();
       expect(result).toEqual([]);
@@ -57,25 +67,13 @@ describe('BookingService', () =>
         location: 'Test Location',
       };
 
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [mockBooking] },
-      });
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [mockCampingPlace] },
-      });
+      setupPrismaMocks([
+        mockPrismaFindResult([mockBooking]),
+        mockPrismaFindResult([mockCampingPlace]),
+      ]);
 
-      (MongoDbHelper.extractObjectId as jest.Mock).mockImplementation((id) => 
-      {
-        if (id?.$oid) return id.$oid;
-        return String(id);
-      });
-
-      (MongoDbHelper.extractCampingPlaceId as jest.Mock).mockReturnValue('507f1f77bcf86cd799439012');
-      (MongoDbHelper.parseMongoDate as jest.Mock).mockImplementation((date) => 
-      {
-        if (date?.$date) return date.$date;
-        return date;
-      });
+      setupMongoDbHelperMocks();
+      mockExtractCampingPlaceId('507f1f77bcf86cd799439012');
 
       const result = await BookingService.getBookings();
 
@@ -86,14 +84,14 @@ describe('BookingService', () =>
 
     it('should handle errors gracefully and return empty array', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockRejectedValueOnce(new Error('Database error'));
+      mockPrismaError(new Error('Database error'));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const cleanup = setupConsoleErrorSpy();
       const result = await BookingService.getBookings();
 
       expect(result).toEqual([]);
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(console.error).toHaveBeenCalled();
+      cleanup();
     });
   });
 
@@ -101,9 +99,9 @@ describe('BookingService', () =>
   {
     it('should return null when booking does not exist', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [] },
-      });
+      setupPrismaMocks([
+        mockPrismaEmptyResult(),
+      ]);
 
       const result = await BookingService.getBooking('507f1f77bcf86cd799439011');
       expect(result).toBeNull();
@@ -138,32 +136,14 @@ describe('BookingService', () =>
         updatedAt: { $date: '2024-01-01T00:00:00.000Z' },
       };
 
-      (prisma.$runCommandRaw as jest.Mock)
-        .mockResolvedValueOnce({
-          cursor: { firstBatch: [mockBooking] },
-        })
-        .mockResolvedValueOnce({
-          cursor: { firstBatch: [mockCampingPlace] },
-        })
-        .mockResolvedValueOnce({
-          cursor: { firstBatch: [] },
-        });
+      setupPrismaMocks([
+        mockPrismaFindResult([mockBooking]),
+        mockPrismaFindResult([mockCampingPlace]),
+        mockPrismaEmptyResult(),
+      ]);
 
-      (MongoDbHelper.extractObjectId as jest.Mock).mockImplementation((id) => 
-      {
-        if (id?.$oid) return id.$oid;
-        return String(id);
-      });
-
-      (MongoDbHelper.extractCampingPlaceId as jest.Mock).mockReturnValue('507f1f77bcf86cd799439012');
-      (MongoDbHelper.parseMongoDate as jest.Mock).mockImplementation((date) => 
-      {
-        if (date?.$date) return date.$date;
-        return date;
-      });
-      (MongoDbHelper.toObjectId as jest.Mock).mockImplementation((id) => ({
-        $oid: id,
-      }));
+      setupMongoDbHelperMocks();
+      mockExtractCampingPlaceId('507f1f77bcf86cd799439012');
 
       const result = await BookingService.getBooking('507f1f77bcf86cd799439011');
 
@@ -174,14 +154,14 @@ describe('BookingService', () =>
 
     it('should handle errors gracefully and return null', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockRejectedValueOnce(new Error('Database error'));
+      mockPrismaError(new Error('Database error'));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const cleanup = setupConsoleErrorSpy();
       const result = await BookingService.getBooking('507f1f77bcf86cd799439011');
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(console.error).toHaveBeenCalled();
+      cleanup();
     });
   });
 
@@ -199,10 +179,7 @@ describe('BookingService', () =>
         bookingItems: [],
       };
 
-      global.fetch = jest.fn().mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockBooking,
-      });
+      mockFetchSuccess(mockBooking);
 
       const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
 
@@ -216,9 +193,7 @@ describe('BookingService', () =>
 
     it('should return null when API request fails', async () => 
     {
-      global.fetch = jest.fn().mockResolvedValueOnce({
-        ok: false,
-      });
+      mockFetchFailure();
 
       const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
       expect(result).toBeNull();
@@ -226,14 +201,14 @@ describe('BookingService', () =>
 
     it('should handle fetch errors gracefully', async () => 
     {
-      global.fetch = jest.fn().mockRejectedValueOnce(new Error('Network error'));
+      mockFetchError(new Error('Network error'));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const cleanup = setupConsoleErrorSpy();
       const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(console.error).toHaveBeenCalled();
+      cleanup();
     });
   });
 });

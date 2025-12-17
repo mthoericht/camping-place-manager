@@ -1,6 +1,13 @@
 import { CampingItemService } from '../CampingItemService';
 import { prisma } from '@/lib/prisma';
 import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import {
+  mockPrismaFindResult,
+  mockPrismaEmptyResult,
+  mockPrismaError,
+  setupMongoDbHelperMocks,
+  setupConsoleErrorSpy,
+} from './helpers';
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -22,9 +29,7 @@ describe('CampingItemService', () =>
   {
     it('should return empty array when no camping items exist', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [] },
-      });
+      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce(mockPrismaEmptyResult());
 
       const result = await CampingItemService.getCampingItems();
       expect(result).toEqual([]);
@@ -43,21 +48,11 @@ describe('CampingItemService', () =>
         updatedAt: { $date: '2024-01-01T00:00:00.000Z' },
       };
 
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [mockCampingItem] },
-      });
+      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce(
+        mockPrismaFindResult([mockCampingItem])
+      );
 
-      (MongoDbHelper.extractObjectId as jest.Mock).mockImplementation((id) => 
-      {
-        if (id?.$oid) return id.$oid;
-        return String(id);
-      });
-
-      (MongoDbHelper.parseMongoDate as jest.Mock).mockImplementation((date) => 
-      {
-        if (date?.$date) return date.$date;
-        return date;
-      });
+      setupMongoDbHelperMocks();
 
       const result = await CampingItemService.getCampingItems();
 
@@ -68,14 +63,14 @@ describe('CampingItemService', () =>
 
     it('should handle errors gracefully and return empty array', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockRejectedValueOnce(new Error('Database error'));
+      mockPrismaError(new Error('Database error'));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const cleanup = setupConsoleErrorSpy();
       const result = await CampingItemService.getCampingItems();
 
       expect(result).toEqual([]);
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(console.error).toHaveBeenCalled();
+      cleanup();
     });
   });
 
@@ -83,9 +78,7 @@ describe('CampingItemService', () =>
   {
     it('should return null when camping item does not exist', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [] },
-      });
+      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce(mockPrismaEmptyResult());
 
       const result = await CampingItemService.getCampingItem('507f1f77bcf86cd799439011');
       expect(result).toBeNull();
@@ -104,25 +97,11 @@ describe('CampingItemService', () =>
         updatedAt: { $date: '2024-01-01T00:00:00.000Z' },
       };
 
-      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce({
-        cursor: { firstBatch: [mockCampingItem] },
-      });
+      (prisma.$runCommandRaw as jest.Mock).mockResolvedValueOnce(
+        mockPrismaFindResult([mockCampingItem])
+      );
 
-      (MongoDbHelper.extractObjectId as jest.Mock).mockImplementation((id) => 
-      {
-        if (id?.$oid) return id.$oid;
-        return String(id);
-      });
-
-      (MongoDbHelper.parseMongoDate as jest.Mock).mockImplementation((date) => 
-      {
-        if (date?.$date) return date.$date;
-        return date;
-      });
-
-      (MongoDbHelper.toObjectId as jest.Mock).mockImplementation((id) => ({
-        $oid: id,
-      }));
+      setupMongoDbHelperMocks();
 
       const result = await CampingItemService.getCampingItem('507f1f77bcf86cd799439011');
 
@@ -133,14 +112,14 @@ describe('CampingItemService', () =>
 
     it('should handle errors gracefully and return null', async () => 
     {
-      (prisma.$runCommandRaw as jest.Mock).mockRejectedValueOnce(new Error('Database error'));
+      mockPrismaError(new Error('Database error'));
 
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+      const cleanup = setupConsoleErrorSpy();
       const result = await CampingItemService.getCampingItem('507f1f77bcf86cd799439011');
 
       expect(result).toBeNull();
-      expect(consoleSpy).toHaveBeenCalled();
-      consoleSpy.mockRestore();
+      expect(console.error).toHaveBeenCalled();
+      cleanup();
     });
   });
 });

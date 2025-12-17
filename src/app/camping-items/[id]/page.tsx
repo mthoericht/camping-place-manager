@@ -1,30 +1,6 @@
 import Link from 'next/link';
-import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
-
-async function getCampingItem(id: string) {
-  try {
-    const campingItemResult = await prisma.$runCommandRaw({
-      find: 'camping_items',
-      filter: { _id: { $oid: id } },
-    });
-
-    const campingItem = (campingItemResult.cursor as any)?.firstBatch?.[0];
-    
-    if (!campingItem) {
-      return null;
-    }
-
-    // Map MongoDB _id to id
-    return {
-      ...campingItem,
-      id: campingItem._id.$oid,
-    };
-  } catch (error) {
-    console.error('Error fetching camping item:', error);
-    return null;
-  }
-}
+import { CampingItemService } from '@/lib/services/CampingItemService';
 
 export default async function CampingItemDetailPage({
   params,
@@ -32,11 +8,15 @@ export default async function CampingItemDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const campingItem = await getCampingItem(id);
+  const campingItem = await CampingItemService.getCampingItem(id);
 
   if (!campingItem) {
     notFound();
   }
+
+  const categoryBadgeClass = "bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full";
+  const detailLabelClass = "text-sm font-medium text-gray-500";
+  const detailValueClass = "text-lg text-gray-900";
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -57,7 +37,7 @@ export default async function CampingItemDetailPage({
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{campingItem.name}</h1>
                 <div className="flex items-center gap-4">
-                  <span className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                  <span className={categoryBadgeClass}>
                     {campingItem.category}
                   </span>
                   <span className={`text-sm px-3 py-1 rounded-full ${
@@ -83,18 +63,18 @@ export default async function CampingItemDetailPage({
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">Item Details</h2>
                 <dl className="space-y-3">
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Size</dt>
-                    <dd className="text-lg text-gray-900">{campingItem.size} m²</dd>
+                    <dt className={detailLabelClass}>Size</dt>
+                    <dd className={detailValueClass}>{campingItem.size} m²</dd>
                   </div>
                   
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Category</dt>
-                    <dd className="text-lg text-gray-900">{campingItem.category}</dd>
+                    <dt className={detailLabelClass}>Category</dt>
+                    <dd className={detailValueClass}>{campingItem.category}</dd>
                   </div>
                   
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Status</dt>
-                    <dd className="text-lg text-gray-900">
+                    <dt className={detailLabelClass}>Status</dt>
+                    <dd className={detailValueClass}>
                       <span className={`px-2 py-1 rounded-full text-sm ${
                         campingItem.isActive 
                           ? 'bg-green-100 text-green-800' 
@@ -106,15 +86,15 @@ export default async function CampingItemDetailPage({
                   </div>
                   
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Created</dt>
-                    <dd className="text-lg text-gray-900">
+                    <dt className={detailLabelClass}>Created</dt>
+                    <dd className={detailValueClass}>
                       {new Date(campingItem.createdAt).toLocaleDateString()}
                     </dd>
                   </div>
                   
                   <div>
-                    <dt className="text-sm font-medium text-gray-500">Last Updated</dt>
-                    <dd className="text-lg text-gray-900">
+                    <dt className={detailLabelClass}>Last Updated</dt>
+                    <dd className={detailValueClass}>
                       {new Date(campingItem.updatedAt).toLocaleDateString()}
                     </dd>
                   </div>

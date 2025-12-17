@@ -17,6 +17,10 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
   const endDate = new Date(MongoDbHelper.parseMongoDate(booking.endDate));
   const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
 
+  const sectionClass = "bg-white rounded-lg shadow-md p-6 mb-6";
+  const labelClass = "block text-sm font-medium text-gray-700";
+  const valueClass = "text-lg text-gray-900";
+
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="max-w-4xl mx-auto">
@@ -37,25 +41,25 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
           {/* Left Column - Booking Details */}
           <div className="lg:col-span-2">
             {/* Customer Information */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className={sectionClass}>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Customer Information</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <p className="text-lg text-gray-900">{booking.customerName}</p>
+                  <label className={labelClass}>Name</label>
+                  <p className={valueClass}>{booking.customerName}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-lg text-gray-900">{booking.customerEmail}</p>
+                  <label className={labelClass}>Email</label>
+                  <p className={valueClass}>{booking.customerEmail}</p>
                 </div>
                 {booking.customerPhone && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <p className="text-lg text-gray-900">{booking.customerPhone}</p>
+                    <label className={labelClass}>Phone</label>
+                    <p className={valueClass}>{booking.customerPhone}</p>
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Booking Status</label>
+                  <label className={labelClass}>Booking Status</label>
                   <span
                     className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                       booking.status === 'CONFIRMED'
@@ -74,35 +78,35 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
             </div>
 
             {/* Booking Dates */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className={sectionClass}>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Booking Dates</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Check-in Date</label>
-                  <p className="text-lg text-gray-900">{startDate.toLocaleDateString()}</p>
+                  <label className={labelClass}>Check-in Date</label>
+                  <p className={valueClass}>{startDate.toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Check-out Date</label>
-                  <p className="text-lg text-gray-900">{endDate.toLocaleDateString()}</p>
+                  <label className={labelClass}>Check-out Date</label>
+                  <p className={valueClass}>{endDate.toLocaleDateString()}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className={labelClass}>
                     Number of Nights
                   </label>
-                  <p className="text-lg text-gray-900">{nights}</p>
+                  <p className={valueClass}>{nights}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className={labelClass}>
                     Number of Guests
                   </label>
-                  <p className="text-lg text-gray-900">{booking.guests}</p>
+                  <p className={valueClass}>{booking.guests}</p>
                 </div>
               </div>
             </div>
 
             {/* Camping Items */}
             {booking.bookingItems && booking.bookingItems.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <div className={sectionClass}>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Selected Camping Items</h2>
                 <div className="space-y-3">
                   {booking.bookingItems.map((bookingItem: any) => {
@@ -153,7 +157,7 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
 
             {/* Notes */}
             {booking.notes && (
-              <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+              <div className={sectionClass}>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Notes</h2>
                 <p className="text-gray-700">{booking.notes}</p>
               </div>
@@ -163,23 +167,23 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
           {/* Right Column - Camping Place & Actions */}
           <div className="lg:col-span-1">
             {/* Camping Place Info */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className={sectionClass}>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Camping Place</h2>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <label className={labelClass}>Name</label>
                   <p className="text-gray-900">{booking.campingPlace.name}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Location</label>
+                  <label className={labelClass}>Location</label>
                   <p className="text-gray-900">{booking.campingPlace.location}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Price per Night</label>
+                  <label className={labelClass}>Price per Night</label>
                   <p className="text-gray-900">${booking.campingPlace.price}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Size</label>
+                  <label className={labelClass}>Size</label>
                   <p className="text-gray-900">{booking.campingPlace.size} m&#178;</p>
                 </div>
               </div>
@@ -194,7 +198,7 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
             </div>
 
             {/* Pricing Summary */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div className={sectionClass}>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Pricing Summary</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">

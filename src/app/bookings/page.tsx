@@ -12,6 +12,10 @@ export default async function BookingsPage() {
     console.error('Error in BookingsPage:', err);
   }
 
+  const tableHeaderClass = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+  const tableCellBaseClass = "px-6 py-4 whitespace-nowrap";
+  const tableCellTextClass = `${tableCellBaseClass} text-sm text-gray-900`;
+
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="flex justify-between items-center mb-6">
@@ -51,25 +55,25 @@ export default async function BookingsPage() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Customer
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Camping Place
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Dates
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Guests
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Total
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Status
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className={tableHeaderClass}>
                   Actions
                 </th>
               </tr>
@@ -77,7 +81,7 @@ export default async function BookingsPage() {
             <tbody className="bg-white divide-y divide-gray-200">
               {bookings.map((booking: Booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={tableCellBaseClass}>
                     <div>
                       <div className="text-sm font-medium text-gray-900">
                         {booking.customerName}
@@ -85,7 +89,7 @@ export default async function BookingsPage() {
                       <div className="text-sm text-gray-500">{booking.customerEmail}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={tableCellBaseClass}>
                     <div className="text-sm text-gray-900">
                       {booking.campingPlace?.name || 'Unknown'}
                     </div>
@@ -93,7 +97,7 @@ export default async function BookingsPage() {
                       {booking.campingPlace?.location || 'Unknown'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={tableCellBaseClass}>
                     <div className="text-sm text-gray-900">
                       {new Date(booking.startDate).toLocaleDateString()}
                     </div>
@@ -101,13 +105,13 @@ export default async function BookingsPage() {
                       to {new Date(booking.endDate).toLocaleDateString()}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className={tableCellTextClass}>
                     {booking.guests}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className={tableCellTextClass}>
                     ${booking.totalPrice.toFixed(2)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={tableCellBaseClass}>
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         booking.status === 'CONFIRMED'
@@ -122,7 +126,7 @@ export default async function BookingsPage() {
                       {booking.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <td className={`${tableCellBaseClass} text-sm font-medium`}>
                     <Link
                       href={`/bookings/${booking.id}`}
                       className="text-blue-600 hover:text-blue-900"

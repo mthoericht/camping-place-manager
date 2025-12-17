@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { CampingItemService, CampingItem } from '@/lib/services/CampingItemService';
 import { DateUtil } from '@/lib/DateUtil';
+import { PageContainer, PageHeader, EmptyState, ErrorState } from '@/components/ui';
 
 export default async function CampingItemsPage() 
 {
@@ -16,55 +17,44 @@ export default async function CampingItemsPage()
     console.error('Error in CampingItemsPage:', err);
   }
 
+  const cardClass = "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow";
+  const categoryBadgeClass = "bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full";
+  const viewLinkClass = "text-blue-600 hover:text-blue-800 text-sm font-medium";
+  const editLinkClass = "text-gray-600 hover:text-gray-800 text-sm font-medium";
+
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Camping Items</h1>
-        <Link
-          href="/camping-items/new"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          Add New Item
-        </Link>
-      </div>
+    <PageContainer>
+      <PageHeader
+        title="Camping Items"
+        actionLink={{
+          href: '/camping-items/new',
+          text: 'Add New Item',
+        }}
+      />
 
       {error ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">Database Connection Error</h3>
-          <p className="text-gray-600 mb-6">
-            Unable to connect to the database. Please check your MongoDB connection.
-          </p>
-          <Link
-            href="/"
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Go Home
-          </Link>
-        </div>
+        <ErrorState />
       ) : campingItems.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🎒</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No camping items yet</h3>
-          <p className="text-gray-600 mb-6">Get started by adding your first camping item</p>
-          <Link
-            href="/camping-items/new"
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            Add Your First Item
-          </Link>
-        </div>
+        <EmptyState
+          icon="🎒"
+          title="No camping items yet"
+          message="Get started by adding your first camping item"
+          actionLink={{
+            href: '/camping-items/new',
+            text: 'Add Your First Item',
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campingItems.map((item: CampingItem) => (
             <div
               key={item.id}
-              className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              className={cardClass}
             >
               <div className="p-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">{item.name}</h3>
                 <p className="text-gray-600 mb-2">
-                  <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  <span className={categoryBadgeClass}>
                     {item.category}
                   </span>
                 </p>
@@ -88,13 +78,13 @@ export default async function CampingItemsPage()
                   <div className="flex space-x-2">
                     <Link
                       href={`/camping-items/${item.id}`}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className={viewLinkClass}
                     >
                       View Details
                     </Link>
                     <Link
                       href={`/camping-items/${item.id}/edit`}
-                      className="text-gray-600 hover:text-gray-800 text-sm font-medium"
+                      className={editLinkClass}
                     >
                       Edit
                     </Link>
@@ -105,6 +95,6 @@ export default async function CampingItemsPage()
           ))}
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

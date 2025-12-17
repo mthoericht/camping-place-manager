@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
+import { FormField, Input, Textarea, Select, Checkbox, Button, FormContainer } from '@/components/ui';
 
 interface CampingPlaceFormProps {
   initialData?: {
@@ -19,6 +20,7 @@ interface CampingPlaceFormProps {
 
 export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps) {
   const router = useRouter();
+  const { createCampingPlace, updateCampingPlace } = useCampingPlacesStore();
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -36,26 +38,15 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     setIsSubmitting(true);
 
     try {
-      const url = initialData?.id ? `/api/camping-places/${initialData.id}` : '/api/camping-places';
+      const result = initialData?.id
+        ? await updateCampingPlace(initialData.id, formData)
+        : await createCampingPlace(formData);
 
-      const method = initialData?.id ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        // Clear cache so fresh data is fetched next time
-        useCampingPlacesStore.getState().clearCache();
+      if (result.success) {
         router.push('/camping-places');
         router.refresh();
       } else {
-        const error = await response.json();
-        alert(`Error: ${error.error}`);
+        alert(`Error: ${result.error}`);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -83,77 +74,53 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        {initialData?.id ? 'Edit Camping Place' : 'Add New Camping Place'}
-      </h1>
-
-      <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 space-y-6">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-            Name *
-          </label>
-          <input
+    <FormContainer title={initialData?.id ? 'Edit Camping Place' : 'Add New Camping Place'}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <FormField label="Name" htmlFor="name" required>
+          <Input
             type="text"
             id="name"
             required
             value={formData.name}
             onChange={e => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter camping place name"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            Description
-          </label>
-          <textarea
+        <FormField label="Description" htmlFor="description">
+          <Textarea
             id="description"
-            rows={3}
             value={formData.description}
             onChange={e => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Describe the camping place"
           />
-        </div>
+        </FormField>
 
-        <div>
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-            Location *
-          </label>
-          <input
+        <FormField label="Location" htmlFor="location" required>
+          <Input
             type="text"
             id="location"
             required
             value={formData.location}
             onChange={e => setFormData({ ...formData, location: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter location"
           />
-        </div>
+        </FormField>
 
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-2">
-              Size in m² *
-            </label>
-            <input
+          <FormField label="Size in m²" htmlFor="size" required>
+            <Input
               type="number"
               id="size"
               required
               min="1"
               value={formData.size}
               onChange={e => setFormData({ ...formData, size: parseInt(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-              Price per Night ($) *
-            </label>
-            <input
+          <FormField label="Price per Night ($)" htmlFor="price" required>
+            <Input
               type="number"
               id="price"
               required
@@ -161,9 +128,8 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
               step="0.01"
               value={formData.price}
               onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-          </div>
+          </FormField>
         </div>
 
         <div>
@@ -204,36 +170,22 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           </div>
         </div>
 
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="isActive"
-            checked={formData.isActive}
-            onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-            Active (available for booking)
-          </label>
-        </div>
+        <Checkbox
+          id="isActive"
+          label="Active (available for booking)"
+          checked={formData.isActive}
+          onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+        />
 
         <div className="flex justify-end space-x-4">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          >
+          <Button type="button" variant="secondary" onClick={() => router.back()}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
-          </button>
+          </Button>
         </div>
       </form>
-    </div>
+    </FormContainer>
   );
 }

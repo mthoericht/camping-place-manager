@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) 
 {
@@ -19,8 +17,16 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
   catch (error) 
   {
-    console.error('Error fetching camping place:', error);
-    return NextResponse.json({ error: 'Failed to fetch camping place' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error fetching camping place:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: 'Failed to fetch camping place' },
+      { status: 500 }
+    );
   }
 }
 
@@ -32,30 +38,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const body = await request.json();
     const { name, description, location, size, price, amenities, isActive } = body;
 
-    // Use raw MongoDB update to avoid transaction requirements
-    const updateData = {
+    const campingPlace = await CampingPlaceService.updateCampingPlace(id, {
       name,
       description,
       location,
-      size: parseInt(size),
-      price: parseFloat(price),
-      amenities: amenities || [],
-      isActive: isActive !== undefined ? isActive : true,
-      updatedAt: MongoDbHelper.createMongoDate(), /// Ensure proper DateTime format
-    };
-
-    await prisma.$runCommandRaw({
-      update: 'camping_places',
-      updates: [
-        {
-          q: { _id: MongoDbHelper.toObjectId(id) },
-          u: { $set: updateData },
-        },
-      ],
+      size: size !== undefined ? parseInt(String(size)) : undefined,
+      price: price !== undefined ? parseFloat(String(price)) : undefined,
+      amenities,
+      isActive,
     });
-
-    // Fetch the updated camping place
-    const campingPlace = await CampingPlaceService.getCampingPlace(id);
 
     if (!campingPlace) 
     {
@@ -66,8 +57,16 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
   catch (error) 
   {
-    console.error('Error updating camping place:', error);
-    return NextResponse.json({ error: 'Failed to update camping place' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error updating camping place:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: errorMessage || 'Failed to update camping place' },
+      { status: 500 }
+    );
   }
 }
 
@@ -79,15 +78,26 @@ export async function DELETE(
   try 
   {
     const { id } = await params;
-    await prisma.campingPlace.delete({
-      where: { id },
-    });
+    const deleted = await CampingPlaceService.deleteCampingPlace(id);
+
+    if (!deleted) 
+    {
+      return NextResponse.json({ error: 'Camping place not found' }, { status: 404 });
+    }
 
     return NextResponse.json({ message: 'Camping place deleted successfully' });
   }
   catch (error) 
   {
-    console.error('Error deleting camping place:', error);
-    return NextResponse.json({ error: 'Failed to delete camping place' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('[API] Error deleting camping place:', {
+      id: (await params).id,
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    return NextResponse.json(
+      { error: errorMessage || 'Failed to delete camping place' },
+      { status: 500 }
+    );
   }
 }
