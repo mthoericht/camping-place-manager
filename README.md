@@ -17,6 +17,7 @@ A modern camping place management application built with Next.js, React, TypeScr
 - **Styling**: Tailwind CSS
 - **Database**: MongoDB
 - **ORM**: Prisma
+- **Testing**: Jest (unit tests), Playwright (e2e tests)
 - **Deployment**: Vercel (recommended)
 
 ## Getting Started
@@ -162,6 +163,20 @@ Access camping items management through:
 - `npm run build`: Build for production
 - `npm run start`: Start production server
 - `npm run lint`: Run ESLint
+- `npm run lint:fix`: Fix ESLint errors automatically
+
+### Testing
+
+- `npm test`: Run unit tests (Jest)
+- `npm run test:watch`: Run unit tests in watch mode
+- `npm run test:coverage`: Generate test coverage report
+- `npm run test:e2e`: Run end-to-end tests (Playwright)
+- `npm run test:e2e:ui`: Run e2e tests with Playwright UI
+- `npm run test:e2e:headed`: Run e2e tests in headed mode (visible browser)
+- `npm run test:e2e:install`: Install Playwright browsers
+- `npm run test:all`: Run both unit and e2e tests
+
+**Note**: For detailed information about e2e testing, test data management, and the TEST_ prefix requirement, see [e2e/README.md](./e2e/README.md).
 
 ### Database Management
 
@@ -171,9 +186,10 @@ Access camping items management through:
 
 ### MongoDB Management
 
-- `npm run mongo:start`: Start MongoDB service
-- `npm run mongo:stop`: Stop MongoDB service
-- `npm run mongo:status`: Check MongoDB service status
+- `npm run db:start`: Start MongoDB service
+- `npm run db:stop`: Stop MongoDB service
+- `npm run db:restart`: Restart MongoDB service
+- `npm run db:status`: Check MongoDB service status
 
 ## Quick Start Guide
 
@@ -231,13 +247,47 @@ src/
     └── prisma.ts          # Prisma client setup
 ```
 
+## Testing
+
+This project includes comprehensive test coverage with both unit tests and end-to-end (e2e) tests.
+
+### Unit Tests
+
+Unit tests are written using Jest and React Testing Library. They cover:
+- Utility functions (`DateUtil`, `MongoDbHelper`)
+- Service classes (`BookingService`, `CampingPlaceService`, `CampingItemService`)
+
+Run unit tests with:
+```bash
+npm test
+```
+
+### End-to-End Tests
+
+E2E tests are written using Playwright and test the full application flow across multiple browsers (Chromium, Firefox, WebKit).
+
+**Important**: All e2e tests use a **"TEST_" prefix** for test data to ensure database safety and automatic cleanup. See [e2e/README.md](./e2e/README.md) for detailed information about:
+- Test data management with TEST_ prefix
+- Automatic cleanup procedures
+- Helper functions
+- Running and debugging tests
+
+Run e2e tests with:
+```bash
+npm run test:e2e
+```
+
+For more details, see the [E2E Tests Documentation](./e2e/README.md).
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+4. **Write tests** for new features
+5. **Run all tests** (`npm run test:all`) before submitting
+6. Ensure all tests pass
+7. Submit a pull request
 
 ## License
 
