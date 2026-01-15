@@ -9,9 +9,6 @@ import {
   setupMongoDbHelperMocks,
   mockExtractCampingPlaceId,
   setupConsoleErrorSpy,
-  mockFetchSuccess,
-  mockFetchFailure,
-  mockFetchError,
 } from './helpers';
 
 // Mock dependencies
@@ -165,51 +162,5 @@ describe('BookingService', () =>
     });
   });
 
-  describe('getBookingFromAPI', () => 
-  {
-    it('should fetch booking from API endpoint', async () => 
-    {
-      const mockBooking = {
-        id: '507f1f77bcf86cd799439011',
-        customerName: 'John Doe',
-        campingPlace: {
-          id: '507f1f77bcf86cd799439012',
-          name: 'Test Place',
-        },
-        bookingItems: [],
-      };
-
-      mockFetchSuccess(mockBooking);
-
-      const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
-
-      expect(result).not.toBeNull();
-      expect(result?.customerName).toBe('John Doe');
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/bookings/507f1f77bcf86cd799439011'),
-        { cache: 'no-store' }
-      );
-    });
-
-    it('should return null when API request fails', async () => 
-    {
-      mockFetchFailure();
-
-      const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
-      expect(result).toBeNull();
-    });
-
-    it('should handle fetch errors gracefully', async () => 
-    {
-      mockFetchError(new Error('Network error'));
-
-      const cleanup = setupConsoleErrorSpy();
-      const result = await BookingService.getBookingFromAPI('507f1f77bcf86cd799439011');
-
-      expect(result).toBeNull();
-      expect(console.error).toHaveBeenCalled();
-      cleanup();
-    });
-  });
 });
 

@@ -5,7 +5,7 @@ import { notFound } from 'next/navigation';
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const booking = await BookingService.getBookingFromAPI(id);
+  const booking = await BookingService.getBooking(id);
 
   if (!booking) 
   {

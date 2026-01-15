@@ -203,43 +203,6 @@ export class BookingService
   }
 
   /**
-   * Fetch booking from API endpoint (for client-side components)
-   */
-  static async getBookingFromAPI(id: string): Promise<BookingWithDetails | null> 
-  {
-    try 
-    {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/bookings/${id}`,
-        { cache: 'no-store' }
-      );
-      
-      if (!response.ok) 
-      {
-        return null;
-      }
-      
-      const booking = await response.json();
-      
-      // Transform the booking data to match the expected format
-      return {
-        ...booking,
-        id: booking.id,
-        campingPlace: {
-          ...booking.campingPlace,
-          id: booking.campingPlace.id,
-        },
-        bookingItems: booking.bookingItems || [],
-      };
-    }
-    catch (error) 
-    {
-      console.error('Error fetching booking:', error);
-      return null;
-    }
-  }
-
-  /**
    * Create a new booking
    */
   static async createBooking(data: {

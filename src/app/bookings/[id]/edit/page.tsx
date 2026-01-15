@@ -6,7 +6,7 @@ import { BackLink, PageContainer } from '@/components/ui';
 
 export default async function EditBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const booking = await BookingService.getBookingFromAPI(id);
+  const booking = await BookingService.getBooking(id);
 
   if (!booking) {
     notFound();
