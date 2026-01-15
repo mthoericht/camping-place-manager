@@ -48,7 +48,7 @@ npm install
 3. Set up environment variables:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
 4. Update the `DATABASE_URL` in `.env.local` with your MongoDB connection string:
@@ -91,10 +91,9 @@ npm run dev
 - `name`: Name of the camping place
 - `description`: Description of the place
 - `location`: Location/address
-- `capacity`: Maximum number of guests
+- `size`: Size in square meters (m²)
 - `price`: Price per night
 - `amenities`: Array of available amenities
-- `images`: Array of image URLs
 - `isActive`: Whether the place is available for booking
 - `createdAt`/`updatedAt`: Timestamps
 

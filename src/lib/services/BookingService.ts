@@ -104,7 +104,7 @@ export class BookingService
       // Get booking items
       const bookingItemsResult = await prisma.$runCommandRaw({
         find: 'booking_items',
-        filter: { bookingId: id },
+        filter: { bookingId: MongoDbHelper.toObjectId(id) },
       });
 
       const bookingItems = (bookingItemsResult.cursor as any)?.firstBatch || [];
@@ -138,7 +138,7 @@ export class BookingService
 
           return {
             id: MongoDbHelper.extractObjectId(item._id),
-            bookingId: item.bookingId,
+            bookingId: MongoDbHelper.extractBookingId(item),
             campingItemId: itemCampingItemId,
             quantity: item.quantity,
             campingItem: campingItem ? {
@@ -301,7 +301,7 @@ export class BookingService
       if (data.campingItems && Object.keys(data.campingItems).length > 0) 
       {
         const itemsToCreate = Object.entries(data.campingItems).map(([itemId, quantity]) => ({
-          bookingId,
+          bookingId: MongoDbHelper.toObjectId(bookingId),
           campingItemId: MongoDbHelper.toObjectId(itemId),
           quantity: quantity as number,
           createdAt: MongoDbHelper.createMongoDate(),
@@ -347,7 +347,7 @@ export class BookingService
       // First, delete existing booking items
       await prisma.$runCommandRaw({
         delete: 'booking_items',
-        deletes: [{ q: { bookingId: id }, limit: 0 }],
+        deletes: [{ q: { bookingId: MongoDbHelper.toObjectId(id) }, limit: 0 }],
       });
 
       // Update the booking
@@ -373,7 +373,7 @@ export class BookingService
       if (data.campingItems && Object.keys(data.campingItems).length > 0) 
       {
         const itemsToCreate = Object.entries(data.campingItems).map(([itemId, quantity]) => ({
-          bookingId: id,
+          bookingId: MongoDbHelper.toObjectId(id),
           campingItemId: MongoDbHelper.toObjectId(itemId),
           quantity: quantity as number,
           createdAt: MongoDbHelper.createMongoDate(),
@@ -406,7 +406,7 @@ export class BookingService
       // First delete booking items
       await prisma.$runCommandRaw({
         delete: 'booking_items',
-        deletes: [{ q: { bookingId: id }, limit: 0 }],
+        deletes: [{ q: { bookingId: MongoDbHelper.toObjectId(id) }, limit: 0 }],
       });
 
       // Then delete the booking

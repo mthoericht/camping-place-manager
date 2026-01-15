@@ -106,6 +106,23 @@ export class MongoDbHelper
   }
 
   /**
+   * Extract bookingId from booking item document
+   * Handles both ObjectId objects and string IDs
+   */
+  static extractBookingId(item: any): string 
+  {
+    if (typeof item.bookingId === 'object' && item.bookingId.$oid) 
+    {
+      return item.bookingId.$oid;
+    }
+    if (typeof item.bookingId === 'string') 
+    {
+      return item.bookingId;
+    }
+    return String(item.bookingId || '');
+  }
+
+  /**
    * Create MongoDB date object for insertion/updates
    */
   static createMongoDate(date?: Date): { $date: string } 

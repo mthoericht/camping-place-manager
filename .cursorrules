@@ -1,0 +1,33 @@
+# Cursor Rules
+
+This project follows the guidelines defined in `AGENTS.md`. Please read and follow all instructions in that file.
+
+## Key Principles
+
+- **Always refer to AGENTS.md** for project-specific rules, architecture patterns, and conventions
+- Follow the strict server/client separation as defined in AGENTS.md
+- Use Allman-style braces (opening brace on new line)
+- Never omit semicolons
+- Use path alias `@/*` → `./src/*`
+
+## Architecture Rules (from AGENTS.md)
+
+- Server Components → Call service classes directly from `src/lib/services/`
+- Client Components → Use stores from `src/stores/` (which use API services)
+- Never import service classes in `'use client'` components
+- Use `MongoDbHelper` for all MongoDB ID conversions
+- All types must be centralized in `src/lib/types/index.ts`
+
+## Before Making Changes
+
+1. Review `AGENTS.md` for relevant patterns
+2. Check `ARCHITECTURE.md` for detailed architecture documentation
+3. Follow the "Adding a New Feature" workflow from AGENTS.md
+
+## Testing
+
+- Unit tests: Jest + React Testing Library in `__tests__/` folders
+- E2E tests: Playwright in `e2e/` folder
+- Test data must have `TEST_` prefix
+
+For complete details, see `AGENTS.md`.
