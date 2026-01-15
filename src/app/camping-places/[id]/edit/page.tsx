@@ -1,7 +1,7 @@
 import CampingPlaceForm from '@/components/CampingPlaceForm';
 import { notFound } from 'next/navigation';
 import { BackLink, PageContainer } from '@/components/ui';
-import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
+import { CampingPlaceService } from '@/lib/server/services/CampingPlaceService';
 
 export default async function EditCampingPlacePage({
   params,

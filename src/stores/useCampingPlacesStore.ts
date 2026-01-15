@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { campingPlacesApi, type CampingPlace, type CampingPlaceFormData } from '@/lib/api/campingPlacesApi';
+import { campingPlacesApi, type CampingPlace, type CampingPlaceFormData } from '@/lib/client/api/campingPlacesApi';
 
 // Re-export types for convenience
 export type { CampingPlace, CampingPlaceFormData };

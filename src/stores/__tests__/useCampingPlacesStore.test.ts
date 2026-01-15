@@ -1,8 +1,8 @@
 import { useCampingPlacesStore } from '../useCampingPlacesStore';
-import { campingPlacesApi } from '@/lib/api/campingPlacesApi';
+import { campingPlacesApi } from '@/lib/client/api/campingPlacesApi';
 
 // Mock the API service
-jest.mock('@/lib/api/campingPlacesApi');
+jest.mock('@/lib/client/api/campingPlacesApi');
 
 describe('useCampingPlacesStore', () => 
 {

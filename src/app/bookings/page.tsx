@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookingService, Booking } from '@/lib/services/BookingService';
+import { BookingService, Booking } from '@/lib/server/services/BookingService';
 
 export default async function BookingsPage() {
   let bookings: Booking[] = [];

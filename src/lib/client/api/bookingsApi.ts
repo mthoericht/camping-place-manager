@@ -1,4 +1,4 @@
-import type { Booking, BookingFormData, ApiError } from '@/lib/types';
+import type { Booking, BookingFormData, ApiError } from '@/lib/shared/types';
 
 // Re-export types for convenience
 export type { Booking, BookingFormData };

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { AnalyticsService } from '@/lib/services/AnalyticsService';
+import { AnalyticsService } from '@/lib/server/services/AnalyticsService';
 
 export default async function AnalyticsPage() {
   const analytics = await AnalyticsService.getAnalyticsData();

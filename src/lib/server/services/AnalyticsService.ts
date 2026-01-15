@@ -1,5 +1,6 @@
-import { prisma } from '@/lib/prisma';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import 'server-only';
+import { prisma } from '@/lib/server/prisma';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 
 /**
  * Analytics data interface

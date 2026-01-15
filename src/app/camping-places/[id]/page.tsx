@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CampingPlaceService } from '@/lib/services/CampingPlaceService';
+import { CampingPlaceService } from '@/lib/server/services/CampingPlaceService';
 
 export default async function CampingPlaceDetailsPage({
   params,

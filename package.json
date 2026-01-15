@@ -26,7 +26,7 @@
     "test:e2e:install": "playwright install",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",    
+    "test:e2e:headed": "playwright test --headed",
     "test:all": "npm run test && npm run test:e2e"
   },
   "dependencies": {
@@ -36,6 +36,7 @@
     "prisma": "^6.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "server-only": "^0.0.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

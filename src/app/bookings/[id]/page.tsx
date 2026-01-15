@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { BookingService } from '@/lib/services/BookingService';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import { BookingService } from '@/lib/server/services/BookingService';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 import { notFound } from 'next/navigation';
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {

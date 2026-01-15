@@ -1,6 +1,6 @@
 import BookingForm from '@/components/BookingForm';
-import { BookingService } from '@/lib/services/BookingService';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import { BookingService } from '@/lib/server/services/BookingService';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 import { notFound } from 'next/navigation';
 import { BackLink, PageContainer } from '@/components/ui';
 

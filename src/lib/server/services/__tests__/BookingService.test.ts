@@ -1,6 +1,6 @@
 import { BookingService } from '../BookingService';
-import { prisma } from '@/lib/prisma';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
+import { prisma } from '@/lib/server/prisma';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 import {
   mockPrismaFindResult,
   mockPrismaEmptyResult,
@@ -12,13 +12,13 @@ import {
 } from './helpers';
 
 // Mock dependencies
-jest.mock('@/lib/prisma', () => ({
+jest.mock('@/lib/server/prisma', () => ({
   prisma: {
     $runCommandRaw: jest.fn(),
   },
 }));
 
-jest.mock('@/lib/MongoDbHelper');
+jest.mock('@/lib/server/MongoDbHelper');
 
 describe('BookingService', () => 
 {

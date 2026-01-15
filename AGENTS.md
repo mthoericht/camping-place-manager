@@ -16,11 +16,12 @@ npm run db:push      # Push schema to DB
 
 | Layer | Location | Usage |
 |-------|----------|-------|
-| **Services** | `src/lib/services/` | Server-only (API Routes, Server Components) |
-| **API Services** | `src/lib/api/` | Client-only (HTTP requests) |
+| **Services** | `src/lib/server/services/` | Server-only (API Routes, Server Components) |
+| **API Services** | `src/lib/client/api/` | Client-only (HTTP requests) |
 | **Stores** | `src/stores/` | Client-only (`'use client'` components) |
+| **Shared** | `src/lib/shared/` | Types, utilities (both Server & Client) |
 
-**Never** import services in `'use client'` components.
+**Never** import from `src/lib/server/` in `'use client'` components. All server files use `import 'server-only'` guard.
 
 ## MongoDB ID Handling
 
@@ -35,11 +36,12 @@ MongoDbHelper.extractCampingPlaceId(booking)
 
 - Allman-style braces (opening brace on new line)
 - Path alias: `@/*` → `./src/*`
-- Types centralized in `src/lib/types/index.ts`
+- Types centralized in `src/lib/shared/types/index.ts`
 
 ## Key Files
 
 - `prisma/schema.prisma` - DB schema
-- `src/lib/types/index.ts` - Type definitions
-- `src/lib/MongoDbHelper.ts` - ID/Date conversion
+- `src/lib/shared/types/index.ts` - Type definitions
+- `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
+- `src/lib/server/prisma.ts` - Prisma client (server-only)
 - `ARCHITECTURE.md` - Detailed docs

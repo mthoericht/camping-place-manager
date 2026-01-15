@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * Environment variable validation and configuration
  */

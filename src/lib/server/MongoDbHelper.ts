@@ -1,3 +1,5 @@
+import 'server-only';
+
 /**
  * Helper class for MongoDB-specific operations
  */

@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { CampingItemService, CampingItem } from '@/lib/services/CampingItemService';
-import { DateUtil } from '@/lib/DateUtil';
+import { CampingItemService, CampingItem } from '@/lib/server/services/CampingItemService';
+import { DateUtil } from '@/lib/shared/DateUtil';
 import { PageContainer, PageHeader, EmptyState, ErrorState } from '@/components/ui';
 
 export default async function CampingItemsPage() 

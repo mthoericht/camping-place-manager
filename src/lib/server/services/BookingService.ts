@@ -1,6 +1,7 @@
-import { prisma } from '@/lib/prisma';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
-import type { BookingServer, BookingWithDetails } from '@/lib/types';
+import 'server-only';
+import { prisma } from '@/lib/server/prisma';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
+import type { BookingServer, BookingWithDetails } from '@/lib/shared/types';
 
 // Re-export as Booking for backward compatibility
 export type { BookingServer as Booking, BookingWithDetails };

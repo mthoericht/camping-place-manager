@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { bookingsApi, type Booking, type BookingFormData } from '@/lib/api/bookingsApi';
+import { bookingsApi, type Booking, type BookingFormData } from '@/lib/client/api/bookingsApi';
 
 // Re-export types for convenience
 export type { Booking, BookingFormData };

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { CampingItemService } from '@/lib/services/CampingItemService';
+import { CampingItemService } from '@/lib/server/services/CampingItemService';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) : Promise<NextResponse>
 {

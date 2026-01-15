@@ -1,8 +1,8 @@
 import { useBookingsStore } from '../useBookingsStore';
-import { bookingsApi } from '@/lib/api/bookingsApi';
+import { bookingsApi } from '@/lib/client/api/bookingsApi';
 
 // Mock the API service
-jest.mock('@/lib/api/bookingsApi');
+jest.mock('@/lib/client/api/bookingsApi');
 
 // Mock the related stores
 jest.mock('../useCampingPlacesStore', () => ({

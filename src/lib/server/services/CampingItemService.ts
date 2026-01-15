@@ -1,6 +1,7 @@
-import { prisma } from '@/lib/prisma';
-import { MongoDbHelper } from '@/lib/MongoDbHelper';
-import type { CampingItemServer } from '@/lib/types';
+import 'server-only';
+import { prisma } from '@/lib/server/prisma';
+import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
+import type { CampingItemServer } from '@/lib/shared/types';
 
 // Re-export as CampingItem for backward compatibility
 export type { CampingItemServer as CampingItem };

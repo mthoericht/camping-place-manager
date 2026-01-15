@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { CampingPlaceService, CampingPlace } from '@/lib/services/CampingPlaceService';
+import { CampingPlaceService, CampingPlace } from '@/lib/server/services/CampingPlaceService';
 import { PageContainer, PageHeader, EmptyState, ErrorState } from '@/components/ui';
 
 export default async function CampingPlacesPage() 

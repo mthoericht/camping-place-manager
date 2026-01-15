@@ -1,4 +1,4 @@
-import type { CampingPlace, CampingPlaceFormData, ApiError } from '@/lib/types';
+import type { CampingPlace, CampingPlaceFormData, ApiError } from '@/lib/shared/types';
 
 // Re-export types for convenience
 export type { CampingPlace, CampingPlaceFormData };

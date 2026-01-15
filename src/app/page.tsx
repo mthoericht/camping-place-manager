@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Stats from '@/components/Stats';
-import { AnalyticsService } from '@/lib/services/AnalyticsService';
+import { AnalyticsService } from '@/lib/server/services/AnalyticsService';
 
 export default async function Home() {
   // Fetch quick stats data
