@@ -245,19 +245,37 @@ src/
 │   ├── CampingPlaceForm.tsx# Camping place form component
 │   └── BookingForm.tsx    # Booking form component
 ├── lib/                   # Utility functions and services
-│   ├── api/               # Client-side API services
-│   │   ├── campingItemsApi.ts    # Camping items API client
-│   │   ├── campingPlacesApi.ts   # Camping places API client
-│   │   └── bookingsApi.ts        # Bookings API client
-│   ├── services/          # Server-side service classes
-│   │   ├── AnalyticsService.ts
-│   │   ├── BookingService.ts
-│   │   ├── CampingItemService.ts
-│   │   └── CampingPlaceService.ts
-│   ├── types/             # Shared TypeScript type definitions
-│   │   └── index.ts       # Centralized type definitions
-│   └── prisma.ts          # Prisma client setup
+│   ├── client/            # Client-side code
+│   │   └── api/           # Client-side API services
+│   │       ├── campingItemsApi.ts    # Camping items API client
+│   │       ├── campingPlacesApi.ts   # Camping places API client
+│   │       └── bookingsApi.ts        # Bookings API client
+│   ├── server/            # Server-side utilities
+│   │   ├── __tests__/     # Server utility tests
+│   │   │   └── MongoDbHelper.test.ts
+│   │   ├── MongoDbHelper.ts
+│   │   ├── prisma.ts      # Prisma client setup
+│   │   └── services/      # Server-side service classes
+│   │       ├── __tests__/ # Service tests
+│   │       │   ├── AnalyticsService.test.ts
+│   │       │   ├── BookingService.test.ts
+│   │       │   ├── CampingItemService.test.ts
+│   │       │   └── CampingPlaceService.test.ts
+│   │       ├── AnalyticsService.ts
+│   │       ├── BookingService.ts
+│   │       ├── CampingItemService.ts
+│   │       └── CampingPlaceService.ts
+│   └── shared/            # Shared utilities
+│       ├── __tests__/     # Shared utility tests
+│       │   └── DateUtil.test.ts
+│       ├── DateUtil.ts
+│       └── types/         # Shared TypeScript type definitions
+│           └── index.ts   # Centralized type definitions
 └── stores/                # Zustand state management stores
+    ├── __tests__/         # Store tests
+    │   ├── useBookingsStore.test.ts
+    │   ├── useCampingItemsStore.test.ts
+    │   └── useCampingPlacesStore.test.ts
     ├── useCampingItemsStore.ts
     ├── useCampingPlacesStore.ts
     └── useBookingsStore.ts
@@ -279,7 +297,7 @@ The application follows a layered architecture pattern:
    - Handle caching, loading states, and error handling
    - Call API services for data operations
 
-3. **API Services** (`src/lib/api/`)
+3. **API Services** (`src/lib/client/api/`)
    - Client-side API service layer
    - Encapsulate all HTTP requests to API routes
    - Handle error parsing and response transformation
@@ -292,7 +310,7 @@ The application follows a layered architecture pattern:
    - Handle HTTP requests and responses
    - Validate input and call service classes
 
-2. **Service Classes** (`src/lib/services/`)
+2. **Service Classes** (`src/lib/server/services/`)
    - Business logic layer
    - Database operations using Prisma
    - Data transformation and validation
@@ -316,9 +334,9 @@ User Feedback ← Component ← Store ← API Service ← API Route ← Service 
 
 ### Type System
 
-The application uses a centralized type system located in `src/lib/types/`:
+The application uses a centralized type system located in `src/lib/shared/types/`:
 
-1. **Shared Types** (`src/lib/types/index.ts`)
+1. **Shared Types** (`src/lib/shared/types/index.ts`)
    - Single source of truth for all type definitions
    - Eliminates redundancy and ensures consistency
    - Separates client-side types (with `Date` timestamps) from server-side types (with `string` timestamps)
@@ -354,10 +372,11 @@ This project includes comprehensive test coverage with both unit tests and end-t
 
 ### Unit Tests
 
-Unit tests are written using Jest and React Testing Library. They cover:
-- **Utility functions** (`DateUtil`, `MongoDbHelper`)
-- **Service classes** (`AnalyticsService`, `BookingService`, `CampingPlaceService`, `CampingItemService`)
-- **State management stores** (`useCampingItemsStore`, `useCampingPlacesStore`, `useBookingsStore`)
+Unit tests are written using Jest and React Testing Library. They are organized in `__tests__/` folders co-located with the code they test, following Jest best practices:
+
+- **Utility functions** (`DateUtil`, `MongoDbHelper`) - Located in `src/lib/shared/__tests__/` and `src/lib/server/__tests__/`
+- **Service classes** (`AnalyticsService`, `BookingService`, `CampingPlaceService`, `CampingItemService`) - Located in `src/lib/server/services/__tests__/`
+- **State management stores** (`useCampingItemsStore`, `useCampingPlacesStore`, `useBookingsStore`) - Located in `src/stores/__tests__/`
 
 Store tests mock the API service layer to test store logic in isolation. This ensures:
 - Stores handle errors correctly
@@ -402,14 +421,14 @@ For more details, see the [E2E Tests Documentation](./e2e/README.md).
 
 When adding new features that require API calls:
 
-1. **Define Types** (`src/lib/types/index.ts`)
+1. **Define Types** (`src/lib/shared/types/index.ts`)
    - Add new interfaces to the shared types file
    - Create base interfaces, client-side types, and server-side types as needed
    - Follow the existing pattern: `EntityBase`, `Entity` (client), `EntityServer` (server), `EntityFormData`
 
-2. **Create API Service** (`src/lib/api/`)
+2. **Create API Service** (`src/lib/client/api/`)
    - Add methods to the appropriate API service file
-   - Import types from `@/lib/types` instead of defining them locally
+   - Import types from `@/lib/shared/types` instead of defining them locally
    - Re-export types for convenience: `export type { Entity, EntityFormData }`
    - Follow the existing pattern with error handling
 
@@ -424,8 +443,8 @@ When adding new features that require API calls:
    - Handle loading and error states from the store
    - Import types from stores if needed
 
-5. **Update Service Classes** (`src/lib/services/`)
-   - Use server-side types (e.g., `EntityServer`) from `@/lib/types`
+5. **Update Service Classes** (`src/lib/server/services/`)
+   - Use server-side types (e.g., `EntityServer`) from `@/lib/shared/types`
    - Re-export types with original names for backward compatibility
    - Transform data between server and client formats as needed
 
@@ -437,15 +456,15 @@ When adding new features that require API calls:
 
 ### Code Organization
 
-- **Types** (`src/lib/types/`): Centralized type definitions - single source of truth
-- **API Services** (`src/lib/api/`): All client-side HTTP requests go through API services
+- **Types** (`src/lib/shared/types/`): Centralized type definitions - single source of truth
+- **API Services** (`src/lib/client/api/`): All client-side HTTP requests go through API services
 - **Stores** (`src/stores/`): All state management and caching logic in stores
 - **Components** (`src/components/`): UI logic only, delegate data operations to stores
-- **Services** (`src/lib/services/`): Server-side business logic and database operations
+- **Services** (`src/lib/server/services/`): Server-side business logic and database operations
 
 ### Type Definitions Best Practices
 
-1. **Always use shared types**: Import from `@/lib/types` instead of defining types locally
+1. **Always use shared types**: Import from `@/lib/shared/types` instead of defining types locally
 2. **Use appropriate type variants**:
    - Client-side: Use types with `Date` timestamps (e.g., `CampingItem`)
    - Server-side: Use types with `string` timestamps (e.g., `CampingItemServer`)

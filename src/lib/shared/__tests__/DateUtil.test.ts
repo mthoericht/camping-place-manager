@@ -1,4 +1,4 @@
-import { DateUtil } from './DateUtil';
+import { DateUtil } from '../DateUtil';
 
 describe('DateUtil', () => 
 {
@@ -40,4 +40,3 @@ describe('DateUtil', () =>
     });
   });
 });
-

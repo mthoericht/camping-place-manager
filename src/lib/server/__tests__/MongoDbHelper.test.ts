@@ -1,4 +1,4 @@
-import { MongoDbHelper } from './MongoDbHelper';
+import { MongoDbHelper } from '../MongoDbHelper';
 
 describe('MongoDbHelper', () => 
 {
@@ -192,4 +192,3 @@ describe('MongoDbHelper', () =>
     });
   });
 });
-

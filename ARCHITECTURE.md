@@ -4,7 +4,7 @@
 
 Die Anwendung verwendet eine **getrennte Architektur** für Server- und Client-seitige Operationen:
 
-- **Service-Klassen** (`src/lib/services/`) → **Server-seitig** (Node.js)
+- **Service-Klassen** (`src/lib/server/services/`) → **Server-seitig** (Node.js)
 - **Stores** (`src/stores/`) → **Client-seitig** (Browser)
 
 ---
@@ -29,7 +29,7 @@ Service-Klassen werden **NUR auf dem Server** verwendet:
 #### Beispiel 1: Server Component (Page)
 ```typescript
 // ✅ src/app/page.tsx - Server Component
-import { AnalyticsService } from '@/lib/services/AnalyticsService';
+import { AnalyticsService } from '@/lib/server/services/AnalyticsService';
 
 export default async function Home() {
   // Direkter Aufruf der Service-Klasse auf dem Server
@@ -42,7 +42,7 @@ export default async function Home() {
 #### Beispiel 2: API Route
 ```typescript
 // ✅ src/app/api/bookings/[id]/route.ts - API Route
-import { BookingService } from '@/lib/services/BookingService';
+import { BookingService } from '@/lib/server/services/BookingService';
 
 export async function GET(request: NextRequest, { params }) {
   const { id } = await params;
@@ -57,7 +57,7 @@ export async function GET(request: NextRequest, { params }) {
 #### Beispiel 3: Server Component mit Daten
 ```typescript
 // ✅ src/app/bookings/[id]/page.tsx - Server Component
-import { BookingService } from '@/lib/services/BookingService';
+import { BookingService } from '@/lib/server/services/BookingService';
 
 export default async function BookingDetailsPage({ params }) {
   const { id } = await params;
@@ -129,7 +129,7 @@ export default function BookingForm() {
 ```typescript
 // ✅ src/stores/useCampingPlacesStore.ts
 import { create } from 'zustand';
-import { campingPlacesApi } from '@/lib/api/campingPlacesApi';
+import { campingPlacesApi } from '@/lib/client/api/campingPlacesApi';
 
 export const useCampingPlacesStore = create((set, get) => ({
   campingPlaces: [],
@@ -150,7 +150,7 @@ export const useCampingPlacesStore = create((set, get) => ({
 
 #### Beispiel 3: API Service (Client-Side)
 ```typescript
-// ✅ src/lib/api/campingPlacesApi.ts - Client-Side API Service
+// ✅ src/lib/client/api/campingPlacesApi.ts - Client-Side API Service
 export const campingPlacesApi = {
   // Macht HTTP-Request zur API Route
   getAll: async () => {

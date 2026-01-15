@@ -45,3 +45,13 @@ MongoDbHelper.extractCampingPlaceId(booking)
 - `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
 - `src/lib/server/prisma.ts` - Prisma client (server-only)
 - `ARCHITECTURE.md` - Detailed docs
+
+## Testing Structure
+
+- **Unit tests**: Co-located in `__tests__/` folders next to source files
+  - `src/lib/shared/__tests__/` - Shared utility tests
+  - `src/lib/server/__tests__/` - Server utility tests
+  - `src/lib/server/services/__tests__/` - Service tests
+  - `src/stores/__tests__/` - Store tests
+- **E2E tests**: `e2e/` folder at project root
+- All test data must use `TEST_` prefix
