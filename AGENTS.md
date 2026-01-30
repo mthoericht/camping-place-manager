@@ -17,11 +17,42 @@ npm run db:push      # Push schema to DB
 | Layer | Location | Usage |
 |-------|----------|-------|
 | **Services** | `src/lib/server/services/` | Server-only (API Routes, Server Components) |
-| **API Services** | `src/lib/client/api/` | Client-only (HTTP requests) |
-| **Stores** | `src/stores/` | Client-only (`'use client'` components) |
+| **API Layer** | `src/lib/client/api/` | Client-only (HTTP requests via `createCrudApi`) |
+| **Stores** | `src/stores/` | State only (via `createCachedListStore`) |
+| **Hooks** | `src/hooks/` | Mutations, form logic, React orchestration |
 | **Shared** | `src/lib/shared/` | Types, utilities (both Server & Client) |
 
 **Never** import from `src/lib/server/` in `'use client'` components. All server files use `import 'server-only'` guard.
+
+## Store vs Hook Pattern
+
+- **Stores** (`src/stores/`): Only cached state + selectors (`items`, `loading`, `error`, `fetch`, `getById`, `getActive`)
+- **Mutation Hooks** (`src/hooks/use*Mutations.ts`): CRUD operations that call API + invalidate caches
+- **Form Hooks** (`src/hooks/useBookingForm.ts`): Complex form logic extraction
+
+```typescript
+// Store: state only
+const { items, loading, fetch, getById } = useCampingItemsStore();
+
+// Mutations: in separate hook
+const { createCampingItem, updateCampingItem } = useCampingItemMutations();
+
+// Form actions: submit/delete flow
+const { isSubmitting, run } = useCrudFormActions({ redirectTo: '/items' });
+```
+
+## Factory Patterns
+
+```typescript
+// API: src/lib/client/api/createCrudApi.ts
+export const campingItemsApi = createCrudApi<CampingItem, CampingItemFormData>('/api/camping-items');
+
+// Stores: src/stores/createCachedListStore.ts
+export const useCampingItemsStore = createCachedListStore<CampingItem>({
+  fetchAll: () => campingItemsApi.getAll(),
+  cacheDurationMs: 5 * 60 * 1000,
+});
+```
 
 ## MongoDB ID Handling
 
@@ -42,8 +73,10 @@ MongoDbHelper.extractCampingPlaceId(booking)
 
 - `prisma/schema.prisma` - DB schema
 - `src/lib/shared/types/index.ts` - Type definitions
+- `src/lib/client/api/createCrudApi.ts` - Generic CRUD API factory
+- `src/stores/createCachedListStore.ts` - Generic store factory
+- `src/stores/cacheInvalidation.ts` - Cross-store cache invalidation
 - `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
-- `src/lib/server/prisma.ts` - Prisma client (server-only)
 - `ARCHITECTURE.md` - Detailed docs
 
 ## Testing Structure
@@ -52,6 +85,8 @@ MongoDbHelper.extractCampingPlaceId(booking)
   - `src/lib/shared/__tests__/` - Shared utility tests
   - `src/lib/server/__tests__/` - Server utility tests
   - `src/lib/server/services/__tests__/` - Service tests
-  - `src/stores/__tests__/` - Store tests
+  - `src/lib/client/api/__tests__/` - API layer tests (http, createCrudApi)
+  - `src/stores/__tests__/` - Store tests (factories, fetch/cache)
+  - `src/hooks/__tests__/` - Hook tests (mutations)
 - **E2E tests**: `e2e/` folder at project root
 - All test data must use `TEST_` prefix

@@ -240,68 +240,74 @@ src/
 │   ├── globals.css        # Global styles
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Home page
-├── components/            # Reusable components
-│   ├── CampingItemForm.tsx# Camping item form component
-│   ├── CampingPlaceForm.tsx# Camping place form component
-│   └── BookingForm.tsx    # Booking form component
+├── components/            # Reusable components (UI only)
+│   ├── ui/                # Base UI components
+│   ├── CampingItemForm.tsx
+│   ├── CampingPlaceForm.tsx
+│   └── BookingForm.tsx
+├── hooks/                 # Custom React hooks
+│   ├── __tests__/         # Hook tests
+│   ├── useBookingForm.ts      # Booking form logic
+│   ├── useBookingMutations.ts # Booking CRUD operations
+│   ├── useCampingItemMutations.ts
+│   ├── useCampingPlaceMutations.ts
+│   └── useCrudFormActions.ts  # Generic form submit/delete flow
 ├── lib/                   # Utility functions and services
 │   ├── client/            # Client-side code
 │   │   └── api/           # Client-side API services
-│   │       ├── campingItemsApi.ts    # Camping items API client
-│   │       ├── campingPlacesApi.ts   # Camping places API client
-│   │       └── bookingsApi.ts        # Bookings API client
+│   │       ├── createCrudApi.ts  # Generic CRUD API factory
+│   │       ├── http.ts           # HTTP utilities (fetchJson)
+│   │       ├── bookingsApi.ts
+│   │       ├── campingItemsApi.ts
+│   │       └── campingPlacesApi.ts
 │   ├── server/            # Server-side utilities
-│   │   ├── __tests__/     # Server utility tests
-│   │   │   └── MongoDbHelper.test.ts
+│   │   ├── __tests__/
 │   │   ├── MongoDbHelper.ts
-│   │   ├── prisma.ts      # Prisma client setup
+│   │   ├── prisma.ts
 │   │   └── services/      # Server-side service classes
-│   │       ├── __tests__/ # Service tests
-│   │       │   ├── AnalyticsService.test.ts
-│   │       │   ├── BookingService.test.ts
-│   │       │   ├── CampingItemService.test.ts
-│   │       │   └── CampingPlaceService.test.ts
+│   │       ├── __tests__/
 │   │       ├── AnalyticsService.ts
 │   │       ├── BookingService.ts
 │   │       ├── CampingItemService.ts
 │   │       └── CampingPlaceService.ts
 │   └── shared/            # Shared utilities
-│       ├── __tests__/     # Shared utility tests
-│       │   └── DateUtil.test.ts
+│       ├── __tests__/
 │       ├── DateUtil.ts
-│       └── types/         # Shared TypeScript type definitions
+│       └── types/
 │           └── index.ts   # Centralized type definitions
-└── stores/                # Zustand state management stores
-    ├── __tests__/         # Store tests
-    │   ├── useBookingsStore.test.ts
-    │   ├── useCampingItemsStore.test.ts
-    │   └── useCampingPlacesStore.test.ts
+└── stores/                # Zustand stores (state only, no mutations)
+    ├── __tests__/
+    ├── cacheInvalidation.ts      # Cross-store cache invalidation
+    ├── createCachedListStore.ts  # Generic store factory
     ├── useCampingItemsStore.ts
-    ├── useCampingPlacesStore.ts
-    └── useBookingsStore.ts
+    └── useCampingPlacesStore.ts
 ```
 
 ## Architecture
 
-The application follows a layered architecture pattern:
+The application follows a layered architecture pattern with clear separation of concerns:
 
 ### Client-Side Architecture
 
 1. **Components** (`src/components/`)
-   - React components for UI
-   - Handle user interactions and form state
-   - Call store methods for data operations
+   - React components for UI rendering only
+   - Delegate all logic to custom hooks
+   - Example: `BookingForm` uses `useBookingForm` hook
 
-2. **Stores** (`src/stores/`)
-   - Zustand stores for client-side state management
-   - Handle caching, loading states, and error handling
-   - Call API services for data operations
+2. **Custom Hooks** (`src/hooks/`)
+   - **Form Hooks** (`useBookingForm`): Encapsulate form state, derived values, and submit logic
+   - **Mutation Hooks** (`use*Mutations`): CRUD operations + cache invalidation
+   - **Utility Hooks** (`useCrudFormActions`): Reusable submit/delete flow with redirect
 
-3. **API Services** (`src/lib/client/api/`)
-   - Client-side API service layer
-   - Encapsulate all HTTP requests to API routes
-   - Handle error parsing and response transformation
-   - Provide type-safe interfaces for API calls
+3. **Stores** (`src/stores/`)
+   - Zustand stores for cached state only (no mutations)
+   - Created via `createCachedListStore` factory
+   - Provide: `items`, `loading`, `error`, `fetch`, `getById`, `getActive`, `clearCache`
+
+4. **API Layer** (`src/lib/client/api/`)
+   - Created via `createCrudApi` factory
+   - Centralized HTTP utilities in `http.ts` (`fetchJson`, `HttpError`)
+   - Type-safe CRUD operations
 
 ### Server-Side Architecture
 
@@ -327,10 +333,18 @@ The application follows a layered architecture pattern:
 ### Data Flow
 
 ```
-User Action → Component → Store → API Service → API Route → Service → Database
-                                                                    ↓
-User Feedback ← Component ← Store ← API Service ← API Route ← Service ← Database
+User Action → Component → Hook → Store/API → API Route → Service → Database
+                                                                  ↓
+User Feedback ← Component ← Hook ← Store/API ← API Route ← Service ← Database
 ```
+
+**Example: Creating a Booking**
+1. User fills form → `BookingForm` component
+2. Submit → `useBookingForm` hook calls `useBookingMutations.createBooking()`
+3. Mutation hook calls `bookingsApi.create()` (HTTP POST)
+4. API route calls `BookingService.createBooking()` (Prisma)
+5. Success → `invalidateCatalogCaches()` clears related store caches
+6. Redirect via `useCrudFormActions`
 
 ### Type System
 
@@ -376,12 +390,14 @@ Unit tests are written using Jest and React Testing Library. They are organized 
 
 - **Utility functions** (`DateUtil`, `MongoDbHelper`) - Located in `src/lib/shared/__tests__/` and `src/lib/server/__tests__/`
 - **Service classes** (`AnalyticsService`, `BookingService`, `CampingPlaceService`, `CampingItemService`) - Located in `src/lib/server/services/__tests__/`
-- **State management stores** (`useCampingItemsStore`, `useCampingPlacesStore`, `useBookingsStore`) - Located in `src/stores/__tests__/`
+- **API layer** (`http`, `createCrudApi`) - Located in `src/lib/client/api/__tests__/`
+- **Store factories** (`createCachedListStore`, `useCampingItemsStore`, `useCampingPlacesStore`) - Located in `src/stores/__tests__/`
+- **Custom hooks** (`useBookingMutations`, `useCampingItemMutations`, `useCampingPlaceMutations`) - Located in `src/hooks/__tests__/`
 
-Store tests mock the API service layer to test store logic in isolation. This ensures:
-- Stores handle errors correctly
-- Cache invalidation works properly
-- State updates are correct
+Tests are organized by layer:
+- **API tests**: Mock `fetch`, test HTTP utilities and CRUD factory
+- **Store tests**: Mock API layer, test fetch/cache/selectors
+- **Hook tests**: Mock API + cache invalidation, test mutations
 
 Run unit tests with:
 ```bash
@@ -423,43 +439,47 @@ When adding new features that require API calls:
 
 1. **Define Types** (`src/lib/shared/types/index.ts`)
    - Add new interfaces to the shared types file
-   - Create base interfaces, client-side types, and server-side types as needed
-   - Follow the existing pattern: `EntityBase`, `Entity` (client), `EntityServer` (server), `EntityFormData`
+   - Follow pattern: `EntityBase`, `Entity` (client), `EntityServer` (server), `EntityFormData`
 
 2. **Create API Service** (`src/lib/client/api/`)
-   - Add methods to the appropriate API service file
-   - Import types from `@/lib/shared/types` instead of defining them locally
-   - Re-export types for convenience: `export type { Entity, EntityFormData }`
-   - Follow the existing pattern with error handling
+   - Use `createCrudApi` factory for standard CRUD
+   - Import types from `@/lib/shared/types`
+   ```typescript
+   export const myEntityApi = createCrudApi<MyEntity, MyEntityFormData>('/api/my-entity');
+   ```
 
-3. **Update Store** (`src/stores/`)
-   - Import types from API services (they re-export from types)
-   - Add store methods that call the API service
-   - Handle loading states and errors
-   - Implement cache invalidation if needed
+3. **Create Store** (`src/stores/`)
+   - Use `createCachedListStore` factory
+   ```typescript
+   export const useMyEntityStore = createCachedListStore<MyEntity>({
+     fetchAll: () => myEntityApi.getAll(),
+     cacheDurationMs: 5 * 60 * 1000,
+   });
+   ```
 
-4. **Update Components** (`src/components/`)
-   - Use store methods instead of direct API calls
-   - Handle loading and error states from the store
-   - Import types from stores if needed
+4. **Create Mutation Hook** (`src/hooks/`)
+   - Create `useMyEntityMutations` for CRUD operations
+   - Call `invalidateCatalogCaches()` after mutations
 
-5. **Update Service Classes** (`src/lib/server/services/`)
-   - Use server-side types (e.g., `EntityServer`) from `@/lib/shared/types`
-   - Re-export types with original names for backward compatibility
-   - Transform data between server and client formats as needed
+5. **Create Form Hook** (if complex form logic)
+   - Create `useMyEntityForm` if form has derived values, store dependencies, or complex state
 
-6. **Write Tests**
-   - Test API services with mocked fetch
-   - Test stores with mocked API services
-   - Test components with mocked stores
-   - Test service classes with mocked database operations
+6. **Update Components** (`src/components/`)
+   - Use hooks for all logic, component only renders
+   - Use `useCrudFormActions` for submit/delete flow
+
+7. **Write Tests**
+   - Store tests: mock API, test fetch/cache
+   - Hook tests: mock API + cache invalidation
+   - Service tests: mock Prisma
 
 ### Code Organization
 
 - **Types** (`src/lib/shared/types/`): Centralized type definitions - single source of truth
-- **API Services** (`src/lib/client/api/`): All client-side HTTP requests go through API services
-- **Stores** (`src/stores/`): All state management and caching logic in stores
-- **Components** (`src/components/`): UI logic only, delegate data operations to stores
+- **API Layer** (`src/lib/client/api/`): HTTP requests via `createCrudApi` factory
+- **Stores** (`src/stores/`): Cached state only via `createCachedListStore` factory
+- **Hooks** (`src/hooks/`): Mutations, form logic, React orchestration
+- **Components** (`src/components/`): UI rendering only, delegate all logic to hooks
 - **Services** (`src/lib/server/services/`): Server-side business logic and database operations
 
 ### Type Definitions Best Practices

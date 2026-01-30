@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
-import { FormField, Input, Textarea, Select, Checkbox, Button, FormContainer } from '@/components/ui';
+import { useCampingPlaceMutations } from '@/hooks/useCampingPlaceMutations';
+import { useCrudFormActions } from '@/hooks/useCrudFormActions';
+import { FormField, Input, Textarea, Checkbox, Button, FormContainer } from '@/components/ui';
 
 interface CampingPlaceFormProps {
   initialData?: {
@@ -20,7 +21,9 @@ interface CampingPlaceFormProps {
 
 export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps) {
   const router = useRouter();
-  const { createCampingPlace, updateCampingPlace } = useCampingPlacesStore();
+  const { createCampingPlace, updateCampingPlace } = useCampingPlaceMutations();
+  const { isSubmitting, run } = useCrudFormActions({ redirectTo: '/camping-places' });
+
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
     description: initialData?.description || '',
@@ -31,29 +34,14 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
     isActive: initialData?.isActive ?? true,
   }));
   const [amenityInput, setAmenityInput] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const result = initialData?.id
-        ? await updateCampingPlace(initialData.id, formData)
-        : await createCampingPlace(formData);
-
-      if (result.success) {
-        router.push('/camping-places');
-        router.refresh();
-      } else {
-        alert(`Error: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred while submitting the form');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await run(() => 
+      initialData?.id
+        ? updateCampingPlace(initialData.id, formData)
+        : createCampingPlace(formData)
+    );
   };
 
   const addAmenity = () => {

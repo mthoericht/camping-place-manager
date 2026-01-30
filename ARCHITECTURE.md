@@ -1,361 +1,233 @@
-# Architektur: Service-Klassen vs. Stores
+# Architecture: Server vs. Client
 
-## Übersicht
+## Overview
 
-Die Anwendung verwendet eine **getrennte Architektur** für Server- und Client-seitige Operationen:
+The application uses a **separated architecture** for server-side and client-side operations:
 
-- **Service-Klassen** (`src/lib/server/services/`) → **Server-seitig** (Node.js)
-- **Stores** (`src/stores/`) → **Client-seitig** (Browser)
+- **Service Classes** (`src/lib/server/services/`) → **Server-side** (Node.js)
+- **Stores + Hooks** (`src/stores/`, `src/hooks/`) → **Client-side** (Browser)
 
 ---
 
-## 🖥️ Service-Klassen (Server-Side)
+## 🖥️ Service Classes (Server-Side)
 
-### Wann werden Service-Klassen verwendet?
+### When are Service Classes used?
 
-Service-Klassen werden **NUR auf dem Server** verwendet:
+Service classes are used **ONLY on the server**:
 
-1. ✅ **In Server Components** (Next.js Pages ohne `'use client'`)
+1. ✅ **In Server Components** (Next.js Pages without `'use client'`)
 2. ✅ **In API Routes** (`src/app/api/**/route.ts`)
-3. ✅ **In Server Actions** (falls vorhanden)
+3. ✅ **In Server Actions** (if applicable)
 
-### ❌ NICHT verwendet in:
+### ❌ NOT used in:
 - Client Components (`'use client'`)
-- Browser-Code
+- Browser code
 - React Hooks
 
-### Beispiele
+### Examples
 
-#### Beispiel 1: Server Component (Page)
+#### Server Component (Page)
 ```typescript
 // ✅ src/app/page.tsx - Server Component
 import { AnalyticsService } from '@/lib/server/services/AnalyticsService';
 
 export default async function Home() {
-  // Direkter Aufruf der Service-Klasse auf dem Server
   const analytics = await AnalyticsService.getAnalyticsData();
-  
   return <Stats totalPlaces={analytics.totalPlaces} />;
 }
 ```
 
-#### Beispiel 2: API Route
+#### API Route
 ```typescript
-// ✅ src/app/api/bookings/[id]/route.ts - API Route
+// ✅ src/app/api/bookings/[id]/route.ts
 import { BookingService } from '@/lib/server/services/BookingService';
 
 export async function GET(request: NextRequest, { params }) {
   const { id } = await params;
-  
-  // Service-Klasse wird direkt aufgerufen
   const booking = await BookingService.getBooking(id);
-  
   return NextResponse.json(booking);
 }
 ```
 
-#### Beispiel 3: Server Component mit Daten
-```typescript
-// ✅ src/app/bookings/[id]/page.tsx - Server Component
-import { BookingService } from '@/lib/server/services/BookingService';
-
-export default async function BookingDetailsPage({ params }) {
-  const { id } = await params;
-  
-  // Service-Klasse wird direkt aufgerufen
-  const booking = await BookingService.getBookingFromAPI(id);
-  
-  if (!booking) {
-    notFound();
-  }
-  
-  return <div>{/* Booking Details */}</div>;
-}
-```
-
-### Vorteile von Service-Klassen:
-- ✅ Direkter Datenbankzugriff (kein HTTP-Overhead)
-- ✅ Schneller (kein Netzwerk-Latency)
-- ✅ Sicher (läuft nur auf dem Server)
-- ✅ SEO-freundlich (Server-Side Rendering)
-
 ---
 
-## 🌐 Stores (Client-Side)
+## 🌐 Client-Side Architecture
 
-### Wann werden Stores verwendet?
+### Layer Overview
 
-Stores werden **NUR im Browser** verwendet:
+```
+Component (UI only)
+    ↓
+Custom Hook (useBookingForm, useBookingMutations)
+    ↓
+Store (useCampingPlacesStore) + API (bookingsApi)
+    ↓
+HTTP Request → API Route → Service → Database
+```
 
-1. ✅ **In Client Components** (`'use client'`)
-2. ✅ **Für interaktive UI** (Forms, Buttons, etc.)
-3. ✅ **Für State Management** (Caching, Loading States)
+### 1. Stores (`src/stores/`)
 
-### ❌ NICHT verwendet in:
-- Server Components
-- API Routes
-- Server Actions
+Stores manage **cached state only** – no mutations:
 
-### Beispiele
-
-#### Beispiel 1: Client Component mit Store
 ```typescript
-// ✅ src/components/BookingForm.tsx - Client Component
-'use client';
+// Store provides: items, loading, error, fetch, getById, getActive, clearCache
+const { items, loading, fetch, getById } = useCampingItemsStore();
 
-import { useBookingsStore } from '@/stores/useBookingsStore';
-import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
-
-export default function BookingForm() {
-  // Store wird im Browser verwendet
-  const { createBooking, updateBooking } = useBookingsStore();
-  const { fetchCampingPlaces, campingPlaces } = useCampingPlacesStore();
-  
-  useEffect(() => {
-    // Daten werden über HTTP-Request geladen
-    fetchCampingPlaces();
-  }, []);
-  
-  const handleSubmit = async () => {
-    // Store-Methode macht HTTP-Request zur API
-    await createBooking(formData);
-  };
-  
-  return <form>{/* Form UI */}</form>;
-}
+// Stores are created via factory:
+export const useCampingItemsStore = createCachedListStore<CampingItem>({
+  fetchAll: () => campingItemsApi.getAll(),
+  cacheDurationMs: 5 * 60 * 1000,
+});
 ```
 
-#### Beispiel 2: Store-Implementierung
+### 2. Mutation Hooks (`src/hooks/use*Mutations.ts`)
+
+CRUD operations + cache invalidation:
+
 ```typescript
-// ✅ src/stores/useCampingPlacesStore.ts
-import { create } from 'zustand';
-import { campingPlacesApi } from '@/lib/client/api/campingPlacesApi';
+const { createCampingItem, updateCampingItem, deleteCampingItem } = useCampingItemMutations();
 
-export const useCampingPlacesStore = create((set, get) => ({
-  campingPlaces: [],
-  loading: false,
-  error: null,
-  
-  // Store-Methode ruft API Service auf
-  fetchCampingPlaces: async () => {
-    set({ loading: true });
-    
-    // API Service macht HTTP-Request
-    const places = await campingPlacesApi.getAll();
-    
-    set({ campingPlaces: places, loading: false });
-  },
-}));
+// After mutation, cache is invalidated:
+await campingItemsApi.create(data);
+invalidateCatalogCaches();
 ```
 
-#### Beispiel 3: API Service (Client-Side)
+### 3. Form Hooks (`src/hooks/useBookingForm.ts`)
+
+Complex form logic (state, derived values, store integration):
+
 ```typescript
-// ✅ src/lib/client/api/campingPlacesApi.ts - Client-Side API Service
-export const campingPlacesApi = {
-  // Macht HTTP-Request zur API Route
-  getAll: async () => {
-    const response = await fetch('/api/camping-places');
-    return response.json();
-  },
-};
+const {
+  formData,
+  setField,
+  selectedItems,
+  updateItemQuantity,
+  campingPlaces,
+  selectedPlace,
+  nights,
+  totalPrice,
+  totalSize,
+  isLoading,
+  isSubmitting,
+  handleSubmit,
+} = useBookingForm(initialData);
 ```
 
-### Vorteile von Stores:
-- ✅ Interaktivität (React Hooks, State)
-- ✅ Caching (verhindert unnötige Requests)
-- ✅ Loading States (UI-Feedback)
-- ✅ Client-Side Navigation (kein Page Reload)
+### 4. Utility Hooks (`src/hooks/useCrudFormActions.ts`)
 
----
+Reusable submit/delete logic:
 
-## 📊 Datenfluss-Vergleich
-
-### Server-Side Flow (Service-Klassen)
-```
-Server Component
-    ↓
-Service-Klasse (BookingService)
-    ↓
-Prisma → MongoDB
-    ↓
-Daten zurück zur Component
-```
-
-**Beispiel:**
 ```typescript
-// Server Component
-const booking = await BookingService.getBooking(id);
-// ✅ Direkt, schnell, kein HTTP
+const { isSubmitting, run, runWithConfirm } = useCrudFormActions({ redirectTo: '/items' });
+
+// Submit:
+await run(() => createCampingItem(formData));
+
+// Delete with confirm:
+await runWithConfirm('Delete this item?', () => deleteCampingItem(id));
 ```
 
-### Client-Side Flow (Stores)
-```
-Client Component
-    ↓
-Store (useBookingsStore)
-    ↓
-API Service (bookingsApi)
-    ↓
-HTTP Request → API Route
-    ↓
-Service-Klasse (BookingService)
-    ↓
-Prisma → MongoDB
-    ↓
-HTTP Response zurück
-    ↓
-Store aktualisiert State
-    ↓
-Component re-rendert
-```
+### 5. Components (`src/components/`)
 
-**Beispiel:**
-```typescript
-// Client Component
-const { fetchBookings } = useBookingsStore();
-await fetchBookings();
-// ✅ Über HTTP, mit Caching, Loading States
-```
+**UI rendering only** – all logic in hooks:
 
----
-
-## 🎯 Entscheidungsmatrix
-
-| Szenario | Lösung | Warum? |
-|----------|--------|--------|
-| **Statische Seite** mit Daten | Service-Klasse | Server-Side Rendering, SEO |
-| **Interaktive Form** | Store | State Management, User Feedback |
-| **API Endpoint** | Service-Klasse | Direkter DB-Zugriff |
-| **Dashboard mit Live-Updates** | Store | Client-Side State, Caching |
-| **Analytics/Reports** | Service-Klasse | Server-Side, keine Interaktivität |
-| **CRUD-Operationen** (Form Submit) | Store | User Interaction, Loading States |
-
----
-
-## 🔍 Konkrete Code-Beispiele
-
-### Beispiel: Booking anzeigen
-
-#### Server Component (Service-Klasse)
-```typescript
-// src/app/bookings/[id]/page.tsx
-export default async function BookingDetailsPage({ params }) {
-  const { id } = await params;
-  
-  // ✅ Service-Klasse direkt aufrufen
-  const booking = await BookingService.getBookingFromAPI(id);
-  
-  return <BookingDetails booking={booking} />;
-}
-```
-
-#### Client Component (Store)
-```typescript
-// src/components/BookingForm.tsx
-'use client';
-
-export default function BookingForm() {
-  const { createBooking } = useBookingsStore();
-  
-  const handleSubmit = async () => {
-    // ✅ Store-Methode verwenden
-    await createBooking(formData);
-  };
-  
-  return <form onSubmit={handleSubmit}>...</form>;
-}
-```
-
-### Beispiel: Liste anzeigen
-
-#### Server Component
-```typescript
-// src/app/camping-places/page.tsx
-export default async function CampingPlacesPage() {
-  // ✅ Service-Klasse direkt aufrufen
-  const places = await CampingPlaceService.getCampingPlaces();
-  
-  return <CampingPlacesList places={places} />;
-}
-```
-
-#### Client Component
-```typescript
-// src/components/CampingPlaceForm.tsx
-'use client';
-
-export default function CampingPlaceForm() {
-  const { fetchCampingPlaces, campingPlaces } = useCampingPlacesStore();
-  
-  useEffect(() => {
-    // ✅ Store-Methode verwenden
-    fetchCampingPlaces();
-  }, []);
-  
-  return <form>{/* Form mit campingPlaces */}</form>;
-}
-```
-
----
-
-## ⚠️ Häufige Fehler
-
-### ❌ Falsch: Service-Klasse in Client Component
 ```typescript
 'use client';
 
+export default function BookingForm({ initialData }) {
+  const { formData, setField, handleSubmit, isSubmitting } = useBookingForm(initialData);
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={formData.customerName} onChange={e => setField('customerName', e.target.value)} />
+      <button disabled={isSubmitting}>Submit</button>
+    </form>
+  );
+}
+```
+
+---
+
+## 📊 Data Flow Comparison
+
+### Server-Side Flow
+```
+Server Component → Service Class → Prisma → MongoDB
+```
+
+### Client-Side Flow
+```
+Component → Hook → Store/API → HTTP → API Route → Service → Prisma → MongoDB
+                                                                    ↓
+Component ← Hook ← Store/API ← HTTP ← API Route ← Service ← Prisma ← MongoDB
+```
+
+---
+
+## 🎯 Decision Matrix
+
+| Scenario | Solution | Why? |
+|----------|----------|------|
+| **Static page** with data | Service Class | Server-Side Rendering, SEO |
+| **Interactive form** | Hook + Store | State management, user feedback |
+| **API endpoint** | Service Class | Direct DB access |
+| **Dashboard with live updates** | Store | Client-side state, caching |
+| **CRUD operations** | Mutation Hook | API call + cache invalidation |
+| **Complex form logic** | Form Hook | Derived values, store integration |
+
+---
+
+## ⚠️ Common Mistakes
+
+### ❌ Wrong: Service Class in Client Component
+```typescript
+'use client';
 export default function MyComponent() {
-  // ❌ FEHLER: Service-Klasse kann nicht im Browser verwendet werden
+  // ❌ ERROR: Service class cannot be used in browser
   const data = await BookingService.getBookings();
 }
 ```
 
-### ✅ Richtig: Store in Client Component
+### ✅ Correct: Hook in Client Component
 ```typescript
 'use client';
-
 export default function MyComponent() {
-  // ✅ RICHTIG: Store verwenden
-  const { bookings, fetchBookings } = useBookingsStore();
-  
-  useEffect(() => {
-    fetchBookings();
-  }, []);
+  const { createBooking } = useBookingMutations();
+  const handleSubmit = () => createBooking(formData);
 }
 ```
 
-### ❌ Falsch: Store in Server Component
+### ❌ Wrong: Store/Hook in Server Component
 ```typescript
 export default async function MyPage() {
-  // ❌ FEHLER: Stores funktionieren nicht in Server Components
-  const { bookings } = useBookingsStore();
+  // ❌ ERROR: Hooks don't work in Server Components
+  const { items } = useCampingItemsStore();
 }
 ```
 
-### ✅ Richtig: Service-Klasse in Server Component
+### ✅ Correct: Service Class in Server Component
 ```typescript
 export default async function MyPage() {
-  // ✅ RICHTIG: Service-Klasse verwenden
-  const bookings = await BookingService.getBookings();
+  // ✅ CORRECT: Use service class
+  const items = await CampingItemService.getCampingItems();
 }
 ```
 
 ---
 
-## 📝 Zusammenfassung
+## 📝 Summary
 
-| Aspekt | Service-Klassen | Stores |
-|--------|----------------|--------|
-| **Ort** | Server (Node.js) | Client (Browser) |
-| **Verwendung** | Server Components, API Routes | Client Components |
-| **Datenzugriff** | Direkt (Prisma → DB) | Über HTTP (API Routes) |
-| **State Management** | ❌ Nein | ✅ Ja (Zustand) |
-| **Caching** | ❌ Nein | ✅ Ja |
-| **Loading States** | ❌ Nein | ✅ Ja |
-| **Interaktivität** | ❌ Nein | ✅ Ja |
-| **SEO** | ✅ Ja (SSR) | ❌ Nein |
+| Aspect | Service Classes | Stores + Hooks |
+|--------|----------------|----------------|
+| **Location** | Server (Node.js) | Client (Browser) |
+| **Usage** | Server Components, API Routes | Client Components |
+| **Data Access** | Direct (Prisma → DB) | Via HTTP (API Routes) |
+| **State Management** | ❌ No | ✅ Yes (Zustand) |
+| **Caching** | ❌ No | ✅ Yes (Store) |
+| **Mutations** | ❌ No | ✅ Yes (Hooks) |
+| **SEO** | ✅ Yes (SSR) | ❌ No |
 
-**Regel:** 
-- **Server Component** → Service-Klasse
-- **Client Component** → Store
-
+**Rules:**
+- **Server Component** → Service Class
+- **Client Component** → Store (State) + Hook (Mutations/Forms)
+- **Components** → UI only, logic in hooks

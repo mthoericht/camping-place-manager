@@ -1,144 +1,119 @@
 import { useCampingItemsStore } from '../useCampingItemsStore';
 import { campingItemsApi } from '@/lib/client/api/campingItemsApi';
 
-// Mock the API service
 jest.mock('@/lib/client/api/campingItemsApi');
+
+const TEST_ITEMS = [
+  { id: '1', name: 'TEST_Tent 1', category: 'Tent', size: 10, isActive: true },
+  { id: '2', name: 'TEST_Van 1', category: 'Van', size: 20, isActive: false },
+];
 
 describe('useCampingItemsStore', () => 
 {
   beforeEach(() => 
   {
     jest.clearAllMocks();
-    // Reset store state
     useCampingItemsStore.setState({
-      campingItems: [],
+      items: [],
       loading: false,
       error: null,
       lastFetched: null,
     });
-    // Mock clearCache to avoid side effects
-    jest.spyOn(useCampingItemsStore.getState(), 'clearCache').mockImplementation(() => {});
   });
 
-  describe('createCampingItem', () => 
+  describe('fetch', () => 
   {
-    it('should create a camping item successfully', async () => 
+    it('should fetch camping items successfully', async () => 
     {
-      (campingItemsApi.create as jest.Mock).mockResolvedValueOnce({});
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
 
-      const result = await useCampingItemsStore.getState().createCampingItem({
-        name: 'Test Tent',
-        category: 'Tent',
-        size: 10,
-        description: 'A test tent',
-        isActive: true,
-      });
+      await useCampingItemsStore.getState().fetch();
 
-      expect(result.success).toBe(true);
-      expect(campingItemsApi.create).toHaveBeenCalledWith({
-        name: 'Test Tent',
-        category: 'Tent',
-        size: 10,
-        description: 'A test tent',
-        isActive: true,
-      });
+      const state = useCampingItemsStore.getState();
+      expect(state.items).toEqual(TEST_ITEMS);
+      expect(state.loading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(state.lastFetched).not.toBeNull();
+    });
+
+    it('should use cache when not forced', async () => 
+    {
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
+
+      await useCampingItemsStore.getState().fetch();
+      await useCampingItemsStore.getState().fetch();
+
+      expect(campingItemsApi.getAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should refetch when forced', async () => 
+    {
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValue(TEST_ITEMS);
+
+      await useCampingItemsStore.getState().fetch();
+      await useCampingItemsStore.getState().fetch(true);
+
+      expect(campingItemsApi.getAll).toHaveBeenCalledTimes(2);
     });
 
     it('should handle API errors', async () => 
     {
-      (campingItemsApi.create as jest.Mock).mockRejectedValueOnce(new Error('Validation error'));
+      (campingItemsApi.getAll as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await useCampingItemsStore.getState().createCampingItem({
-        name: 'Test Tent',
-        category: 'Tent',
-        size: 10,
-      });
+      await useCampingItemsStore.getState().fetch();
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Validation error');
-    });
-
-    it('should handle network errors', async () => 
-    {
-      (campingItemsApi.create as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await useCampingItemsStore.getState().createCampingItem({
-        name: 'Test Tent',
-        category: 'Tent',
-        size: 10,
-      });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Network error');
+      const state = useCampingItemsStore.getState();
+      expect(state.error).toBe('Network error');
+      expect(state.loading).toBe(false);
     });
   });
 
-  describe('updateCampingItem', () => 
+  describe('getById', () => 
   {
-    it('should update a camping item successfully', async () => 
+    it('should return item by id', async () => 
     {
-      (campingItemsApi.update as jest.Mock).mockResolvedValueOnce({});
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
+      await useCampingItemsStore.getState().fetch();
 
-      const result = await useCampingItemsStore.getState().updateCampingItem('123', {
-        name: 'Updated Tent',
-        category: 'Tent',
-        size: 15,
-      });
-
-      expect(result.success).toBe(true);
-      expect(campingItemsApi.update).toHaveBeenCalledWith('123', {
-        name: 'Updated Tent',
-        category: 'Tent',
-        size: 15,
-      });
+      const item = useCampingItemsStore.getState().getById('1');
+      expect(item?.name).toBe('TEST_Tent 1');
     });
 
-    it('should handle API errors', async () => 
+    it('should return undefined for unknown id', async () => 
     {
-      (campingItemsApi.update as jest.Mock).mockRejectedValueOnce(new Error('Item not found'));
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
+      await useCampingItemsStore.getState().fetch();
 
-      const result = await useCampingItemsStore.getState().updateCampingItem('123', {
-        name: 'Updated Tent',
-        category: 'Tent',
-        size: 15,
-      });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Item not found');
+      const item = useCampingItemsStore.getState().getById('unknown');
+      expect(item).toBeUndefined();
     });
   });
 
-  describe('deleteCampingItem', () => 
+  describe('getActive', () => 
   {
-    it('should delete a camping item successfully', async () => 
+    it('should return only active items', async () => 
     {
-      (campingItemsApi.delete as jest.Mock).mockResolvedValueOnce(undefined);
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
+      await useCampingItemsStore.getState().fetch();
 
-      const result = await useCampingItemsStore.getState().deleteCampingItem('123');
-
-      expect(result.success).toBe(true);
-      expect(campingItemsApi.delete).toHaveBeenCalledWith('123');
+      const activeItems = useCampingItemsStore.getState().getActive();
+      expect(activeItems).toHaveLength(1);
+      expect(activeItems[0].name).toBe('TEST_Tent 1');
     });
+  });
 
-    it('should handle API errors', async () => 
+  describe('clearCache', () => 
+  {
+    it('should clear lastFetched', async () => 
     {
-      (campingItemsApi.delete as jest.Mock).mockRejectedValueOnce(new Error('Item not found'));
+      (campingItemsApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_ITEMS);
+      await useCampingItemsStore.getState().fetch();
 
-      const result = await useCampingItemsStore.getState().deleteCampingItem('123');
+      expect(useCampingItemsStore.getState().lastFetched).not.toBeNull();
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Item not found');
-    });
+      useCampingItemsStore.getState().clearCache();
 
-    it('should handle network errors', async () => 
-    {
-      (campingItemsApi.delete as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await useCampingItemsStore.getState().deleteCampingItem('123');
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Network error');
+      expect(useCampingItemsStore.getState().lastFetched).toBeNull();
     });
   });
 });
-

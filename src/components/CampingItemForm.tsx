@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
+import { useCampingItemMutations } from '@/hooks/useCampingItemMutations';
+import { useCrudFormActions } from '@/hooks/useCrudFormActions';
 import { FormField, Input, Textarea, Select, Checkbox, Button, FormContainer } from '@/components/ui';
 
 interface CampingItemFormProps {
@@ -18,7 +19,9 @@ interface CampingItemFormProps {
 
 export default function CampingItemForm({ initialData }: CampingItemFormProps) {
   const router = useRouter();
-  const { createCampingItem, updateCampingItem, deleteCampingItem } = useCampingItemsStore();
+  const { createCampingItem, updateCampingItem, deleteCampingItem } = useCampingItemMutations();
+  const { isSubmitting, run, runWithConfirm } = useCrudFormActions({ redirectTo: '/camping-items' });
+
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
     category: initialData?.category || '',
@@ -26,51 +29,22 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
     description: initialData?.description || '',
     isActive: initialData?.isActive ?? true,
   }));
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const result = initialData?.id
-        ? await updateCampingItem(initialData.id, formData)
-        : await createCampingItem(formData);
-
-      if (result.success) {
-        router.push('/camping-items');
-        router.refresh();
-      } else {
-        alert(`Error: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred while submitting the form');
-    } finally {
-      setIsSubmitting(false);
-    }
+    await run(() => 
+      initialData?.id
+        ? updateCampingItem(initialData.id, formData)
+        : createCampingItem(formData)
+    );
   };
 
   const handleDelete = async () => {
     if (!initialData?.id) return;
-    
-    if (!confirm('Are you sure you want to delete this camping item? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      const result = await deleteCampingItem(initialData.id);
-
-      if (result.success) {
-        router.push('/camping-items');
-        router.refresh();
-      } else {
-        alert(`Error: ${result.error}`);
-      }
-    } catch (error) {
-      console.error('Error deleting camping item:', error);
-      alert('An error occurred while deleting the camping item');
-    }
+    await runWithConfirm(
+      'Are you sure you want to delete this camping item? This action cannot be undone.',
+      () => deleteCampingItem(initialData.id!)
+    );
   };
 
   return (
@@ -141,7 +115,7 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
           </div>
           
           {initialData?.id && (
-            <Button type="button" variant="danger" onClick={handleDelete}>
+            <Button type="button" variant="danger" onClick={handleDelete} disabled={isSubmitting}>
               Delete
             </Button>
           )}

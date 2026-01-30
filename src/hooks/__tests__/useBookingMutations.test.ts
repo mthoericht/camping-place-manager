@@ -1,27 +1,12 @@
-import { useBookingsStore } from '../useBookingsStore';
+import { renderHook } from '@testing-library/react';
+import { useBookingMutations } from '../useBookingMutations';
 import { bookingsApi } from '@/lib/client/api/bookingsApi';
+import { invalidateCatalogCaches } from '@/stores/cacheInvalidation';
 
-// Mock the API service
 jest.mock('@/lib/client/api/bookingsApi');
+jest.mock('@/stores/cacheInvalidation');
 
-// Mock the related stores
-jest.mock('../useCampingPlacesStore', () => ({
-  useCampingPlacesStore: {
-    getState: () => ({
-      clearCache: jest.fn(),
-    }),
-  },
-}));
-
-jest.mock('../useCampingItemsStore', () => ({
-  useCampingItemsStore: {
-    getState: () => ({
-      clearCache: jest.fn(),
-    }),
-  },
-}));
-
-describe('useBookingsStore', () => 
+describe('useBookingMutations', () => 
 {
   beforeEach(() => 
   {
@@ -34,7 +19,8 @@ describe('useBookingsStore', () =>
     {
       (bookingsApi.create as jest.Mock).mockResolvedValueOnce({});
 
-      const result = await useBookingsStore.getState().createBooking({
+      const { result } = renderHook(() => useBookingMutations());
+      const mutationResult = await result.current.createBooking({
         campingPlaceId: 'place123',
         customerName: 'John Doe',
         customerEmail: 'john@example.com',
@@ -46,7 +32,7 @@ describe('useBookingsStore', () =>
         campingItems: { item1: 1 },
       });
 
-      expect(result.success).toBe(true);
+      expect(mutationResult.success).toBe(true);
       expect(bookingsApi.create).toHaveBeenCalledWith({
         campingPlaceId: 'place123',
         customerName: 'John Doe',
@@ -58,13 +44,15 @@ describe('useBookingsStore', () =>
         notes: 'Test booking',
         campingItems: { item1: 1 },
       });
+      expect(invalidateCatalogCaches).toHaveBeenCalled();
     });
 
     it('should handle API errors', async () => 
     {
       (bookingsApi.create as jest.Mock).mockRejectedValueOnce(new Error('Validation error'));
 
-      const result = await useBookingsStore.getState().createBooking({
+      const { result } = renderHook(() => useBookingMutations());
+      const mutationResult = await result.current.createBooking({
         campingPlaceId: 'place123',
         customerName: 'John Doe',
         customerEmail: 'john@example.com',
@@ -73,15 +61,16 @@ describe('useBookingsStore', () =>
         guests: 2,
       });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Validation error');
+      expect(mutationResult.success).toBe(false);
+      expect(mutationResult.error).toBe('Validation error');
     });
 
     it('should handle network errors', async () => 
     {
       (bookingsApi.create as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await useBookingsStore.getState().createBooking({
+      const { result } = renderHook(() => useBookingMutations());
+      const mutationResult = await result.current.createBooking({
         campingPlaceId: 'place123',
         customerName: 'John Doe',
         customerEmail: 'john@example.com',
@@ -90,8 +79,8 @@ describe('useBookingsStore', () =>
         guests: 2,
       });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Network error');
+      expect(mutationResult.success).toBe(false);
+      expect(mutationResult.error).toBe('Network error');
     });
   });
 
@@ -101,7 +90,8 @@ describe('useBookingsStore', () =>
     {
       (bookingsApi.update as jest.Mock).mockResolvedValueOnce({});
 
-      const result = await useBookingsStore.getState().updateBooking('123', {
+      const { result } = renderHook(() => useBookingMutations());
+      const mutationResult = await result.current.updateBooking('123', {
         campingPlaceId: 'place123',
         customerName: 'Jane Doe',
         customerEmail: 'jane@example.com',
@@ -110,7 +100,7 @@ describe('useBookingsStore', () =>
         guests: 3,
       });
 
-      expect(result.success).toBe(true);
+      expect(mutationResult.success).toBe(true);
       expect(bookingsApi.update).toHaveBeenCalledWith('123', {
         campingPlaceId: 'place123',
         customerName: 'Jane Doe',
@@ -119,13 +109,15 @@ describe('useBookingsStore', () =>
         endDate: '2024-01-20',
         guests: 3,
       });
+      expect(invalidateCatalogCaches).toHaveBeenCalled();
     });
 
     it('should handle API errors', async () => 
     {
       (bookingsApi.update as jest.Mock).mockRejectedValueOnce(new Error('Booking not found'));
 
-      const result = await useBookingsStore.getState().updateBooking('123', {
+      const { result } = renderHook(() => useBookingMutations());
+      const mutationResult = await result.current.updateBooking('123', {
         campingPlaceId: 'place123',
         customerName: 'Jane Doe',
         customerEmail: 'jane@example.com',
@@ -134,9 +126,8 @@ describe('useBookingsStore', () =>
         guests: 3,
       });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Booking not found');
+      expect(mutationResult.success).toBe(false);
+      expect(mutationResult.error).toBe('Booking not found');
     });
   });
 });
-

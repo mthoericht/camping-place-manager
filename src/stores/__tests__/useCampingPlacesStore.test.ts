@@ -1,118 +1,119 @@
 import { useCampingPlacesStore } from '../useCampingPlacesStore';
 import { campingPlacesApi } from '@/lib/client/api/campingPlacesApi';
 
-// Mock the API service
 jest.mock('@/lib/client/api/campingPlacesApi');
+
+const TEST_PLACES = [
+  { id: '1', name: 'TEST_Place 1', price: 50, size: 100, isActive: true },
+  { id: '2', name: 'TEST_Place 2', price: 75, size: 150, isActive: false },
+];
 
 describe('useCampingPlacesStore', () => 
 {
   beforeEach(() => 
   {
     jest.clearAllMocks();
-    // Reset store state
     useCampingPlacesStore.setState({
-      campingPlaces: [],
+      items: [],
       loading: false,
       error: null,
       lastFetched: null,
     });
-    // Mock clearCache to avoid side effects
-    jest.spyOn(useCampingPlacesStore.getState(), 'clearCache').mockImplementation(() => {});
   });
 
-  describe('createCampingPlace', () => 
+  describe('fetch', () => 
   {
-    it('should create a camping place successfully', async () => 
+    it('should fetch camping places successfully', async () => 
     {
-      (campingPlacesApi.create as jest.Mock).mockResolvedValueOnce({});
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
 
-      const result = await useCampingPlacesStore.getState().createCampingPlace({
-        name: 'Test Place',
-        location: 'Test Location',
-        size: 100,
-        price: 50,
-        amenities: ['WiFi'],
-        isActive: true,
-      });
+      await useCampingPlacesStore.getState().fetch();
 
-      expect(result.success).toBe(true);
-      expect(campingPlacesApi.create).toHaveBeenCalledWith({
-        name: 'Test Place',
-        location: 'Test Location',
-        size: 100,
-        price: 50,
-        amenities: ['WiFi'],
-        isActive: true,
-      });
+      const state = useCampingPlacesStore.getState();
+      expect(state.items).toEqual(TEST_PLACES);
+      expect(state.loading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(state.lastFetched).not.toBeNull();
+    });
+
+    it('should use cache when not forced', async () => 
+    {
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
+
+      await useCampingPlacesStore.getState().fetch();
+      await useCampingPlacesStore.getState().fetch();
+
+      expect(campingPlacesApi.getAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('should refetch when forced', async () => 
+    {
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValue(TEST_PLACES);
+
+      await useCampingPlacesStore.getState().fetch();
+      await useCampingPlacesStore.getState().fetch(true);
+
+      expect(campingPlacesApi.getAll).toHaveBeenCalledTimes(2);
     });
 
     it('should handle API errors', async () => 
     {
-      (campingPlacesApi.create as jest.Mock).mockRejectedValueOnce(new Error('Validation error'));
+      (campingPlacesApi.getAll as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
 
-      const result = await useCampingPlacesStore.getState().createCampingPlace({
-        name: 'Test Place',
-        location: 'Test Location',
-        size: 100,
-        price: 50,
-      });
+      await useCampingPlacesStore.getState().fetch();
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Validation error');
-    });
-
-    it('should handle network errors', async () => 
-    {
-      (campingPlacesApi.create as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
-
-      const result = await useCampingPlacesStore.getState().createCampingPlace({
-        name: 'Test Place',
-        location: 'Test Location',
-        size: 100,
-        price: 50,
-      });
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Network error');
+      const state = useCampingPlacesStore.getState();
+      expect(state.error).toBe('Network error');
+      expect(state.loading).toBe(false);
     });
   });
 
-  describe('updateCampingPlace', () => 
+  describe('getById', () => 
   {
-    it('should update a camping place successfully', async () => 
+    it('should return place by id', async () => 
     {
-      (campingPlacesApi.update as jest.Mock).mockResolvedValueOnce({});
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
+      await useCampingPlacesStore.getState().fetch();
 
-      const result = await useCampingPlacesStore.getState().updateCampingPlace('123', {
-        name: 'Updated Place',
-        location: 'Updated Location',
-        size: 150,
-        price: 75,
-      });
-
-      expect(result.success).toBe(true);
-      expect(campingPlacesApi.update).toHaveBeenCalledWith('123', {
-        name: 'Updated Place',
-        location: 'Updated Location',
-        size: 150,
-        price: 75,
-      });
+      const place = useCampingPlacesStore.getState().getById('1');
+      expect(place?.name).toBe('TEST_Place 1');
     });
 
-    it('should handle API errors', async () => 
+    it('should return undefined for unknown id', async () => 
     {
-      (campingPlacesApi.update as jest.Mock).mockRejectedValueOnce(new Error('Place not found'));
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
+      await useCampingPlacesStore.getState().fetch();
 
-      const result = await useCampingPlacesStore.getState().updateCampingPlace('123', {
-        name: 'Updated Place',
-        location: 'Updated Location',
-        size: 150,
-        price: 75,
-      });
+      const place = useCampingPlacesStore.getState().getById('unknown');
+      expect(place).toBeUndefined();
+    });
+  });
 
-      expect(result.success).toBe(false);
-      expect(result.error).toBe('Place not found');
+  describe('getActive', () => 
+  {
+    it('should return only active places', async () => 
+    {
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
+      await useCampingPlacesStore.getState().fetch();
+
+      const activePlaces = useCampingPlacesStore.getState().getActive();
+      expect(activePlaces).toHaveLength(1);
+      expect(activePlaces[0].name).toBe('TEST_Place 1');
+    });
+  });
+
+  describe('clearCache', () => 
+  {
+    it('should clear lastFetched', async () => 
+    {
+      (campingPlacesApi.getAll as jest.Mock).mockResolvedValueOnce(TEST_PLACES);
+      await useCampingPlacesStore.getState().fetch();
+
+      expect(useCampingPlacesStore.getState().lastFetched).not.toBeNull();
+
+      useCampingPlacesStore.getState().clearCache();
+
+      expect(useCampingPlacesStore.getState().lastFetched).toBeNull();
     });
   });
 });
-
