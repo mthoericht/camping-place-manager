@@ -1,10 +1,19 @@
 import 'server-only';
+import { randomBytes } from 'node:crypto';
 
 /**
  * Helper class for MongoDB-specific operations
  */
 export class MongoDbHelper 
 {
+  /**
+   * Generate a new MongoDB ObjectId string (24-char hex).
+   * Use when inserting documents so the id is known without relying on insert response.
+   */
+  static createObjectId(): string 
+  {
+    return randomBytes(12).toString('hex');
+  }
   /**
    * Parse MongoDB date format to ISO string
    * Handles various MongoDB date formats: $date objects, Date instances, and strings
@@ -44,6 +53,25 @@ export class MongoDbHelper
       return id;
     }
     return String(id);
+  }
+
+  /**
+   * Get the first inserted ID from a raw MongoDB insert command result.
+   * Handles insertedIds as array, as object with numeric keys (e.g. { "0": id }), or single value.
+   */
+  static getFirstInsertedId(insertResult: any): string 
+  {
+    const insertedIds = insertResult?.insertedIds ?? insertResult?.inserted;
+    if (!insertedIds) return '';
+
+    const first =
+      Array.isArray(insertedIds)
+        ? insertedIds[0]
+        : typeof insertedIds === 'object'
+          ? insertedIds[0] ?? insertedIds['0'] ?? (Object.values(insertedIds)[0] as any)
+          : insertedIds;
+
+    return this.extractObjectId(first);
   }
 
   /**

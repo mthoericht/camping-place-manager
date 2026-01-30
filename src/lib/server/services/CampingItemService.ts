@@ -91,9 +91,11 @@ export class CampingItemService
   {
     try 
     {
-      const insertResult = await prisma.$runCommandRaw({
+      const id = MongoDbHelper.createObjectId();
+      await prisma.$runCommandRaw({
         insert: 'camping_items',
         documents: [{
+          _id: MongoDbHelper.toObjectId(id),
           name: data.name,
           category: data.category,
           size: parseInt(String(data.size)),
@@ -104,12 +106,6 @@ export class CampingItemService
         }]
       });
 
-      // Get the inserted document
-      const insertedIds = (insertResult as any).insertedIds || (insertResult as any).inserted;
-      const insertedId = Array.isArray(insertedIds) ? insertedIds[0] : insertedIds;
-      const id = MongoDbHelper.extractObjectId(insertedId);
-      
-      // Fetch the created camping item
       return await this.getCampingItem(id);
     }
     catch (error) 

@@ -72,7 +72,7 @@ export default function CampingItemForm({ initialData }: CampingItemFormProps) {
             <option value="Tent">Tent</option>
             <option value="Van">Van</option>
             <option value="Trailer">Trailer</option>
-            <option value="Pavillon/Awning">Pavillon/Awning</option>
+            <option value="Pavilion/Awning">Pavilion / Awning</option>
           </Select>
         </FormField>
 

@@ -53,7 +53,7 @@ export default function BookingForm({ initialData }: BookingFormProps) {
             <option value="">Select a camping place</option>
             {campingPlaces.map(place => (
               <option key={place.id} value={place.id}>
-                {place.name} - ${place.price}/night (Size: {place.size} m&#178;)
+                {place.name} - {place.price} €/night (Size: {place.size} m&#178;)
               </option>
             ))}
           </Select>
@@ -195,16 +195,16 @@ export default function BookingForm({ initialData }: BookingFormProps) {
                 <span>{selectedPlace.name}</span>
               </div>
               <div className="flex justify-between">
-                <span>Price per night:</span>
-                <span>${selectedPlace.price}</span>
+                <span>Price per night (€):</span>
+                <span>{selectedPlace.price} €</span>
               </div>
               <div className="flex justify-between">
                 <span>Number of nights:</span>
                 <span>{nights}</span>
               </div>
               <div className="flex justify-between font-semibold text-lg">
-                <span>Total Price:</span>
-                <span>${totalPrice}</span>
+                <span>Total price:</span>
+                <span>{totalPrice.toFixed(2)} €</span>
               </div>
             </div>
           </div>

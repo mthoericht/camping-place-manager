@@ -109,7 +109,7 @@ export default async function BookingsPage() {
                     {booking.guests}
                   </td>
                   <td className={tableCellTextClass}>
-                    ${booking.totalPrice.toFixed(2)}
+                    {booking.totalPrice.toFixed(2)} €
                   </td>
                   <td className={tableCellBaseClass}>
                     <span

@@ -107,7 +107,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             />
           </FormField>
 
-          <FormField label="Price per Night ($)" htmlFor="price" required>
+          <FormField label="Price per night (€)" htmlFor="price" required>
             <Input
               type="number"
               id="price"

@@ -75,7 +75,7 @@ export default async function CampingPlaceDetailsPage({
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-6">
               <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-green-600 mb-2">${campingPlace.price}</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">{campingPlace.price} €</div>
                 <div className="text-gray-600">per night</div>
               </div>
 
@@ -161,7 +161,7 @@ export default async function CampingPlaceDetailsPage({
                           {booking.guests}
                         </td>
                         <td className={tableCellClass}>
-                          ${booking.totalPrice}
+                          {booking.totalPrice.toFixed(2)} €
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span

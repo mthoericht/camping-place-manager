@@ -67,6 +67,48 @@ describe('MongoDbHelper', () =>
     });
   });
 
+  describe('createObjectId', () => 
+  {
+    it('should return a 24-character hex string', () => 
+    {
+      const id = MongoDbHelper.createObjectId();
+      expect(id).toMatch(/^[a-f0-9]{24}$/);
+    });
+
+    it('should return unique ids', () => 
+    {
+      const id1 = MongoDbHelper.createObjectId();
+      const id2 = MongoDbHelper.createObjectId();
+      expect(id1).not.toBe(id2);
+    });
+  });
+
+  describe('getFirstInsertedId', () => 
+  {
+    it('should extract first id from insertedIds array', () => 
+    {
+      const result = MongoDbHelper.getFirstInsertedId({
+        insertedIds: [{ $oid: '507f1f77bcf86cd799439011' }],
+      });
+      expect(result).toBe('507f1f77bcf86cd799439011');
+    });
+
+    it('should extract first id from insertedIds object with numeric key', () => 
+    {
+      const result = MongoDbHelper.getFirstInsertedId({
+        insertedIds: { 0: { $oid: '507f1f77bcf86cd799439012' } },
+      });
+      expect(result).toBe('507f1f77bcf86cd799439012');
+    });
+
+    it('should return empty string when insertedIds is missing', () => 
+    {
+      expect(MongoDbHelper.getFirstInsertedId({})).toBe('');
+      expect(MongoDbHelper.getFirstInsertedId(null)).toBe('');
+      expect(MongoDbHelper.getFirstInsertedId(undefined)).toBe('');
+    });
+  });
+
   describe('toObjectId', () => 
   {
     it('should convert string ID to MongoDB ObjectId format', () => 

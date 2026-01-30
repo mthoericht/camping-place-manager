@@ -63,7 +63,7 @@ export default async function AnalyticsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${analytics.totalRevenue.toFixed(2)}
+                  {analytics.totalRevenue.toFixed(2)} €
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default async function AnalyticsPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Average Booking Value</h2>
             <div className="text-center">
               <div className="text-4xl font-bold text-purple-600 mb-2">
-                ${analytics.avgBookingValue.toFixed(2)}
+                {analytics.avgBookingValue.toFixed(2)} €
               </div>
               <p className="text-gray-600">Per confirmed booking</p>
             </div>
@@ -128,7 +128,7 @@ export default async function AnalyticsPage() {
                       </div>
                       <div>
                         <h3 className="font-semibold text-gray-900">Camping Place ID: {AnalyticsService.objectIdToString(place._id)}</h3>
-                        <p className="text-sm text-gray-600">Revenue: ${place.totalRevenue?.toFixed(2) || 0}</p>
+                        <p className="text-sm text-gray-600">Revenue: {place.totalRevenue?.toFixed(2) ?? '0'} €</p>
                       </div>
                     </div>
                     <div className="text-right">

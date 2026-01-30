@@ -275,9 +275,11 @@ export class BookingService
       const totalPrice = nights * campingPlace.price;
 
       // Create booking
-      const insertResult = await prisma.$runCommandRaw({
+      const bookingId = MongoDbHelper.createObjectId();
+      await prisma.$runCommandRaw({
         insert: 'bookings',
         documents: [{
+          _id: MongoDbHelper.toObjectId(bookingId),
           campingPlaceId: MongoDbHelper.toObjectId(data.campingPlaceId),
           customerName: data.customerName,
           customerEmail: data.customerEmail,
@@ -292,11 +294,6 @@ export class BookingService
           updatedAt: MongoDbHelper.createMongoDate(),
         }]
       });
-
-      // Get the inserted booking ID
-      const insertedIds = (insertResult as any).insertedIds || (insertResult as any).inserted;
-      const insertedId = Array.isArray(insertedIds) ? insertedIds[0] : insertedIds;
-      const bookingId = MongoDbHelper.extractObjectId(insertedId);
 
       // Create booking items if provided
       if (data.campingItems && Object.keys(data.campingItems).length > 0) 

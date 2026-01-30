@@ -92,7 +92,7 @@ npm run dev
 - `description`: Description of the place
 - `location`: Location/address
 - `size`: Size in square meters (m²)
-- `price`: Price per night
+- `price`: Price per night (€)
 - `amenities`: Array of available amenities
 - `isActive`: Whether the place is available for booking
 - `createdAt`/`updatedAt`: Timestamps
@@ -101,7 +101,7 @@ npm run dev
 
 - `id`: Unique identifier
 - `name`: Name of the camping item
-- `category`: Item category (Tent, Van, Trailer, Pavillon/Awning, etc.)
+- `category`: Item category (Tent, Van, Trailer, Pavilion/Awning, etc.)
 - `size`: Size in square meters
 - `description`: Description of the item
 - `isActive`: Whether the item is available for booking
@@ -116,7 +116,7 @@ npm run dev
 - `customerPhone`: Customer's phone (optional)
 - `startDate`/`endDate`: Booking dates
 - `guests`: Number of guests
-- `totalPrice`: Total booking price
+- `totalPrice`: Total booking price (€)
 - `status`: Booking status (PENDING, CONFIRMED, CANCELLED, COMPLETED)
 - `notes`: Additional notes
 - `createdAt`/`updatedAt`: Timestamps
@@ -139,7 +139,7 @@ The camping items management system allows you to maintain an inventory of campi
 - **Edit Items**: Update existing item details and availability status
 - **Delete Items**: Remove items from inventory with confirmation
 - **View Details**: Detailed view of individual camping items
-- **Category Management**: Predefined categories including Tent, Van, Trailer, Pavillon/Awning
+- **Category Management**: Predefined categories including Tent, Van, Trailer, Pavilion/Awning
 - **Status Tracking**: Mark items as active/inactive for availability
 
 ### Available Categories
@@ -147,7 +147,7 @@ The camping items management system allows you to maintain an inventory of campi
 - Tent
 - Van
 - Trailer
-- Pavillon/Awning
+- Pavilion/Awning
 
 ### Navigation
 

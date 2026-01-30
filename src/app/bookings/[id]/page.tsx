@@ -179,8 +179,8 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                   <p className="text-gray-900">{booking.campingPlace.location}</p>
                 </div>
                 <div>
-                  <label className={labelClass}>Price per Night</label>
-                  <p className="text-gray-900">${booking.campingPlace.price}</p>
+                  <label className={labelClass}>Price per night (€)</label>
+                  <p className="text-gray-900">{booking.campingPlace.price} €</p>
                 </div>
                 <div>
                   <label className={labelClass}>Size</label>
@@ -202,8 +202,8 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Pricing Summary</h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Price per night:</span>
-                  <span>${booking.campingPlace.price}</span>
+                  <span className="text-gray-600">Price per night (€):</span>
+                  <span>{booking.campingPlace.price} €</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Number of nights:</span>
@@ -221,8 +221,8 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                 )}
                 <hr className="my-2" />
                 <div className="flex justify-between font-semibold text-lg">
-                  <span>Total Price:</span>
-                  <span>${booking.totalPrice.toFixed(2)}</span>
+                  <span>Total price:</span>
+                  <span>{booking.totalPrice.toFixed(2)} €</span>
                 </div>
               </div>
             </div>
