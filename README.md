@@ -117,7 +117,7 @@ npm run dev
 - `startDate`/`endDate`: Booking dates
 - `guests`: Number of guests
 - `totalPrice`: Total booking price (€)
-- `status`: Booking status (PENDING, CONFIRMED, CANCELLED, COMPLETED)
+- `status`: Booking status (PENDING, CONFIRMED, PAID, CANCELLED, COMPLETED)
 - `notes`: Additional notes
 - `createdAt`/`updatedAt`: Timestamps
 
@@ -151,7 +151,7 @@ The camping items management system allows you to maintain an inventory of campi
 
 ### Delete Protection
 
-Camping places and camping items cannot be deleted if they have **active or planned bookings** (status `PENDING` or `CONFIRMED`). Cancel or complete those bookings first; then deletion is allowed.
+Camping places and camping items cannot be deleted if they have **active or planned bookings** (status `PENDING`, `CONFIRMED`, or `PAID`). Cancel or complete those bookings first; then deletion is allowed.
 
 ### Navigation
 

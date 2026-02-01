@@ -181,7 +181,7 @@ export class CampingItemService
           find: 'bookings',
           filter: {
             _id: { $in: bookingIds.map((bid: string) => MongoDbHelper.toObjectId(bid)) },
-            status: { $in: ['PENDING', 'CONFIRMED'] }
+            status: { $in: ['PENDING', 'CONFIRMED', 'PAID'] }
           },
           limit: 1
         });

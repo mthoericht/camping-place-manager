@@ -140,7 +140,7 @@ export interface BookingServer extends BookingBase {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED';
   createdAt: string;
   updatedAt: string;
   campingPlace?: {

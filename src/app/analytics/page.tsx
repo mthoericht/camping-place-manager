@@ -84,9 +84,11 @@ export default async function AnalyticsPage() {
                           ? 'bg-green-500'
                           : status._id === 'PENDING'
                             ? 'bg-yellow-500'
-                            : status._id === 'CANCELLED'
-                              ? 'bg-red-500'
-                              : 'bg-blue-500'
+                            : status._id === 'PAID'
+                              ? 'bg-emerald-500'
+                              : status._id === 'CANCELLED'
+                                ? 'bg-red-500'
+                                : 'bg-blue-500'
                       }`}
                     ></div>
                     <span className="text-gray-700 capitalize">{status._id?.toLowerCase()}</span>

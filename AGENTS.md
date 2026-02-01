@@ -69,7 +69,8 @@ MongoDbHelper.extractCampingPlaceId(booking)
 
 ## Business Rules
 
-- **Delete CampingPlace / CampingItem**: Blocked if any booking with status `PENDING` or `CONFIRMED` references the place or item. Implemented in `CampingPlaceService.deleteCampingPlace` and `CampingItemService.deleteCampingItem`.
+- **Delete CampingPlace / CampingItem**: Blocked if any booking with status `PENDING`, `CONFIRMED`, or `PAID` references the place or item. Implemented in `CampingPlaceService.deleteCampingPlace` and `CampingItemService.deleteCampingItem`.
+- **Booking Status**: `PENDING` → `CONFIRMED` → `PAID` → `COMPLETED` (or `→ CANCELLED` at any point). Status is editable via dropdown on booking detail page.
 
 ## Code Style
 
@@ -86,6 +87,7 @@ MongoDbHelper.extractCampingPlaceId(booking)
 - `src/stores/createCachedListStore.ts` - Generic store factory
 - `src/stores/cacheInvalidation.ts` - Cross-store cache invalidation
 - `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
+- `src/components/BookingStatusSelect.tsx` - Client-side status dropdown
 - `ARCHITECTURE.md` - Detailed docs
 
 ## Testing Structure

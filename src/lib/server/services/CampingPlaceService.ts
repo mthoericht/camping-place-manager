@@ -193,7 +193,7 @@ export class CampingPlaceService
         find: 'bookings',
         filter: {
           campingPlaceId: MongoDbHelper.toObjectId(id),
-          status: { $in: ['PENDING', 'CONFIRMED'] }
+          status: { $in: ['PENDING', 'CONFIRMED', 'PAID'] }
         },
         limit: 1
       });

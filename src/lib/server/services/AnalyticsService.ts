@@ -54,7 +54,7 @@ export class AnalyticsService
       const activeBookingsResult = await prisma.$runCommandRaw({
         count: 'bookings',
         query: {
-          status: { $in: ['PENDING', 'CONFIRMED'] }
+          status: { $in: ['PENDING', 'CONFIRMED', 'PAID'] }
         }
       });
       
@@ -84,7 +84,7 @@ export class AnalyticsService
         pipeline: [
           {
             $match: {
-              status: { $in: ['CONFIRMED', 'COMPLETED'] }
+              status: { $in: ['CONFIRMED', 'PAID', 'COMPLETED'] }
             }
           },
           {

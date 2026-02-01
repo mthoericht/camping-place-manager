@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { BookingService } from '@/lib/server/services/BookingService';
 import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 import { notFound } from 'next/navigation';
+import { BookingStatusSelect } from '@/components/BookingStatusSelect';
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -60,19 +61,10 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                 )}
                 <div>
                   <label className={labelClass}>Booking Status</label>
-                  <span
-                    className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
-                      booking.status === 'CONFIRMED'
-                        ? 'bg-green-100 text-green-800'
-                        : booking.status === 'PENDING'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : booking.status === 'CANCELLED'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {booking.status}
-                  </span>
+                  <BookingStatusSelect 
+                    bookingId={booking.id} 
+                    currentStatus={booking.status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED'} 
+                  />
                 </div>
               </div>
             </div>

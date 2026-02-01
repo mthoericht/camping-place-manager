@@ -84,6 +84,7 @@ model BookingItem {
 enum BookingStatus {
   PENDING
   CONFIRMED
+  PAID
   CANCELLED
   COMPLETED
 }
