@@ -7,4 +7,8 @@ export { EmptyState } from './EmptyState';
 export { ErrorState } from './ErrorState';
 export { PageContainer } from './PageContainer';
 export { BackLink } from './BackLink';
+export { FormAlert } from './FormAlert';
+export { CrudFormActions } from './CrudFormActions';
+export { AmenitiesInput } from './AmenitiesInput';
+export { QuantitySelector } from './QuantitySelector';
 

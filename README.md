@@ -253,6 +253,17 @@ src/
 │   └── page.tsx           # Home page
 ├── components/            # Reusable components (UI only)
 │   ├── ui/                # Base UI components
+│   │   ├── FormAlert.tsx        # Info/Error/Success/Warning alerts
+│   │   ├── CrudFormActions.tsx  # Unified form footer
+│   │   ├── AmenitiesInput.tsx   # Tag input component
+│   │   ├── QuantitySelector.tsx # +/- quantity buttons
+│   │   └── ...                  # FormField, Button, etc.
+│   ├── booking/           # BookingForm subcomponents
+│   │   ├── BookingPlaceSection.tsx
+│   │   ├── BookingDatesSection.tsx
+│   │   ├── BookingCustomerSection.tsx
+│   │   ├── BookingItemsPicker.tsx
+│   │   └── BookingSummary.tsx
 │   ├── CampingItemForm.tsx
 │   ├── CampingPlaceForm.tsx
 │   ├── BookingForm.tsx
@@ -260,6 +271,8 @@ src/
 ├── hooks/                 # Custom React hooks
 │   ├── __tests__/         # Hook tests
 │   ├── useBookingForm.ts      # Booking form logic
+│   ├── useCampingItemForm.ts  # CampingItem form logic
+│   ├── useCampingPlaceForm.ts # CampingPlace form logic
 │   ├── useBookingMutations.ts # Booking CRUD operations
 │   ├── useCampingItemMutations.ts
 │   ├── useCampingPlaceMutations.ts
@@ -307,7 +320,8 @@ The application follows a layered architecture pattern with clear separation of 
    - Example: `BookingForm` uses `useBookingForm` hook
 
 2. **Custom Hooks** (`src/hooks/`)
-   - **Form Hooks** (`useBookingForm`): Encapsulate form state, derived values, and submit logic
+   - **Form Hooks** (`use*Form`): Encapsulate form state, derived values, submit logic, and NaN-safe parsing
+     - `useBookingForm`, `useCampingItemForm`, `useCampingPlaceForm`
    - **Mutation Hooks** (`use*Mutations`): CRUD operations + cache invalidation
    - **Utility Hooks** (`useCrudFormActions`): Reusable submit/delete flow with redirect
 
@@ -404,13 +418,15 @@ Unit tests are written using Jest and React Testing Library. They are organized 
 - **Service classes** (`AnalyticsService`, `BookingService`, `CampingPlaceService`, `CampingItemService`) - Located in `src/lib/server/services/__tests__/`
 - **API layer** (`http`, `createCrudApi`, `bookingsApi`) - Located in `src/lib/client/api/__tests__/`
 - **Store factories** (`createCachedListStore`, `useCampingItemsStore`, `useCampingPlacesStore`) - Located in `src/stores/__tests__/`
-- **Custom hooks** (`useBookingMutations`, `useCampingItemMutations`, `useCampingPlaceMutations`) - Located in `src/hooks/__tests__/`
+- **Custom hooks** - Located in `src/hooks/__tests__/`
+  - Mutation hooks: `useBookingMutations`, `useCampingItemMutations`, `useCampingPlaceMutations`
+  - Form hooks: `useBookingForm`, `useCampingItemForm`, `useCampingPlaceForm`
 - **Components** (`BookingStatusSelect`) - Located in `src/components/__tests__/`
 
 Tests are organized by layer:
 - **API tests**: Mock `fetch`, test HTTP utilities and CRUD factory
 - **Store tests**: Mock API layer, test fetch/cache/selectors
-- **Hook tests**: Mock API + cache invalidation, test mutations
+- **Hook tests**: Mock API + cache invalidation, test mutations and form logic
 
 Run unit tests with:
 ```bash
@@ -476,10 +492,13 @@ When adding new features that require API calls:
 
 5. **Create Form Hook** (if complex form logic)
    - Create `useMyEntityForm` if form has derived values, store dependencies, or complex state
+   - Include `setField` and `setFieldFromEvent` (NaN-safe for number fields)
+   - Return `formData`, `handleSubmit`, `handleDelete`, `isEditMode`
 
 6. **Update Components** (`src/components/`)
    - Use hooks for all logic, component only renders
-   - Use `useCrudFormActions` for submit/delete flow
+   - Use reusable UI components (`FormAlert`, `CrudFormActions`, `AmenitiesInput`, etc.)
+   - Split large forms into subcomponents (see `src/components/booking/`)
 
 7. **Write Tests**
    - Store tests: mock API, test fetch/cache

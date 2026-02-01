@@ -92,14 +92,16 @@ await campingItemsApi.create(data);
 invalidateCatalogCaches();
 ```
 
-### 3. Form Hooks (`src/hooks/useBookingForm.ts`)
+### 3. Form Hooks (`src/hooks/use*Form.ts`)
 
-Complex form logic (state, derived values, store integration):
+Complex form logic (state, derived values, store integration, NaN-safe parsing):
 
 ```typescript
+// BookingForm
 const {
   formData,
   setField,
+  setFieldFromEvent,      // NaN-safe for number fields
   selectedItems,
   updateItemQuantity,
   campingPlaces,
@@ -110,7 +112,19 @@ const {
   isLoading,
   isSubmitting,
   handleSubmit,
+  isEditMode,
 } = useBookingForm(initialData);
+
+// CampingItemForm / CampingPlaceForm
+const {
+  formData,
+  setField,
+  setFieldFromEvent,
+  isSubmitting,
+  handleSubmit,
+  handleDelete,
+  isEditMode,
+} = useCampingItemForm(initialData);
 ```
 
 ### 4. Utility Hooks (`src/hooks/useCrudFormActions.ts`)
@@ -129,22 +143,36 @@ await runWithConfirm('Delete this item?', () => deleteCampingItem(id));
 
 ### 5. Components (`src/components/`)
 
-**UI rendering only** – all logic in hooks:
+**UI rendering only** – all logic in hooks. Large forms use subcomponents:
 
 ```typescript
 'use client';
+import { BookingPlaceSection, BookingDatesSection, BookingSummary } from '@/components/booking';
+import { FormAlert, CrudFormActions, FormContainer } from '@/components/ui';
 
 export default function BookingForm({ initialData }) {
-  const { formData, setField, handleSubmit, isSubmitting } = useBookingForm(initialData);
+  const { formData, setField, handleSubmit, isSubmitting, isEditMode } = useBookingForm(initialData);
   
   return (
-    <form onSubmit={handleSubmit}>
-      <input value={formData.customerName} onChange={e => setField('customerName', e.target.value)} />
-      <button disabled={isSubmitting}>Submit</button>
-    </form>
+    <FormContainer title={isEditMode ? 'Edit Booking' : 'New Booking'}>
+      <form onSubmit={handleSubmit}>
+        <BookingPlaceSection ... />
+        <BookingDatesSection ... />
+        <BookingSummary ... />
+        <CrudFormActions isSubmitting={isSubmitting} isEditMode={isEditMode} onCancel={...} />
+      </form>
+    </FormContainer>
   );
 }
 ```
+
+### 6. Reusable UI Components (`src/components/ui/`)
+
+- **FormAlert**: Info/Error/Success/Warning alerts
+- **CrudFormActions**: Unified form footer (Cancel + Submit + Delete)
+- **AmenitiesInput**: Tag input with add/remove
+- **QuantitySelector**: +/- buttons with aria-labels
+- **FormField, Input, Textarea, Select, Checkbox**: Form primitives
 
 ---
 

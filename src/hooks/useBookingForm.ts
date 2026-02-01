@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, ChangeEvent } from 'react';
 import { useCampingPlacesStore } from '@/stores/useCampingPlacesStore';
 import { useCampingItemsStore } from '@/stores/useCampingItemsStore';
 import { useBookingMutations } from '@/hooks/useBookingMutations';
@@ -23,6 +23,12 @@ export interface BookingInitialData
 {
   id?: string;
   campingPlaceId?: string;
+  campingPlace?: {
+    id: string;
+    name: string;
+    size: number;
+    price: number;
+  };
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
@@ -33,9 +39,14 @@ export interface BookingInitialData
   campingItems?: { [key: string]: number };
 }
 
+const safeParseInt = (value: string, fallback: number = 0): number =>
+{
+  const parsed = parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 export function useBookingForm(initialData?: BookingInitialData) 
 {
-  // Store selectors
   const placesLoading = useCampingPlacesStore(s => s.loading);
   const placesError = useCampingPlacesStore(s => s.error);
   const fetchPlaces = useCampingPlacesStore(s => s.fetch);
@@ -47,11 +58,9 @@ export function useBookingForm(initialData?: BookingInitialData)
   const itemsError = useCampingItemsStore(s => s.error);
   const fetchItems = useCampingItemsStore(s => s.fetch);
 
-  // Mutations
   const { createBooking, updateBooking } = useBookingMutations();
   const { isSubmitting, run } = useCrudFormActions({ redirectTo: '/bookings' });
 
-  // Local state
   const [formData, setFormData] = useState<BookingFormData>(() => ({
     campingPlaceId: initialData?.campingPlaceId || '',
     customerName: initialData?.customerName || '',
@@ -67,19 +76,32 @@ export function useBookingForm(initialData?: BookingInitialData)
     initialData?.campingItems || {}
   );
 
-  // Fetch data on mount
   useEffect(() => 
   {
     fetchPlaces();
     fetchItems();
   }, [fetchPlaces, fetchItems]);
 
-  // Derived values
   const campingPlaces = getActivePlaces();
   
   const selectedPlace = useMemo(
-    () => formData.campingPlaceId ? getPlaceById(formData.campingPlaceId) || null : null,
-    [formData.campingPlaceId, getPlaceById]
+    () => 
+    {
+      if (!formData.campingPlaceId) return null;
+      const storePlace = getPlaceById(formData.campingPlaceId);
+      if (storePlace) return storePlace;
+      if (initialData?.campingPlace && initialData.campingPlace.id === formData.campingPlaceId)
+      {
+        return initialData.campingPlace as CampingPlace;
+      }
+      return null;
+    },
+    [formData.campingPlaceId, getPlaceById, initialData?.campingPlace]
+  );
+
+  const itemsById = useMemo(
+    () => new Map(items.map(i => [i.id, i])),
+    [items]
   );
 
   const totalSize = useMemo(() => 
@@ -87,14 +109,14 @@ export function useBookingForm(initialData?: BookingInitialData)
     let size = 0;
     Object.entries(selectedItems).forEach(([itemId, quantity]) => 
     {
-      const item = items.find(i => i.id === itemId);
+      const item = itemsById.get(itemId);
       if (item) 
       {
         size += item.size * quantity;
       }
     });
     return size;
-  }, [selectedItems, items]);
+  }, [selectedItems, itemsById]);
 
   const nights = useMemo(() => 
   {
@@ -110,18 +132,33 @@ export function useBookingForm(initialData?: BookingInitialData)
     return nights * selectedPlace.price;
   }, [selectedPlace, nights]);
 
-  // Actions
   const setField = useCallback(<K extends keyof BookingFormData>(key: K, value: BookingFormData[K]) => 
   {
     setFormData(prev => ({ ...prev, [key]: value }));
   }, []);
+
+  const setFieldFromEvent = useCallback(
+    (key: keyof BookingFormData) => (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    {
+      const value = e.target.value;
+      if (key === 'guests')
+      {
+        setFormData(prev => ({ ...prev, [key]: safeParseInt(value, 1) }));
+      }
+      else
+      {
+        setFormData(prev => ({ ...prev, [key]: value }));
+      }
+    },
+    []
+  );
 
   const updateItemQuantity = useCallback((itemId: string, quantity: number) => 
   {
     setSelectedItems(prev => 
     {
       const newItems = { ...prev };
-      if (quantity === 0) 
+      if (quantity <= 0) 
       {
         delete newItems[itemId];
       } 
@@ -143,13 +180,18 @@ export function useBookingForm(initialData?: BookingInitialData)
     );
   }, [run, initialData?.id, formData, selectedItems, createBooking, updateBooking]);
 
-  // Aggregated states
   const isLoading = placesLoading || itemsLoading;
-  const error = placesError || itemsError;
+  
+  const error = useMemo(() =>
+  {
+    const errors = [placesError, itemsError].filter(Boolean);
+    return errors.length > 0 ? errors.join('; ') : null;
+  }, [placesError, itemsError]);
 
   return {
     formData,
     setField,
+    setFieldFromEvent,
     selectedItems,
     updateItemQuantity,
     campingPlaces,

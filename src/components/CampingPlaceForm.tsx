@@ -1,76 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCampingPlaceMutations } from '@/hooks/useCampingPlaceMutations';
-import { useCrudFormActions } from '@/hooks/useCrudFormActions';
-import { FormField, Input, Textarea, Checkbox, Button, FormContainer } from '@/components/ui';
+import { useCampingPlaceForm, type CampingPlaceInitialData } from '@/hooks/useCampingPlaceForm';
+import { FormField, Input, Textarea, Checkbox, FormContainer, CrudFormActions, AmenitiesInput } from '@/components/ui';
 
-interface CampingPlaceFormProps {
-  initialData?: {
-    id?: string;
-    name?: string;
-    description?: string;
-    location?: string;
-    size?: number;
-    price?: number;
-    amenities?: string[];
-    isActive?: boolean;
-  };
+interface CampingPlaceFormProps
+{
+  initialData?: CampingPlaceInitialData;
 }
 
-export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps) {
+export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
+{
   const router = useRouter();
-  const { createCampingPlace, updateCampingPlace, deleteCampingPlace } = useCampingPlaceMutations();
-  const { isSubmitting, run, runWithConfirm } = useCrudFormActions({ redirectTo: '/camping-places' });
-
-  const [formData, setFormData] = useState(() => ({
-    name: initialData?.name || '',
-    description: initialData?.description || '',
-    location: initialData?.location || '',
-    size: initialData?.size || 1,
-    price: initialData?.price || 0,
-    amenities: initialData?.amenities || [],
-    isActive: initialData?.isActive ?? true,
-  }));
-  const [amenityInput, setAmenityInput] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await run(() => 
-      initialData?.id
-        ? updateCampingPlace(initialData.id, formData)
-        : createCampingPlace(formData)
-    );
-  };
-
-  const handleDelete = async () => {
-    if (!initialData?.id) return;
-    await runWithConfirm(
-      'Are you sure you want to delete this camping place? This action cannot be undone.',
-      () => deleteCampingPlace(initialData.id!)
-    );
-  };
-
-  const addAmenity = () => {
-    if (amenityInput.trim() && !formData.amenities.includes(amenityInput.trim())) {
-      setFormData({
-        ...formData,
-        amenities: [...formData.amenities, amenityInput.trim()],
-      });
-      setAmenityInput('');
-    }
-  };
-
-  const removeAmenity = (amenity: string) => {
-    setFormData({
-      ...formData,
-      amenities: formData.amenities.filter(a => a !== amenity),
-    });
-  };
+  const {
+    formData,
+    setField,
+    setFieldFromEvent,
+    isSubmitting,
+    handleSubmit,
+    handleDelete,
+    isEditMode,
+  } = useCampingPlaceForm(initialData);
 
   return (
-    <FormContainer title={initialData?.id ? 'Edit Camping Place' : 'Add New Camping Place'}>
+    <FormContainer title={isEditMode ? 'Edit Camping Place' : 'Add New Camping Place'}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <FormField label="Name" htmlFor="name" required>
           <Input
@@ -78,7 +31,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             id="name"
             required
             value={formData.name}
-            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            onChange={e => setField('name', e.target.value)}
             placeholder="Enter camping place name"
           />
         </FormField>
@@ -87,7 +40,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           <Textarea
             id="description"
             value={formData.description}
-            onChange={e => setFormData({ ...formData, description: e.target.value })}
+            onChange={e => setField('description', e.target.value)}
             placeholder="Describe the camping place"
           />
         </FormField>
@@ -98,7 +51,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
             id="location"
             required
             value={formData.location}
-            onChange={e => setFormData({ ...formData, location: e.target.value })}
+            onChange={e => setField('location', e.target.value)}
             placeholder="Enter location"
           />
         </FormField>
@@ -111,7 +64,7 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
               required
               min="1"
               value={formData.size}
-              onChange={e => setFormData({ ...formData, size: parseInt(e.target.value) })}
+              onChange={e => setFieldFromEvent('size', e)}
             />
           </FormField>
 
@@ -123,71 +76,31 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
               min="0"
               step="0.01"
               value={formData.price}
-              onChange={e => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+              onChange={e => setFieldFromEvent('price', e)}
             />
           </FormField>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
-          <div className="flex gap-2 mb-2">
-            <input
-              type="text"
-              value={amenityInput}
-              onChange={e => setAmenityInput(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Add amenity (e.g., WiFi, Pool, BBQ)"
-              onKeyPress={e => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
-            />
-            <button
-              type="button"
-              onClick={addAmenity}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Add
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {formData.amenities.map((amenity, index) => (
-              <span
-                key={index}
-                className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2"
-              >
-                {amenity}
-                <button
-                  type="button"
-                  onClick={() => removeAmenity(amenity)}
-                  className="text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
+        <AmenitiesInput
+          value={formData.amenities}
+          onChange={amenities => setField('amenities', amenities)}
+          placeholder="Add amenity (e.g., WiFi, Pool, BBQ)"
+          label="Amenities"
+        />
 
         <Checkbox
           id="isActive"
           label="Active (available for booking)"
           checked={formData.isActive}
-          onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
+          onChange={e => setField('isActive', e.target.checked)}
         />
 
-        <div className="flex justify-between">
-          <div className="flex space-x-4">
-            <Button type="button" variant="secondary" onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
-            </Button>
-          </div>
-          {initialData?.id && (
-            <Button type="button" variant="danger" onClick={handleDelete} disabled={isSubmitting}>
-              Delete
-            </Button>
-          )}
-        </div>
+        <CrudFormActions
+          isSubmitting={isSubmitting}
+          isEditMode={isEditMode}
+          onCancel={() => router.back()}
+          onDelete={isEditMode ? handleDelete : undefined}
+        />
       </form>
     </FormContainer>
   );

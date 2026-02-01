@@ -32,7 +32,7 @@ npm run db:status    # MongoDB/Next.js status + logs (scripts/db-status.mjs)
 
 - **Stores** (`src/stores/`): Only cached state + selectors (`items`, `loading`, `error`, `fetch`, `getById`, `getActive`)
 - **Mutation Hooks** (`src/hooks/use*Mutations.ts`): CRUD operations that call API + invalidate caches
-- **Form Hooks** (`src/hooks/useBookingForm.ts`): Complex form logic extraction
+- **Form Hooks** (`src/hooks/use*Form.ts`): Complex form logic extraction (state, validation, submit)
 
 ```typescript
 // Store: state only
@@ -40,6 +40,9 @@ const { items, loading, fetch, getById } = useCampingItemsStore();
 
 // Mutations: in separate hook
 const { createCampingItem, updateCampingItem } = useCampingItemMutations();
+
+// Form Hook: all form logic
+const { formData, setField, handleSubmit, isEditMode } = useCampingItemForm(initialData);
 
 // Form actions: submit/delete flow
 const { isSubmitting, run } = useCrudFormActions({ redirectTo: '/items' });
@@ -88,6 +91,9 @@ MongoDbHelper.extractCampingPlaceId(booking)
 - `src/stores/cacheInvalidation.ts` - Cross-store cache invalidation
 - `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
 - `src/components/BookingStatusSelect.tsx` - Client-side status dropdown
+- `src/components/ui/` - Reusable UI components (FormAlert, CrudFormActions, AmenitiesInput, QuantitySelector)
+- `src/components/booking/` - BookingForm subcomponents (BookingPlaceSection, BookingDatesSection, etc.)
+- `src/hooks/use*Form.ts` - Form hooks (useBookingForm, useCampingItemForm, useCampingPlaceForm)
 - `ARCHITECTURE.md` - Detailed docs
 
 ## Testing Structure
@@ -98,7 +104,7 @@ MongoDbHelper.extractCampingPlaceId(booking)
   - `src/lib/server/services/__tests__/` - Service tests
   - `src/lib/client/api/__tests__/` - API layer tests (http, createCrudApi, bookingsApi)
   - `src/stores/__tests__/` - Store tests (factories, fetch/cache)
-  - `src/hooks/__tests__/` - Hook tests (mutations)
+  - `src/hooks/__tests__/` - Hook tests (mutations, form hooks)
   - `src/components/__tests__/` - Component tests (e.g. BookingStatusSelect)
 - **E2E tests**: `e2e/` folder at project root
 - All test data must use `TEST_` prefix
