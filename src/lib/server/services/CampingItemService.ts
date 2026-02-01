@@ -162,12 +162,38 @@ export class CampingItemService
   }
 
   /**
-   * Delete a camping item
+   * Delete a camping item (fails if active or planned bookings reference it)
    */
   static async deleteCampingItem(id: string): Promise<boolean> 
   {
     try 
     {
+      const itemsResult = await prisma.$runCommandRaw({
+        find: 'booking_items',
+        filter: { campingItemId: MongoDbHelper.toObjectId(id) },
+        projection: { bookingId: 1 }
+      });
+      const items = (itemsResult.cursor as any)?.firstBatch || [];
+      if (items.length > 0) 
+      {
+        const bookingIds = items.map((item: any) => MongoDbHelper.extractObjectId(item.bookingId));
+        const activeBookingsResult = await prisma.$runCommandRaw({
+          find: 'bookings',
+          filter: {
+            _id: { $in: bookingIds.map((bid: string) => MongoDbHelper.toObjectId(bid)) },
+            status: { $in: ['PENDING', 'CONFIRMED'] }
+          },
+          limit: 1
+        });
+        const activeBookings = (activeBookingsResult.cursor as any)?.firstBatch || [];
+        if (activeBookings.length > 0) 
+        {
+          throw new Error(
+            'Cannot delete camping item: it is used in active or planned bookings. Cancel or complete them first.'
+          );
+        }
+      }
+
       const deleteResult = await prisma.$runCommandRaw({
         delete: 'camping_items',
         deletes: [

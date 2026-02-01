@@ -121,7 +121,7 @@ Test configuration is in `playwright.config.ts` at the project root. Key setting
 Run `npm run test:e2e:install` to install Playwright browsers.
 
 ### Database connection errors
-Ensure MongoDB is running: `npm run db:start`
+Ensure MongoDB is running: `npm run db:start` (Node script in `scripts/db-start.mjs`)
 
 ### Tests create data in production database
 All test data uses the "TEST_" prefix and is automatically cleaned up. If you see test data, run cleanup manually or check that the cleanup functions are working.

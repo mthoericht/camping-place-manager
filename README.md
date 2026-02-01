@@ -48,10 +48,10 @@ npm install
 3. Set up environment variables:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-4. Update the `DATABASE_URL` in `.env.local` with your MongoDB connection string:
+4. Update the `DATABASE_URL` in `.env` with your MongoDB connection string:
 
 ```
 DATABASE_URL="mongodb://localhost:27017/camping-place-manager"
@@ -69,7 +69,7 @@ npm run db:generate
 npm run db:push
 ```
 
-7. Start MongoDB service:
+7. Start MongoDB (Node.js script in `scripts/`):
 
 ```bash
 npm run db:start
@@ -149,6 +149,10 @@ The camping items management system allows you to maintain an inventory of campi
 - Trailer
 - Pavilion/Awning
 
+### Delete Protection
+
+Camping places and camping items cannot be deleted if they have **active or planned bookings** (status `PENDING` or `CONFIRMED`). Cancel or complete those bookings first; then deletion is allowed.
+
 ### Navigation
 
 Access camping items management through:
@@ -185,12 +189,12 @@ Access camping items management through:
 - `npm run db:push`: Push schema changes to database
 - `npm run db:studio`: Open Prisma Studio
 
-### MongoDB Management
+### MongoDB Management (Node.js scripts in `scripts/`)
 
-- `npm run db:start`: Start MongoDB service
-- `npm run db:stop`: Stop MongoDB service
-- `npm run db:restart`: Restart MongoDB service
-- `npm run db:status`: Check MongoDB service status
+- `npm run db:start`: Start MongoDB (`scripts/db-start.mjs`)
+- `npm run db:stop`: Stop MongoDB (`scripts/db-stop.mjs`)
+- `npm run db:restart`: Restart MongoDB (`scripts/db-restart.mjs`)
+- `npm run db:status`: Check MongoDB and Next.js status, show recent logs (`scripts/db-status.mjs`)
 
 ## Quick Start Guide
 
@@ -205,8 +209,8 @@ Access camping items management through:
 2. **Set up environment:**
 
    ```bash
-   # Create .env.local with your MongoDB connection
-   echo 'DATABASE_URL="mongodb://localhost:27017/camping-place-manager"' > .env.local
+   # Create .env with your MongoDB connection
+   echo 'DATABASE_URL="mongodb://localhost:27017/camping-place-manager"' > .env
    ```
 
 3. **Start services:**

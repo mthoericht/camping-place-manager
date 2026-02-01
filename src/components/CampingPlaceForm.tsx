@@ -21,8 +21,8 @@ interface CampingPlaceFormProps {
 
 export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps) {
   const router = useRouter();
-  const { createCampingPlace, updateCampingPlace } = useCampingPlaceMutations();
-  const { isSubmitting, run } = useCrudFormActions({ redirectTo: '/camping-places' });
+  const { createCampingPlace, updateCampingPlace, deleteCampingPlace } = useCampingPlaceMutations();
+  const { isSubmitting, run, runWithConfirm } = useCrudFormActions({ redirectTo: '/camping-places' });
 
   const [formData, setFormData] = useState(() => ({
     name: initialData?.name || '',
@@ -41,6 +41,14 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
       initialData?.id
         ? updateCampingPlace(initialData.id, formData)
         : createCampingPlace(formData)
+    );
+  };
+
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+    await runWithConfirm(
+      'Are you sure you want to delete this camping place? This action cannot be undone.',
+      () => deleteCampingPlace(initialData.id!)
     );
   };
 
@@ -165,13 +173,20 @@ export default function CampingPlaceForm({ initialData }: CampingPlaceFormProps)
           onChange={e => setFormData({ ...formData, isActive: e.target.checked })}
         />
 
-        <div className="flex justify-end space-x-4">
-          <Button type="button" variant="secondary" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
-          </Button>
+        <div className="flex justify-between">
+          <div className="flex space-x-4">
+            <Button type="button" variant="secondary" onClick={() => router.back()}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : initialData?.id ? 'Update' : 'Create'}
+            </Button>
+          </div>
+          {initialData?.id && (
+            <Button type="button" variant="danger" onClick={handleDelete} disabled={isSubmitting}>
+              Delete
+            </Button>
+          )}
         </div>
       </form>
     </FormContainer>

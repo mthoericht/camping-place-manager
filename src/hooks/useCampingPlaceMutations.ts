@@ -46,5 +46,22 @@ export function useCampingPlaceMutations()
     }
   }, []);
 
-  return { createCampingPlace, updateCampingPlace };
+  const deleteCampingPlace = useCallback(async (id: string): Promise<MutationResult> => 
+  {
+    try 
+    {
+      await campingPlacesApi.delete(id);
+      invalidateCatalogCaches();
+      return { success: true };
+    } 
+    catch (error) 
+    {
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'An error occurred while deleting the camping place' 
+      };
+    }
+  }, []);
+
+  return { createCampingPlace, updateCampingPlace, deleteCampingPlace };
 }

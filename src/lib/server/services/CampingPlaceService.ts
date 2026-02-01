@@ -183,12 +183,29 @@ export class CampingPlaceService
   }
 
   /**
-   * Delete a camping place
+   * Delete a camping place (fails if active or planned bookings exist)
    */
   static async deleteCampingPlace(id: string): Promise<boolean> 
   {
     try 
     {
+      const activeBookingsResult = await prisma.$runCommandRaw({
+        find: 'bookings',
+        filter: {
+          campingPlaceId: MongoDbHelper.toObjectId(id),
+          status: { $in: ['PENDING', 'CONFIRMED'] }
+        },
+        limit: 1
+      });
+      
+      const activeBookings = (activeBookingsResult.cursor as any)?.firstBatch || [];
+      if (activeBookings.length > 0) 
+      {
+        throw new Error(
+          'Cannot delete camping place: active or planned bookings exist. Cancel or complete them first.'
+        );
+      }
+
       const deleteResult = await prisma.$runCommandRaw({
         delete: 'camping_places',
         deletes: [

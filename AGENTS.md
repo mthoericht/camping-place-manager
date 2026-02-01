@@ -10,6 +10,10 @@ npm run build        # Build (includes typecheck)
 npm test             # Jest unit tests
 npm run test:e2e     # Playwright E2E tests
 npm run db:push      # Push schema to DB
+npm run db:start     # Start MongoDB (Node script: scripts/db-start.mjs)
+npm run db:stop      # Stop MongoDB (scripts/db-stop.mjs)
+npm run db:restart   # Restart MongoDB (scripts/db-restart.mjs)
+npm run db:status    # MongoDB/Next.js status + logs (scripts/db-status.mjs)
 ```
 
 ## Architecture
@@ -63,6 +67,10 @@ MongoDbHelper.extractBookingId(item)
 MongoDbHelper.extractCampingPlaceId(booking)
 ```
 
+## Business Rules
+
+- **Delete CampingPlace / CampingItem**: Blocked if any booking with status `PENDING` or `CONFIRMED` references the place or item. Implemented in `CampingPlaceService.deleteCampingPlace` and `CampingItemService.deleteCampingItem`.
+
 ## Code Style
 
 - Allman-style braces (opening brace on new line)
@@ -72,6 +80,7 @@ MongoDbHelper.extractCampingPlaceId(booking)
 ## Key Files
 
 - `prisma/schema.prisma` - DB schema
+- `scripts/db-*.mjs` - MongoDB start/stop/restart/status (Node.js, cross-platform)
 - `src/lib/shared/types/index.ts` - Type definitions
 - `src/lib/client/api/createCrudApi.ts` - Generic CRUD API factory
 - `src/stores/createCachedListStore.ts` - Generic store factory
