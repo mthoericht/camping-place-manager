@@ -129,6 +129,13 @@ npm run dev
 - `quantity`: Number of items booked
 - `createdAt`/`updatedAt`: Timestamps
 
+### BookingStatusChange (timeline)
+
+- `id`: Unique identifier
+- `bookingId`: Reference to booking
+- `status`: Status at change time (PENDING, CONFIRMED, PAID, CANCELLED, COMPLETED)
+- `changedAt`: When the status was set (used for Booking Timeline on detail page)
+
 ## Camping Items Management
 
 The camping items management system allows you to maintain an inventory of camping equipment and items that can be rented out to customers.
@@ -248,7 +255,8 @@ src/
 │   ├── ui/                # Base UI components
 │   ├── CampingItemForm.tsx
 │   ├── CampingPlaceForm.tsx
-│   └── BookingForm.tsx
+│   ├── BookingForm.tsx
+│   └── BookingStatusSelect.tsx  # Status dropdown (uses bookingsApi.updateStatus)
 ├── hooks/                 # Custom React hooks
 │   ├── __tests__/         # Hook tests
 │   ├── useBookingForm.ts      # Booking form logic
@@ -394,9 +402,10 @@ Unit tests are written using Jest and React Testing Library. They are organized 
 
 - **Utility functions** (`DateUtil`, `MongoDbHelper`) - Located in `src/lib/shared/__tests__/` and `src/lib/server/__tests__/`
 - **Service classes** (`AnalyticsService`, `BookingService`, `CampingPlaceService`, `CampingItemService`) - Located in `src/lib/server/services/__tests__/`
-- **API layer** (`http`, `createCrudApi`) - Located in `src/lib/client/api/__tests__/`
+- **API layer** (`http`, `createCrudApi`, `bookingsApi`) - Located in `src/lib/client/api/__tests__/`
 - **Store factories** (`createCachedListStore`, `useCampingItemsStore`, `useCampingPlacesStore`) - Located in `src/stores/__tests__/`
 - **Custom hooks** (`useBookingMutations`, `useCampingItemMutations`, `useCampingPlaceMutations`) - Located in `src/hooks/__tests__/`
+- **Components** (`BookingStatusSelect`) - Located in `src/components/__tests__/`
 
 Tests are organized by layer:
 - **API tests**: Mock `fetch`, test HTTP utilities and CRUD factory

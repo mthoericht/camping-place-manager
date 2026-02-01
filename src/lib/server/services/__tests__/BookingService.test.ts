@@ -137,6 +137,7 @@ describe('BookingService', () =>
         mockPrismaFindResult([mockBooking]),
         mockPrismaFindResult([mockCampingPlace]),
         mockPrismaEmptyResult(),
+        mockPrismaFindResult([]),
       ]);
 
       setupMongoDbHelperMocks();
@@ -147,6 +148,61 @@ describe('BookingService', () =>
       expect(result).not.toBeNull();
       expect(result?.customerName).toBe('John Doe');
       expect(result?.campingPlace.name).toBe('Test Place');
+      expect(result?.statusChanges).toEqual([]);
+    });
+
+    it('should return booking with statusChanges when present', async () => 
+    {
+      const mockBooking = {
+        _id: { $oid: '507f1f77bcf86cd799439011' },
+        campingPlaceId: { $oid: '507f1f77bcf86cd799439012' },
+        customerName: 'John Doe',
+        customerEmail: 'john@example.com',
+        startDate: { $date: '2024-01-15T00:00:00.000Z' },
+        endDate: { $date: '2024-01-20T00:00:00.000Z' },
+        guests: 2,
+        totalPrice: 500,
+        status: 'PAID',
+        createdAt: { $date: '2024-01-10T00:00:00.000Z' },
+        updatedAt: { $date: '2024-01-12T00:00:00.000Z' },
+      };
+
+      const mockCampingPlace = {
+        _id: { $oid: '507f1f77bcf86cd799439012' },
+        name: 'Test Place',
+        description: 'Test Description',
+        location: 'Test Location',
+        size: 100,
+        price: 50,
+        amenities: ['WiFi', 'Power'],
+        isActive: true,
+        createdAt: { $date: '2024-01-01T00:00:00.000Z' },
+        updatedAt: { $date: '2024-01-01T00:00:00.000Z' },
+      };
+
+      const mockStatusChanges = [
+        { status: 'PENDING', changedAt: { $date: '2024-01-10T00:00:00.000Z' } },
+        { status: 'CONFIRMED', changedAt: { $date: '2024-01-11T00:00:00.000Z' } },
+        { status: 'PAID', changedAt: { $date: '2024-01-12T00:00:00.000Z' } },
+      ];
+
+      setupPrismaMocks([
+        mockPrismaFindResult([mockBooking]),
+        mockPrismaFindResult([mockCampingPlace]),
+        mockPrismaEmptyResult(),
+        mockPrismaFindResult(mockStatusChanges),
+      ]);
+
+      setupMongoDbHelperMocks();
+      mockExtractCampingPlaceId('507f1f77bcf86cd799439012');
+
+      const result = await BookingService.getBooking('507f1f77bcf86cd799439011');
+
+      expect(result).not.toBeNull();
+      expect(result?.statusChanges).toHaveLength(3);
+      expect(result?.statusChanges?.[0]).toEqual({ status: 'PENDING', changedAt: '2024-01-10T00:00:00.000Z' });
+      expect(result?.statusChanges?.[1]).toEqual({ status: 'CONFIRMED', changedAt: '2024-01-11T00:00:00.000Z' });
+      expect(result?.statusChanges?.[2]).toEqual({ status: 'PAID', changedAt: '2024-01-12T00:00:00.000Z' });
     });
 
     it('should handle errors gracefully and return null', async () => 

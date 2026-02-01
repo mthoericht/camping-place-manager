@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import type { BookingStatus } from '@/lib/shared/types';
+import { bookingsApi } from '@/lib/client/api/bookingsApi';
 
-const BOOKING_STATUSES = [
+const BOOKING_STATUSES: { value: BookingStatus; label: string; color: string }[] = [
   { value: 'PENDING', label: 'Pending', color: 'bg-yellow-100 text-yellow-800' },
   { value: 'CONFIRMED', label: 'Confirmed', color: 'bg-green-100 text-green-800' },
   { value: 'PAID', label: 'Paid', color: 'bg-emerald-100 text-emerald-800' },
   { value: 'CANCELLED', label: 'Cancelled', color: 'bg-red-100 text-red-800' },
   { value: 'COMPLETED', label: 'Completed', color: 'bg-blue-100 text-blue-800' },
-] as const;
-
-type BookingStatus = typeof BOOKING_STATUSES[number]['value'];
+];
 
 interface BookingStatusSelectProps 
 {
@@ -20,6 +21,7 @@ interface BookingStatusSelectProps
 
 export function BookingStatusSelect({ bookingId, currentStatus }: BookingStatusSelectProps) 
 {
+  const router = useRouter();
   const [status, setStatus] = useState<BookingStatus>(currentStatus);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,18 +35,9 @@ export function BookingStatusSelect({ bookingId, currentStatus }: BookingStatusS
 
     try 
     {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) 
-      {
-        throw new Error('Failed to update status');
-      }
-
+      await bookingsApi.updateStatus(bookingId, newStatus);
       setStatus(newStatus);
+      router.refresh();
     }
     catch (err) 
     {

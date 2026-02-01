@@ -108,6 +108,11 @@ export interface CampingPlaceFormData {
 }
 
 /**
+ * Booking status (matches Prisma enum BookingStatus)
+ */
+export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED';
+
+/**
  * Booking base interface
  */
 export interface BookingBase {
@@ -140,7 +145,7 @@ export interface BookingServer extends BookingBase {
   startDate: string;
   endDate: string;
   totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED';
+  status: BookingStatus;
   createdAt: string;
   updatedAt: string;
   campingPlace?: {
@@ -166,11 +171,20 @@ export interface BookingFormData {
 }
 
 /**
+ * Single status change entry for timeline
+ */
+export interface BookingStatusChangeEntry {
+  status: BookingStatus;
+  changedAt: string;
+}
+
+/**
  * Booking with detailed information (server-side)
  */
 export interface BookingWithDetails extends Omit<BookingServer, 'startDate' | 'endDate'> {
   startDate: string | { $date: string };
   endDate: string | { $date: string };
+  statusChanges?: BookingStatusChangeEntry[];
   campingPlace: {
     id: string;
     name: string;

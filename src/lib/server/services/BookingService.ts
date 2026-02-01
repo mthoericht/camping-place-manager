@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/server/prisma';
 import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
-import type { BookingServer, BookingWithDetails } from '@/lib/shared/types';
+import type { BookingServer, BookingWithDetails, BookingStatus } from '@/lib/shared/types';
 
 // Re-export as Booking for backward compatibility
 export type { BookingServer as Booking, BookingWithDetails };
@@ -57,7 +57,7 @@ export class BookingService
           endDate: MongoDbHelper.parseMongoDate(booking.endDate),
           guests: booking.guests,
           totalPrice: booking.totalPrice,
-          status: booking.status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED',
+          status: booking.status as BookingStatus,
           notes: booking.notes,
           createdAt: MongoDbHelper.parseMongoDate(booking.createdAt),
           updatedAt: MongoDbHelper.parseMongoDate(booking.updatedAt),
@@ -164,7 +164,7 @@ export class BookingService
         endDate: booking.endDate,
         guests: booking.guests,
         totalPrice: booking.totalPrice,
-        status: booking.status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED',
+        status: booking.status as BookingStatus,
         notes: booking.notes,
         createdAt: MongoDbHelper.parseMongoDate(booking.createdAt),
         updatedAt: MongoDbHelper.parseMongoDate(booking.updatedAt),
@@ -193,6 +193,18 @@ export class BookingService
         },
         bookingItems: bookingItemsWithCampingItems
       };
+
+      // Load status change history for timeline
+      const statusChangesResult = await prisma.$runCommandRaw({
+        find: 'booking_status_changes',
+        filter: { bookingId: MongoDbHelper.toObjectId(id) },
+        sort: { changedAt: 1 }
+      });
+      const statusChangesRaw = (statusChangesResult.cursor as any)?.firstBatch || [];
+      finalBooking.statusChanges = statusChangesRaw.map((entry: any) => ({
+        status: entry.status,
+        changedAt: MongoDbHelper.parseMongoDate(entry.changedAt)
+      }));
 
       return finalBooking;
     }
@@ -276,6 +288,7 @@ export class BookingService
 
       // Create booking
       const bookingId = MongoDbHelper.createObjectId();
+      const createdAt = MongoDbHelper.createMongoDate();
       await prisma.$runCommandRaw({
         insert: 'bookings',
         documents: [{
@@ -290,8 +303,19 @@ export class BookingService
           totalPrice,
           status: 'PENDING',
           notes: data.notes || null,
-          createdAt: MongoDbHelper.createMongoDate(),
-          updatedAt: MongoDbHelper.createMongoDate(),
+          createdAt,
+          updatedAt: createdAt,
+        }]
+      });
+
+      // Record initial status for timeline
+      await prisma.$runCommandRaw({
+        insert: 'booking_status_changes',
+        documents: [{
+          _id: MongoDbHelper.toObjectId(MongoDbHelper.createObjectId()),
+          bookingId: MongoDbHelper.toObjectId(bookingId),
+          status: 'PENDING',
+          changedAt: createdAt,
         }]
       });
 
@@ -366,6 +390,20 @@ export class BookingService
         update: 'bookings',
         updates: [{ q: { _id: MongoDbHelper.toObjectId(id) }, u: { $set: updateData } }],
       });
+
+      // Record status change for timeline when status was updated
+      if (data.status !== undefined)
+      {
+        await prisma.$runCommandRaw({
+          insert: 'booking_status_changes',
+          documents: [{
+            _id: MongoDbHelper.toObjectId(MongoDbHelper.createObjectId()),
+            bookingId: MongoDbHelper.toObjectId(id),
+            status: data.status,
+            changedAt: updateData.updatedAt,
+          }]
+        });
+      }
 
       // Create new booking items if provided
       if (data.campingItems && Object.keys(data.campingItems).length > 0) 

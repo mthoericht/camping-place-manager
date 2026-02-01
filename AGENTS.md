@@ -96,8 +96,9 @@ MongoDbHelper.extractCampingPlaceId(booking)
   - `src/lib/shared/__tests__/` - Shared utility tests
   - `src/lib/server/__tests__/` - Server utility tests
   - `src/lib/server/services/__tests__/` - Service tests
-  - `src/lib/client/api/__tests__/` - API layer tests (http, createCrudApi)
+  - `src/lib/client/api/__tests__/` - API layer tests (http, createCrudApi, bookingsApi)
   - `src/stores/__tests__/` - Store tests (factories, fetch/cache)
   - `src/hooks/__tests__/` - Hook tests (mutations)
+  - `src/components/__tests__/` - Component tests (e.g. BookingStatusSelect)
 - **E2E tests**: `e2e/` folder at project root
 - All test data must use `TEST_` prefix

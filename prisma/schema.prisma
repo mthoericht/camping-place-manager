@@ -81,6 +81,15 @@ model BookingItem {
   @@map("booking_items")
 }
 
+model BookingStatusChange {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  bookingId String   @db.ObjectId
+  status    BookingStatus
+  changedAt DateTime
+  
+  @@map("booking_status_changes")
+}
+
 enum BookingStatus {
   PENDING
   CONFIRMED

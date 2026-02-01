@@ -3,6 +3,7 @@ import { BookingService } from '@/lib/server/services/BookingService';
 import { MongoDbHelper } from '@/lib/server/MongoDbHelper';
 import { notFound } from 'next/navigation';
 import { BookingStatusSelect } from '@/components/BookingStatusSelect';
+import type { BookingStatus } from '@/lib/shared/types';
 
 export default async function BookingDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -63,7 +64,7 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                   <label className={labelClass}>Booking Status</label>
                   <BookingStatusSelect 
                     bookingId={booking.id} 
-                    currentStatus={booking.status as 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED'} 
+                    currentStatus={booking.status as BookingStatus} 
                   />
                 </div>
               </div>
@@ -101,10 +102,7 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
               <div className={sectionClass}>
                 <h2 className="text-2xl font-semibold text-gray-900 mb-4">Selected Camping Items</h2>
                 <div className="space-y-3">
-                  {booking.bookingItems.map((bookingItem: any) => {
-                    console.log('Rendering booking item:', bookingItem);
-                    console.log('Camping item data:', bookingItem.campingItem);
-                    return (
+                  {booking.bookingItems.map((bookingItem: any) => (
                     <div
                       key={bookingItem.id}
                       className="flex items-center justify-between p-3 border border-gray-200 rounded-md"
@@ -125,8 +123,7 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
                         </div>
                       </div>
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <div className="flex justify-between items-center">
@@ -245,28 +242,48 @@ export default async function BookingDetailsPage({ params }: { params: Promise<{
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">Booking Timeline</h2>
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="space-y-4">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-4"></div>
-                <div>
-                  <p className="font-medium text-gray-900">Booking Created</p>
-                  <p className="text-sm text-gray-500">
-                    {MongoDbHelper.parseMongoDate(booking.createdAt) 
-                      ? new Date(MongoDbHelper.parseMongoDate(booking.createdAt)).toLocaleString()
-                      : 'Unknown'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-blue-500 rounded-full mr-4"></div>
-                <div>
-                  <p className="font-medium text-gray-900">Last Updated</p>
-                  <p className="text-sm text-gray-500">
-                    {MongoDbHelper.parseMongoDate(booking.updatedAt) 
-                      ? new Date(MongoDbHelper.parseMongoDate(booking.updatedAt)).toLocaleString()
-                      : 'Unknown'}
-                  </p>
-                </div>
-              </div>
+              {(() => {
+                const createdDate = MongoDbHelper.parseMongoDate(booking.createdAt)
+                  ? new Date(MongoDbHelper.parseMongoDate(booking.createdAt)).getTime()
+                  : 0;
+                const updatedDate = MongoDbHelper.parseMongoDate(booking.updatedAt)
+                  ? new Date(MongoDbHelper.parseMongoDate(booking.updatedAt)).getTime()
+                  : 0;
+                type TimelineEntry = { type: 'created' | 'status' | 'updated'; label: string; date: number; status?: string };
+                const entries: TimelineEntry[] = [
+                  { type: 'created', label: 'Booking Created', date: createdDate }
+                ];
+                (booking.statusChanges || []).forEach((sc: { status: string; changedAt: string }) => {
+                  const ts = new Date(sc.changedAt).getTime();
+                  entries.push({ type: 'status', label: `Changed to ${sc.status}`, date: ts, status: sc.status });
+                });
+                entries.push({ type: 'updated', label: 'Last Updated', date: updatedDate });
+                entries.sort((a, b) => a.date - b.date);
+                const seen = new Set<string>();
+                const deduped = entries.filter((e) => {
+                  const key = `${e.type}-${e.date}`;
+                  if (seen.has(key)) return false;
+                  seen.add(key);
+                  return true;
+                });
+                return deduped.map((entry, i) => (
+                  <div key={i} className="flex items-center">
+                    <div
+                      className="w-3 h-3 rounded-full mr-4 shrink-0"
+                      style={{
+                        backgroundColor:
+                          entry.type === 'created' ? 'rgb(34 197 94)' : entry.type === 'status' ? 'rgb(59 130 246)' : 'rgb(107 114 128)'
+                      }}
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">{entry.label}</p>
+                      <p className="text-sm text-gray-500">
+                        {entry.date ? new Date(entry.date).toLocaleString() : 'Unknown'}
+                      </p>
+                    </div>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>
