@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CampingItemService, CampingItem } from '@/lib/server/services/CampingItemService';
 import { DateUtil } from '@/lib/shared/DateUtil';
-import { PageContainer, PageHeader, EmptyState, ErrorState } from '@/components/ui';
+import { PageContainer, PageHeader, EmptyState, ErrorState, ViewIconLink, EditIconLink } from '@/components/ui';
 
 export default async function CampingItemsPage() 
 {
@@ -19,8 +19,6 @@ export default async function CampingItemsPage()
 
   const cardClass = "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow";
   const categoryBadgeClass = "bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full";
-  const viewLinkClass = "text-blue-600 hover:text-blue-800 text-sm font-medium";
-  const editLinkClass = "text-gray-600 hover:text-gray-800 text-sm font-medium";
 
   return (
     <PageContainer>
@@ -75,19 +73,15 @@ export default async function CampingItemsPage()
                   <div className="text-sm text-gray-600">
                     Created: {DateUtil.formatDate(item.createdAt)}
                   </div>
-                  <div className="flex space-x-2">
-                    <Link
+                  <div className="flex items-center gap-1">
+                    <ViewIconLink
                       href={`/camping-items/${item.id}`}
-                      className={viewLinkClass}
-                    >
-                      View Details
-                    </Link>
-                    <Link
+                      ariaLabel={`View details of ${item.name}`}
+                    />
+                    <EditIconLink
                       href={`/camping-items/${item.id}/edit`}
-                      className={editLinkClass}
-                    >
-                      Edit
-                    </Link>
+                      ariaLabel={`Edit ${item.name}`}
+                    />
                   </div>
                 </div>
               </div>

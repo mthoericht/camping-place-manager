@@ -11,4 +11,4 @@ export { FormAlert } from './FormAlert';
 export { CrudFormActions } from './CrudFormActions';
 export { AmenitiesInput } from './AmenitiesInput';
 export { QuantitySelector } from './QuantitySelector';
-
+export { ViewIconLink, EditIconLink, ViewButtonLink, EditButtonLink, ViewTextLink } from './IconLink';

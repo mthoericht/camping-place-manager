@@ -8,14 +8,15 @@ A modern camping place management application built with Next.js, React, TypeScr
 - 🎒 **Camping Items Management**: Manage camping equipment and items inventory
 - 📅 **Booking System**: Handle customer bookings and reservations
 - 📊 **Analytics Dashboard**: Comprehensive insights into your camping business
-- 🎨 **Modern UI**: Beautiful, responsive interface with Tailwind CSS
+- 🎨 **Modern UI**: Responsive interface with Tailwind CSS, dark mode, collapsible sidebar, View/Edit icon links
+- 📱 **Responsive Design**: Sidebar on desktop, hamburger menu and slide-out drawer on mobile
 - 🗄️ **Database**: MongoDB with Prisma ORM for data management
-- 📱 **Responsive Design**: Works on desktop and mobile devices
 
 ## Tech Stack
 
 - **Frontend**: Next.js 15, React 18, TypeScript
 - **Styling**: Tailwind CSS
+- **Icons**: Heroicons (Tailwind)
 - **State Management**: Zustand
 - **Database**: MongoDB
 - **ORM**: Prisma
@@ -163,7 +164,8 @@ Camping places and camping items cannot be deleted if they have **active or plan
 ### Navigation
 
 Access camping items management through:
-- Main navigation bar: "Camping Items"
+- **Desktop**: Sidebar (left) – "Camping Items"
+- **Mobile**: Hamburger menu → "Camping Items"
 - Homepage dashboard: "Manage Items" card
 - Direct URL: `/camping-items`
 
@@ -257,17 +259,21 @@ src/
 │   │   ├── CrudFormActions.tsx  # Unified form footer
 │   │   ├── AmenitiesInput.tsx   # Tag input component
 │   │   ├── QuantitySelector.tsx # +/- quantity buttons
-│   │   └── ...                  # FormField, Button, etc.
+│   │   ├── IconLink.tsx         # ViewIconLink, EditIconLink, ViewButtonLink, EditButtonLink, ViewTextLink (Heroicons)
+│   │   └── ...                  # FormField, Button, PageContainer, etc.
 │   ├── booking/           # BookingForm subcomponents
 │   │   ├── BookingPlaceSection.tsx
 │   │   ├── BookingDatesSection.tsx
 │   │   ├── BookingCustomerSection.tsx
 │   │   ├── BookingItemsPicker.tsx
 │   │   └── BookingSummary.tsx
+│   ├── AppShell.tsx       # Layout: sidebar, top bar, theme toggle
+│   ├── Sidebar.tsx        # Sidebar nav (desktop + mobile drawer)
 │   ├── CampingItemForm.tsx
 │   ├── CampingPlaceForm.tsx
 │   ├── BookingForm.tsx
-│   └── BookingStatusSelect.tsx  # Status dropdown (uses bookingsApi.updateStatus)
+│   ├── BookingStatusSelect.tsx  # Status dropdown (uses bookingsApi.updateStatus)
+│   └── Stats.tsx          # Quick stats on home page
 ├── hooks/                 # Custom React hooks
 │   ├── __tests__/         # Hook tests
 │   ├── useBookingForm.ts      # Booking form logic
@@ -303,9 +309,10 @@ src/
 └── stores/                # Zustand stores (state only, no mutations)
     ├── __tests__/
     ├── cacheInvalidation.ts      # Cross-store cache invalidation
-    ├── createCachedListStore.ts  # Generic store factory
+    ├── createCachedListStore.ts  # Generic list store factory
     ├── useCampingItemsStore.ts
-    └── useCampingPlacesStore.ts
+    ├── useCampingPlacesStore.ts
+    └── useUiStore.ts             # UI state (theme, sidebar, mobile nav)
 ```
 
 ## Architecture
@@ -317,6 +324,7 @@ The application follows a layered architecture pattern with clear separation of 
 1. **Components** (`src/components/`)
    - React components for UI rendering only
    - Delegate all logic to custom hooks
+   - **AppShell** wraps the app (sidebar, top bar, content); **Sidebar** provides navigation (desktop + mobile drawer)
    - Example: `BookingForm` uses `useBookingForm` hook
 
 2. **Custom Hooks** (`src/hooks/`)
@@ -327,8 +335,8 @@ The application follows a layered architecture pattern with clear separation of 
 
 3. **Stores** (`src/stores/`)
    - Zustand stores for cached state only (no mutations)
-   - Created via `createCachedListStore` factory
-   - Provide: `items`, `loading`, `error`, `fetch`, `getById`, `getActive`, `clearCache`
+   - List stores via `createCachedListStore`: `items`, `loading`, `error`, `fetch`, `getById`, `getActive`, `clearCache`
+   - UI store (`useUiStore`): `theme`, `sidebarCollapsed`, `mobileNavOpen` – used by AppShell and Sidebar
 
 4. **API Layer** (`src/lib/client/api/`)
    - Created via `createCrudApi` factory
@@ -425,7 +433,7 @@ Unit tests are written using Jest and React Testing Library. They are organized 
 
 Tests are organized by layer:
 - **API tests**: Mock `fetch`, test HTTP utilities and CRUD factory
-- **Store tests**: Mock API layer, test fetch/cache/selectors
+- **Store tests**: Mock API layer, test fetch/cache/selectors; `useUiStore` for UI state
 - **Hook tests**: Mock API + cache invalidation, test mutations and form logic
 
 Run unit tests with:
@@ -501,7 +509,7 @@ When adding new features that require API calls:
    - Split large forms into subcomponents (see `src/components/booking/`)
 
 7. **Write Tests**
-   - Store tests: mock API, test fetch/cache
+   - Store tests: mock API, test fetch/cache; useUiStore for UI state
    - Hook tests: mock API + cache invalidation
    - Service tests: mock Prisma
 

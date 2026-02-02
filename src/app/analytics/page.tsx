@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { EyeIcon } from '@heroicons/react/24/outline';
 import { AnalyticsService } from '@/lib/server/services/AnalyticsService';
 
 export default async function AnalyticsPage() {
@@ -170,8 +171,9 @@ export default async function AnalyticsPage() {
               </Link>
               <Link
                 href="/bookings"
-                className="bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 transition-colors text-center block"
+                className="flex items-center justify-center gap-2 w-full bg-purple-600 text-white py-3 px-4 rounded-md hover:bg-purple-700 transition-colors text-center"
               >
+                <EyeIcon className="w-5 h-5 shrink-0" aria-hidden />
                 View All Bookings
               </Link>
             </div>

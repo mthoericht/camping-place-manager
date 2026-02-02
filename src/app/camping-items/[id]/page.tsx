@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CampingItemService } from '@/lib/server/services/CampingItemService';
+import { EditButtonLink } from '@/components/ui';
 
 export default async function CampingItemDetailPage({
   params,
@@ -50,12 +51,9 @@ export default async function CampingItemDetailPage({
                 </div>
               </div>
               
-              <Link
-                href={`/camping-items/${id}/edit`}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-              >
+              <EditButtonLink href={`/camping-items/${id}/edit`} compact>
                 Edit Item
-              </Link>
+              </EditButtonLink>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

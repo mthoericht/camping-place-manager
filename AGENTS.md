@@ -22,7 +22,7 @@ npm run db:status    # MongoDB/Next.js status + logs (scripts/db-status.mjs)
 |-------|----------|-------|
 | **Services** | `src/lib/server/services/` | Server-only (API Routes, Server Components) |
 | **API Layer** | `src/lib/client/api/` | Client-only (HTTP requests via `createCrudApi`) |
-| **Stores** | `src/stores/` | State only (via `createCachedListStore`) |
+| **Stores** | `src/stores/` | State only (`createCachedListStore` for lists, `useUiStore` for UI) |
 | **Hooks** | `src/hooks/` | Mutations, form logic, React orchestration |
 | **Shared** | `src/lib/shared/` | Types, utilities (both Server & Client) |
 
@@ -30,7 +30,7 @@ npm run db:status    # MongoDB/Next.js status + logs (scripts/db-status.mjs)
 
 ## Store vs Hook Pattern
 
-- **Stores** (`src/stores/`): Only cached state + selectors (`items`, `loading`, `error`, `fetch`, `getById`, `getActive`)
+- **Stores** (`src/stores/`): Cached state + selectors. List stores: `items`, `loading`, `error`, `fetch`, `getById`, `getActive`. UI store: `theme`, `sidebarCollapsed`, `mobileNavOpen`
 - **Mutation Hooks** (`src/hooks/use*Mutations.ts`): CRUD operations that call API + invalidate caches
 - **Form Hooks** (`src/hooks/use*Form.ts`): Complex form logic extraction (state, validation, submit)
 
@@ -87,11 +87,14 @@ MongoDbHelper.extractCampingPlaceId(booking)
 - `scripts/db-*.mjs` - MongoDB start/stop/restart/status (Node.js, cross-platform)
 - `src/lib/shared/types/index.ts` - Type definitions
 - `src/lib/client/api/createCrudApi.ts` - Generic CRUD API factory
-- `src/stores/createCachedListStore.ts` - Generic store factory
+- `src/stores/createCachedListStore.ts` - Generic list store factory
+- `src/stores/useUiStore.ts` - UI state (theme, sidebar, mobile nav)
 - `src/stores/cacheInvalidation.ts` - Cross-store cache invalidation
 - `src/lib/server/MongoDbHelper.ts` - ID/Date conversion (server-only)
+- `src/components/AppShell.tsx` - Layout shell (sidebar, top bar, content)
+- `src/components/Sidebar.tsx` - Sidebar navigation (desktop + mobile drawer)
 - `src/components/BookingStatusSelect.tsx` - Client-side status dropdown
-- `src/components/ui/` - Reusable UI components (FormAlert, CrudFormActions, AmenitiesInput, QuantitySelector)
+- `src/components/ui/` - Reusable UI components (FormAlert, CrudFormActions, AmenitiesInput, QuantitySelector, IconLink with Heroicons: ViewIconLink, EditIconLink, ViewButtonLink, EditButtonLink, ViewTextLink)
 - `src/components/booking/` - BookingForm subcomponents (BookingPlaceSection, BookingDatesSection, etc.)
 - `src/hooks/use*Form.ts` - Form hooks (useBookingForm, useCampingItemForm, useCampingPlaceForm)
 - `ARCHITECTURE.md` - Detailed docs
@@ -103,7 +106,7 @@ MongoDbHelper.extractCampingPlaceId(booking)
   - `src/lib/server/__tests__/` - Server utility tests
   - `src/lib/server/services/__tests__/` - Service tests
   - `src/lib/client/api/__tests__/` - API layer tests (http, createCrudApi, bookingsApi)
-  - `src/stores/__tests__/` - Store tests (factories, fetch/cache)
+  - `src/stores/__tests__/` - Store tests (factories, fetch/cache, useUiStore)
   - `src/hooks/__tests__/` - Hook tests (mutations, form hooks)
   - `src/components/__tests__/` - Component tests (e.g. BookingStatusSelect)
 - **E2E tests**: `e2e/` folder at project root

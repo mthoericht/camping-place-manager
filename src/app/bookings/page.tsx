@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { BookingService, Booking } from '@/lib/server/services/BookingService';
+import { ViewIconLink, EditIconLink } from '@/components/ui';
 
 export default async function BookingsPage() {
   let bookings: Booking[] = [];
@@ -129,12 +130,16 @@ export default async function BookingsPage() {
                     </span>
                   </td>
                   <td className={`${tableCellBaseClass} text-sm font-medium`}>
-                    <Link
-                      href={`/bookings/${booking.id}`}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View
-                    </Link>
+                    <div className="flex items-center gap-1">
+                      <ViewIconLink
+                        href={`/bookings/${booking.id}`}
+                        ariaLabel={`View booking for ${booking.customerName}`}
+                      />
+                      <EditIconLink
+                        href={`/bookings/${booking.id}/edit`}
+                        ariaLabel={`Edit booking for ${booking.customerName}`}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

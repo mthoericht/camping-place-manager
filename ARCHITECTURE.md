@@ -69,15 +69,21 @@ HTTP Request → API Route → Service → Database
 
 Stores manage **cached state only** – no mutations:
 
+**List stores** (via `createCachedListStore` factory):
 ```typescript
 // Store provides: items, loading, error, fetch, getById, getActive, clearCache
 const { items, loading, fetch, getById } = useCampingItemsStore();
 
-// Stores are created via factory:
 export const useCampingItemsStore = createCachedListStore<CampingItem>({
   fetchAll: () => campingItemsApi.getAll(),
   cacheDurationMs: 5 * 60 * 1000,
 });
+```
+
+**UI store** (`useUiStore`):
+```typescript
+// Theme, sidebar, mobile nav – used by AppShell and Sidebar
+const { theme, sidebarCollapsed, mobileNavOpen, toggleTheme, toggleSidebar, toggleMobileNav } = useUiStore();
 ```
 
 ### 2. Mutation Hooks (`src/hooks/use*Mutations.ts`)
@@ -143,7 +149,11 @@ await runWithConfirm('Delete this item?', () => deleteCampingItem(id));
 
 ### 5. Components (`src/components/`)
 
-**UI rendering only** – all logic in hooks. Large forms use subcomponents:
+**UI rendering only** – all logic in hooks. Large forms use subcomponents.
+
+**Layout components:**
+- **AppShell**: Root layout with sidebar, top bar, theme toggle, content area
+- **Sidebar**: Desktop sidebar (collapsible) + mobile drawer; uses `useUiStore` for state
 
 ```typescript
 'use client';
@@ -172,7 +182,9 @@ export default function BookingForm({ initialData }) {
 - **CrudFormActions**: Unified form footer (Cancel + Submit + Delete)
 - **AmenitiesInput**: Tag input with add/remove
 - **QuantitySelector**: +/- buttons with aria-labels
+- **IconLink** (Heroicons): ViewIconLink, EditIconLink (icon-only), ViewButtonLink, EditButtonLink, ViewTextLink – used for View/Edit actions in list and detail pages
 - **FormField, Input, Textarea, Select, Checkbox**: Form primitives
+- **PageContainer, PageHeader, EmptyState, ErrorState, BackLink**: Page layout helpers
 
 ---
 

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CampingPlaceService } from '@/lib/server/services/CampingPlaceService';
+import { EditButtonLink, ViewButtonLink, ViewTextLink } from '@/components/ui';
 
 export default async function CampingPlaceDetailsPage({
   params,
@@ -99,18 +100,12 @@ export default async function CampingPlaceDetailsPage({
               </div>
 
               <div className="space-y-3">
-                <Link
-                  href={`/camping-places/${campingPlace.id}/edit`}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 transition-colors text-center block"
-                >
+                <EditButtonLink href={`/camping-places/${campingPlace.id}/edit`}>
                   Edit Place
-                </Link>
-                <Link
-                  href={`/bookings?campingPlace=${campingPlace.id}`}
-                  className="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 transition-colors text-center block"
-                >
+                </EditButtonLink>
+                <ViewButtonLink href={`/bookings?campingPlace=${campingPlace.id}`}>
                   View Bookings
-                </Link>
+                </ViewButtonLink>
               </div>
             </div>
           </div>
@@ -187,12 +182,9 @@ export default async function CampingPlaceDetailsPage({
               </div>
               {campingPlace.bookings && campingPlace.bookings.length > 5 && (
                 <div className="bg-gray-50 px-6 py-3 text-center">
-                  <Link
-                    href={`/bookings?campingPlace=${campingPlace.id}`}
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
+                  <ViewTextLink href={`/bookings?campingPlace=${campingPlace.id}`}>
                     View all {campingPlace.bookings.length} bookings
-                  </Link>
+                  </ViewTextLink>
                 </div>
               )}
             </div>

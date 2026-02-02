@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { CampingPlaceService, CampingPlace } from '@/lib/server/services/CampingPlaceService';
-import { PageContainer, PageHeader, EmptyState, ErrorState } from '@/components/ui';
+import { PageContainer, PageHeader, EmptyState, ErrorState, ViewIconLink, EditIconLink } from '@/components/ui';
 
 export default async function CampingPlacesPage() 
 {
@@ -18,8 +18,6 @@ export default async function CampingPlacesPage()
 
   const cardClass = "bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow";
   const amenityBadgeClass = "bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full";
-  const viewLinkClass = "text-blue-600 hover:text-blue-800 text-sm font-medium";
-  const editLinkClass = "text-gray-600 hover:text-gray-800 text-sm font-medium";
 
   return (
     <PageContainer>
@@ -81,19 +79,15 @@ export default async function CampingPlacesPage()
 
                 <div className="flex justify-between items-center">
                   <div className="text-sm text-gray-600">{place.bookings?.length || 0} bookings</div>
-                  <div className="flex space-x-2">
-                    <Link
+                  <div className="flex items-center gap-1">
+                    <ViewIconLink
                       href={`/camping-places/${place.id}`}
-                      className={viewLinkClass}
-                    >
-                      View Details
-                    </Link>
-                    <Link
+                      ariaLabel={`View details of ${place.name}`}
+                    />
+                    <EditIconLink
                       href={`/camping-places/${place.id}/edit`}
-                      className={editLinkClass}
-                    >
-                      Edit
-                    </Link>
+                      ariaLabel={`Edit ${place.name}`}
+                    />
                   </div>
                 </div>
               </div>

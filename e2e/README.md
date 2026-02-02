@@ -22,6 +22,10 @@ The e2e tests verify the complete user workflows across the application:
 
 Tests run across multiple browsers (Chromium, Firefox, WebKit) to ensure cross-browser compatibility.
 
+**UI Layout**: The app uses a sidebar on desktop (collapsible) and a hamburger menu with slide-out drawer on mobile. Navigation links (Home, Camping Places, Camping Items, Bookings, Analytics) are in the sidebar/drawer. On mobile viewports, open the hamburger menu (☰) before clicking nav links.
+
+**List pages** (Camping Places, Camping Items, Bookings): View and Edit actions use icon-only links (Heroicons: EyeIcon, PencilSquareIcon). Use `getByRole('link', { name: /view|edit/i })` or `getByLabelText()` to target them; they have `aria-label` for accessibility.
+
 ## Test Data Management
 
 All e2e tests use a **"TEST_" prefix** for all test data to ensure:

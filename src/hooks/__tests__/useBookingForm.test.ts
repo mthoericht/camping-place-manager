@@ -121,16 +121,16 @@ describe('useBookingForm', () =>
       const { result } = renderHook(() => useBookingForm(initialData));
 
       expect(result.current.formData).toEqual(
-      {
-        campingPlaceId: 'TEST_place1',
-        customerName: 'TEST_Max Mustermann',
-        customerEmail: 'test@example.com',
-        customerPhone: '123456789',
-        startDate: '2024-06-01',
-        endDate: '2024-06-05',
-        guests: 4,
-        notes: 'TEST notes',
-      });
+        {
+          campingPlaceId: 'TEST_place1',
+          customerName: 'TEST_Max Mustermann',
+          customerEmail: 'test@example.com',
+          customerPhone: '123456789',
+          startDate: '2024-06-01',
+          endDate: '2024-06-05',
+          guests: 4,
+          notes: 'TEST notes',
+        });
     });
 
     it('should initialize selectedItems with initialData.campingItems', () => 
@@ -185,12 +185,12 @@ describe('useBookingForm', () =>
       const { result } = renderHook(() => useBookingForm(initialData));
 
       expect(result.current.selectedPlace).toEqual(
-      {
-        id: 'TEST_place1',
-        name: 'TEST Camping Place',
-        size: 100,
-        price: 50,
-      });
+        {
+          id: 'TEST_place1',
+          name: 'TEST Camping Place',
+          size: 100,
+          price: 50,
+        });
     });
 
     it('should prefer store place over initialData.campingPlace', () => 
