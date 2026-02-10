@@ -1,6 +1,5 @@
-import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -9,8 +8,8 @@ import type { CampingItemFormData } from '@/api/types'
 import { categories } from '../constants'
 
 export type ItemFormDialogProps = {
-  dialogProps: { open?: boolean; onOpenChange?: (open: boolean) => void }
-  openCreate: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   editing: { id: number } | null
   form: CampingItemFormData
   setForm: (f: CampingItemFormData) => void
@@ -19,8 +18,8 @@ export type ItemFormDialogProps = {
 }
 
 export default function ItemFormDialog({
-  dialogProps,
-  openCreate,
+  open,
+  onOpenChange,
   editing,
   form,
   setForm,
@@ -29,10 +28,7 @@ export default function ItemFormDialog({
 }: ItemFormDialogProps)
 {
   return (
-    <Dialog {...dialogProps}>
-      <DialogTrigger asChild>
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Item</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>

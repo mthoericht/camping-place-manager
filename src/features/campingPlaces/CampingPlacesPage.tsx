@@ -1,4 +1,5 @@
-import { MapPin } from 'lucide-react'
+import { MapPin, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
@@ -27,16 +28,17 @@ export default function CampingPlacesPage()
   return (
     <div className="space-y-6">
       <PageHeader title="Stellplätze & Flächen" description="Verwalten Sie alle verfügbaren Plätze">
-        <PlaceFormDialog
-          dialogProps={dialogProps}
-          openCreate={openCreate}
-          editing={editing}
-          form={form}
-          setForm={setForm}
-          onSubmit={handleSubmit}
-          onClose={close}
-        />
+        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neuer Stellplatz</Button>
       </PageHeader>
+      <PlaceFormDialog
+        open={dialogProps.open ?? false}
+        onOpenChange={(openValue) => (openValue ? openCreate() : close())}
+        editing={editing}
+        form={form}
+        setForm={setForm}
+        onSubmit={handleSubmit}
+        onClose={close}
+      />
 
       {status === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 

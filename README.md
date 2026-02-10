@@ -126,7 +126,9 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 - `npm run build` — Production build (client + server)
 - `npm run start` — Run production server (`node server/dist/server/src/index.js`)
 - `npm run preview` — Preview production build
-- `npm run lint` — Run ESLint
+- `npm run lint` / `npm run lint:fix` — ESLint
+- `npm run clean` — Remove `node_modules`
+- `npm run install:clean` — Clean and reinstall dependencies
 
 ### Database
 
@@ -142,6 +144,10 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 - `npm run test:e2e` — E2E tests (Playwright)
 - `npm run test:e2e:ui` — E2E tests with Playwright UI
 - `npm run test:e2e:install` — Install Playwright browsers
+
+### Storybook
+
+- `npm run storybook` — Start Storybook (component docs; stories in `src/components/ui/`, `src/components/layout/`, `src/features/*/components/`)
 
 ## Project Structure
 
@@ -180,7 +186,8 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 ├── src/
 │   ├── main.tsx                 # React entry point
 │   ├── app/
-│   │   └── App.tsx              # Router + layout
+│   │   ├── App.tsx              # BrowserRouter, Toaster, AppRoutes
+│   │   └── routes.tsx           # Route definitions
 │   ├── api/
 │   │   ├── client.ts            # Fetch wrapper (ApiError, JSON)
 │   │   ├── types.ts             # Shared TypeScript types
@@ -205,26 +212,35 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   └── useOpenEditFromLocationState.ts  # Open edit from location.state (e.g. detail → list)
 │   ├── features/
 │   │   ├── bookings/
-│   │   │   ├── constants.ts     # Booking status labels/colors
-│   │   │   ├── useBookingCrud.ts         # CRUD + calcTotalPrice, bookingToForm
-│   │   │   ├── useBookingFormDerived.ts  # selectedPlace, totalItemSize, sizeError
-│   │   │   ├── useBookingFormItems.ts    # addItem, removeItem for bookingItems
+│   │   │   ├── constants.ts
+│   │   │   ├── useBookingCrud.ts
+│   │   │   ├── useBookingFormDerived.ts
+│   │   │   ├── useBookingFormItems.ts
 │   │   │   ├── BookingsPage.tsx
 │   │   │   ├── BookingDetailPage.tsx
-│   │   │   ├── BookingCard.tsx
-│   │   │   └── BookingFormDialog.tsx
+│   │   │   └── components/
+│   │   │       ├── BookingCard.tsx
+│   │   │       └── BookingFormDialog.tsx
 │   │   ├── campingPlaces/
+│   │   │   ├── usePlaceCrud.ts
 │   │   │   ├── CampingPlacesPage.tsx
-│   │   │   ├── PlaceCard.tsx
-│   │   │   └── PlaceFormDialog.tsx
+│   │   │   └── components/
+│   │   │       ├── PlaceCard.tsx
+│   │   │       └── PlaceFormDialog.tsx
 │   │   ├── campingItems/
-│   │   │   ├── constants.ts     # Categories + getCategoryColor
+│   │   │   ├── constants.ts
+│   │   │   ├── useItemCrud.ts
 │   │   │   ├── CampingItemsPage.tsx
-│   │   │   ├── ItemCard.tsx
-│   │   │   └── ItemFormDialog.tsx
+│   │   │   └── components/
+│   │   │       ├── ItemCard.tsx
+│   │   │       └── ItemFormDialog.tsx
 │   │   └── analytics/
 │   │       ├── AnalyticsPage.tsx
-│   │       └── StatCard.tsx     # KPI card (title, value, subtitle, icon)
+│   │       └── components/
+│   │           ├── StatCard.tsx
+│   │           ├── RevenueByMonthChart.tsx
+│   │           ├── BookingsByStatusChart.tsx
+│   │           └── RevenueByPlaceChart.tsx
 │   ├── components/
 │   │   ├── layout/
 │   │   │   ├── AppLayout.tsx    # Layout wrapper
@@ -244,6 +260,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 ├── index.html                   # HTML entry point (favicon: tent icon)
 ├── public/
 │   └── favicon.svg              # Tent icon favicon
+├── .storybook/                  # Storybook config (main.ts, preview.ts)
 ├── package.json
 ├── vite.config.ts               # Vite config + API proxy + @shared alias
 ├── tsconfig.json                # TypeScript project references
@@ -268,8 +285,8 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 1. **Feature Pages** (`src/features/`)
    - One or more pages per feature (e.g. `BookingsPage`, `BookingDetailPage`)
    - Page components orchestrate state, hooks, and feature subcomponents
-   - Feature-specific components live in the same folder: list cards (e.g. `BookingCard`, `PlaceCard`, `ItemCard`), form dialogs (e.g. `BookingFormDialog`, `PlaceFormDialog`, `ItemFormDialog`), and shared UI (e.g. `StatCard` in analytics)
-   - Constants per feature (e.g. `bookings/constants.ts`, `campingItems/constants.ts`); booking helpers live in `useBookingCrud.ts`
+   - Feature UI lives in a `components/` subfolder: list cards (`*Card.tsx`), form dialogs (`*FormDialog.tsx`), analytics charts. Form dialogs are controlled via `open`/`onOpenChange`; the page renders the trigger button (e.g. in `PageHeader`).
+   - Hooks and `constants.ts` in the feature root (e.g. `useBookingCrud`, `usePlaceCrud`, `useItemCrud`)
    - Use layout components (`PageHeader`, `EmptyState`) and custom hooks
 
 2. **Redux Store** (`src/store/`)
@@ -346,8 +363,8 @@ User ← React Component ← Redux Store ← Response ← Express Route ← Cont
 3. **Create backend**: Service → Controller → Route, register in `routes/index.ts`
 4. **Add API module** (`src/api/<entity>.ts`) — Functions that call `api()` from `client.ts` for each endpoint
 5. **Create Redux slice** (`src/store/`) with Entity Adapter + Thunks that use the API module, register in `store.ts`
-6. **Create feature page** (`src/features/<domain>/`): add feature components (e.g. `*Card`, `*FormDialog`) as needed; use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useFormDialog`/`useCrud`, `useOpenEditFromLocationState` where applicable) and layout components (`PageHeader`, `EmptyState`)
-7. **Add route** in `src/app/App.tsx` and navigation entry in `src/components/layout/Topbar.tsx`
+6. **Create feature** (`src/features/<domain>/`): add page(s), optional feature CRUD hook (e.g. `usePlaceCrud`), and `components/` (e.g. `*Card.tsx`, `*FormDialog.tsx`). Form dialogs take `open`/`onOpenChange`; the page renders the trigger button. Use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useCrud` or feature hook, `useOpenEditFromLocationState` where needed) and layout components (`PageHeader`, `EmptyState`)
+7. **Add route** in `src/app/routes.tsx` and navigation entry in `src/components/layout/Topbar.tsx`
 8. **Write tests** (Vitest for unit, Playwright for E2E)
 
 ## License

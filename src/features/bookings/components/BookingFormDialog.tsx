@@ -1,6 +1,5 @@
-import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -12,8 +11,8 @@ import type { BookingFormData, BookingStatus, CampingPlace, CampingItem } from '
 import { statusLabels } from '../constants'
 
 export type BookingFormDialogProps = {
-  dialogProps: { open?: boolean; onOpenChange?: (open: boolean) => void }
-  openCreate: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   editing: { id: number } | null
   form: BookingFormData
   setForm: (f: BookingFormData) => void
@@ -30,8 +29,8 @@ export type BookingFormDialogProps = {
 }
 
 export default function BookingFormDialog({
-  dialogProps,
-  openCreate,
+  open,
+  onOpenChange,
   editing,
   form,
   setForm,
@@ -48,10 +47,7 @@ export default function BookingFormDialog({
 }: BookingFormDialogProps)
 {
   return (
-    <Dialog {...dialogProps}>
-      <DialogTrigger asChild>
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <form onSubmit={onSubmit}>
           <DialogHeader>

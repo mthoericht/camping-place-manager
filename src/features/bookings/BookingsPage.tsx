@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Calendar } from 'lucide-react'
+import { Calendar, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
@@ -44,24 +45,25 @@ export default function BookingsPage()
   return (
     <div className="space-y-6">
       <PageHeader title="Buchungen" description="Verwalten Sie alle Campingplatz-Buchungen">
-        <BookingFormDialog
-          dialogProps={dialogProps}
-          openCreate={openCreate}
-          editing={editing}
-          form={form}
-          setForm={setForm}
-          places={places}
-          items={items}
-          selectedPlace={selectedPlace}
-          totalItemSize={totalItemSize}
-          sizeError={sizeError}
-          addItem={addItem}
-          removeItem={removeItem}
-          onSubmit={handleSubmit}
-          onClose={close}
-          calcTotalPrice={calcTotalPrice}
-        />
+        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
       </PageHeader>
+      <BookingFormDialog
+        open={dialogProps.open ?? false}
+        onOpenChange={(openValue) => (openValue ? openCreate() : close())}
+        editing={editing}
+        form={form}
+        setForm={setForm}
+        places={places}
+        items={items}
+        selectedPlace={selectedPlace}
+        totalItemSize={totalItemSize}
+        sizeError={sizeError}
+        addItem={addItem}
+        removeItem={removeItem}
+        onSubmit={handleSubmit}
+        onClose={close}
+        calcTotalPrice={calcTotalPrice}
+      />
 
       {bStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 

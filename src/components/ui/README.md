@@ -1,3 +1,3 @@
 # UI Components
 
-See the main [README](../../../README.md#ui-components) (section **UI Components**) for the description of this folder (Figma design system, shadcn/ui, Radix, styling).
+See the main [README](../../../README.md#ui-components) for the description of this folder (Figma design system, shadcn/ui, Radix, styling). App-level layout lives in `../layout/`.

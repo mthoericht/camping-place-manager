@@ -29,3 +29,6 @@ Campingplatz-Manager-figma-preset
 *.njsproj
 *.sln
 *.sw?
+
+*storybook.log
+storybook-static

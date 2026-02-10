@@ -1,6 +1,5 @@
-import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -8,8 +7,8 @@ import { Switch } from '@/components/ui/switch'
 import type { CampingPlaceFormData } from '@/api/types'
 
 export type PlaceFormDialogProps = {
-  dialogProps: { open?: boolean; onOpenChange?: (open: boolean) => void }
-  openCreate: () => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
   editing: { id: number } | null
   form: CampingPlaceFormData
   setForm: (f: CampingPlaceFormData) => void
@@ -18,8 +17,8 @@ export type PlaceFormDialogProps = {
 }
 
 export default function PlaceFormDialog({
-  dialogProps,
-  openCreate,
+  open,
+  onOpenChange,
   editing,
   form,
   setForm,
@@ -28,10 +27,7 @@ export default function PlaceFormDialog({
 }: PlaceFormDialogProps)
 {
   return (
-    <Dialog {...dialogProps}>
-      <DialogTrigger asChild>
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neuer Stellplatz</Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <form onSubmit={onSubmit}>
           <DialogHeader>
