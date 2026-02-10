@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Package, AlertCircle, X } from 'lucide-react'
 import type { BookingFormData, BookingStatus, CampingPlace, CampingItem } from '@/api/types'
-import { statusLabels } from './constants'
+import { statusLabels } from '../constants'
 
 export type BookingFormDialogProps = {
   dialogProps: { open?: boolean; onOpenChange?: (open: boolean) => void }

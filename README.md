@@ -251,6 +251,16 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 └── tsconfig.server.json         # TypeScript for backend (includes shared/)
 ```
 
+## UI Components
+
+All components in `src/components/ui/` are part of the shared UI library and correspond to the **Figma design system** (Campingplatz-Manager Figma preset).
+
+- **Source**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI primitives + Tailwind CSS), aligned with the Figma preset.
+- **Stack**: Radix UI (`@radix-ui/react-*`), `class-variance-authority` (cva), `cn()` from `@/lib/utils`.
+- **Styling**: Theme and tokens from `src/styles/theme.css`; components use semantic classes (e.g. `bg-primary`, `text-popover-foreground`).
+
+When adding or changing UI elements, keep them consistent with the Figma design and this component set. See also `src/components/ui/README.md`.
+
 ## Architecture
 
 ### Client Architecture

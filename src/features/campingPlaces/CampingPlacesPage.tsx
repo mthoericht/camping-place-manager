@@ -2,46 +2,20 @@ import { MapPin } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
-import PlaceCard from './PlaceCard'
-import PlaceFormDialog from './PlaceFormDialog'
-import { useCrud } from '@/hooks/useCrud'
+import PlaceCard from './components/PlaceCard'
+import PlaceFormDialog from './components/PlaceFormDialog'
+import { usePlaceCrud } from './usePlaceCrud'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useAppSelector } from '@/store/hooks'
-import { fetchCampingPlaces, createCampingPlace, updateCampingPlace, deleteCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice'
-import type { CampingPlaceFormData, CampingPlace } from '@/api/types'
+import { fetchCampingPlaces, deleteCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice'
 
-const emptyForm: CampingPlaceFormData = {
-  name: '', description: '', location: '', size: 0, price: 0, amenities: '', isActive: true,
-}
-
-function placeToForm(place: CampingPlace): CampingPlaceFormData 
-{
-  return {
-    name: place.name,
-    description: place.description ?? '',
-    location: place.location,
-    size: place.size,
-    price: place.price,
-    amenities: place.amenities,
-    isActive: place.isActive,
-  }
-}
-
-export default function CampingPlacesPage() 
+export default function CampingPlacesPage()
 {
   const places = useAppSelector(campingPlacesSelectors.selectAll)
   const status = useAppSelector((s) => s.campingPlaces.status)
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCrud({
-    emptyForm,
-    toForm: placeToForm,
-    createThunk: createCampingPlace,
-    updateThunk: updateCampingPlace,
-    getPayload: (f) => f,
-    successCreate: 'Stellplatz erstellt',
-    successUpdate: 'Stellplatz aktualisiert',
-  })
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = usePlaceCrud()
   const handleDelete = useConfirmDelete(deleteCampingPlace, {
     confirmMessage: 'Stellplatz wirklich löschen?',
     successMessage: 'Stellplatz gelöscht',

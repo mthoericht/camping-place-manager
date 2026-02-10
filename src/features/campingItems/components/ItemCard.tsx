@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { CampingItem } from '@/api/types'
-import { categories, getCategoryColor } from './constants'
+import { categories, getCategoryColor } from '../constants'
 
 export type ItemCardProps = {
   item: CampingItem

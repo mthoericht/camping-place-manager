@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import type { Booking, BookingStatus } from '@/api/types'
-import { statusLabels, statusColors } from './constants'
+import { statusLabels, statusColors } from '../constants'
 
 type StatusLabels = Record<BookingStatus, string>
 type StatusColors = Record<BookingStatus, string>

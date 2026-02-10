@@ -2,42 +2,20 @@ import { Package } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
-import ItemCard from './ItemCard'
-import ItemFormDialog from './ItemFormDialog'
-import { useCrud } from '@/hooks/useCrud'
+import ItemCard from './components/ItemCard'
+import ItemFormDialog from './components/ItemFormDialog'
+import { useItemCrud } from './useItemCrud'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useAppSelector } from '@/store/hooks'
-import { fetchCampingItems, createCampingItem, updateCampingItem, deleteCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice'
-import type { CampingItemFormData, CampingItem } from '@/api/types'
+import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice'
 
-const emptyForm: CampingItemFormData = { name: '', category: 'Tent', size: 0, description: '', isActive: true }
-
-function itemToForm(item: CampingItem): CampingItemFormData 
-{
-  return {
-    name: item.name,
-    category: item.category,
-    size: item.size,
-    description: item.description ?? '',
-    isActive: item.isActive,
-  }
-}
-
-export default function CampingItemsPage() 
+export default function CampingItemsPage()
 {
   const items = useAppSelector(campingItemsSelectors.selectAll)
   const status = useAppSelector((s) => s.campingItems.status)
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCrud({
-    emptyForm,
-    toForm: itemToForm,
-    createThunk: createCampingItem,
-    updateThunk: updateCampingItem,
-    getPayload: (f) => f,
-    successCreate: 'Item erstellt',
-    successUpdate: 'Item aktualisiert',
-  })
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useItemCrud()
   const handleDelete = useConfirmDelete(deleteCampingItem, {
     confirmMessage: 'Item wirklich löschen?',
     successMessage: 'Item gelöscht',

@@ -1,13 +1,15 @@
 import { useEffect } from 'react'
 import { Euro, Calendar, Tent, Package } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import PageHeader from '@/components/layout/PageHeader'
-import StatCard from './StatCard'
+import StatCard from './components/StatCard'
+import RevenueByMonthChart from './components/RevenueByMonthChart'
+import BookingsByStatusChart from './components/BookingsByStatusChart'
+import RevenueByPlaceChart from './components/RevenueByPlaceChart'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { fetchAnalytics } from '@/store/analyticsSlice'
 
-export default function AnalyticsPage() 
+export default function AnalyticsPage()
 {
   const dispatch = useAppDispatch()
   const { data, status } = useAppSelector((s) => s.analytics)
@@ -28,27 +30,9 @@ export default function AnalyticsPage()
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {data.revenueByMonth.length > 0 && (
-          <Card><CardHeader><CardTitle>Umsatzentwicklung</CardTitle><CardDescription>Monatlicher Umsatz</CardDescription></CardHeader><CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data.revenueByMonth}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="month" /><YAxis /><Tooltip formatter={(v) => `€${Number(v).toFixed(2)}`} /><Legend /><Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} name="Umsatz" /></LineChart>
-            </ResponsiveContainer>
-          </CardContent></Card>
-        )}
-        {data.bookingsByStatus.length > 0 && (
-          <Card><CardHeader><CardTitle>Buchungsstatus</CardTitle><CardDescription>Verteilung nach Status</CardDescription></CardHeader><CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart><Pie data={data.bookingsByStatus} cx="50%" cy="50%" labelLine={false} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} outerRadius={80} dataKey="value">{data.bookingsByStatus.map((e, i) => <Cell key={i} fill={e.color} />)}</Pie><Tooltip /></PieChart>
-            </ResponsiveContainer>
-          </CardContent></Card>
-        )}
-        {data.revenueByPlace.length > 0 && (
-          <Card><CardHeader><CardTitle>Top 5 Stellplätze</CardTitle><CardDescription>Nach Umsatz sortiert</CardDescription></CardHeader><CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data.revenueByPlace} layout="vertical"><CartesianGrid strokeDasharray="3 3" /><XAxis type="number" /><YAxis dataKey="name" type="category" width={80} /><Tooltip formatter={(v) => `€${Number(v).toFixed(2)}`} /><Legend /><Bar dataKey="revenue" fill="#10b981" name="Umsatz" /></BarChart>
-            </ResponsiveContainer>
-          </CardContent></Card>
-        )}
+        {data.revenueByMonth.length > 0 && <RevenueByMonthChart data={data.revenueByMonth} />}
+        {data.bookingsByStatus.length > 0 && <BookingsByStatusChart data={data.bookingsByStatus} />}
+        {data.revenueByPlace.length > 0 && <RevenueByPlaceChart data={data.revenueByPlace} />}
       </div>
 
       <Card><CardHeader><CardTitle>Zusammenfassung</CardTitle><CardDescription>Detaillierte Statistiken</CardDescription></CardHeader><CardContent>

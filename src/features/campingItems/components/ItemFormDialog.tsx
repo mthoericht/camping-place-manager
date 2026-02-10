@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import type { CampingItemFormData } from '@/api/types'
-import { categories } from './constants'
+import { categories } from '../constants'
 
 export type ItemFormDialogProps = {
   dialogProps: { open?: boolean; onOpenChange?: (open: boolean) => void }
