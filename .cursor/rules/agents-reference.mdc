@@ -1,0 +1,15 @@
+---
+description: Reference to AGENTS.md for project overview and conventions
+alwaysApply: true
+---
+
+# Project Context: AGENTS.md
+
+This workspace follows the conventions and workflows described in **AGENTS.md** (project root).
+
+Before changing architecture, structure, or workflows:
+
+1. **Read AGENTS.md** – it contains project overview, commands (dev, build, Prisma, tests), architecture (frontend/backend), file organization, code style, and the "Adding a New Entity" checklist.
+2. **Follow the conventions** – e.g. Redux slices with EntityAdapter, routing in App.tsx, German UI text, delete protection for places/items when active bookings exist.
+
+When unsure about structure or conventions, check AGENTS.md first.

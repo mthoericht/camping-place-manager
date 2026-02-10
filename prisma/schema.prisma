@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model CampingPlace {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  location    String
+  size        Int
+  price       Float
+  amenities   String    @default("")
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  bookings    Booking[]
+}
+
+model Booking {
+  id             Int           @id @default(autoincrement())
+  campingPlaceId Int
+  customerName   String
+  customerEmail  String
+  customerPhone  String?
+  startDate      DateTime?
+  endDate        DateTime?
+  guests         Int
+  totalPrice     Float
+  status         String        @default("PENDING")
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  campingPlace   CampingPlace  @relation(fields: [campingPlaceId], references: [id])
+  bookingItems   BookingItem[]
+  statusChanges  BookingStatusChange[]
+}
+
+model CampingItem {
+  id          Int       @id @default(autoincrement())
+  name        String
+  category    String
+  size        Int
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  bookingItems BookingItem[]
+}
+
+model BookingItem {
+  id            Int         @id @default(autoincrement())
+  bookingId     Int
+  campingItemId Int
+  quantity      Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  booking       Booking     @relation(fields: [bookingId], references: [id])
+  campingItem   CampingItem @relation(fields: [campingItemId], references: [id])
+}
+
+model BookingStatusChange {
+  id        Int      @id @default(autoincrement())
+  bookingId Int
+  status    String
+  changedAt DateTime
+
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+}
