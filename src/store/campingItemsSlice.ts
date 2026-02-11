@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/too
 import * as campingItemsApi from '@/api/campingItems'
 import type { CampingItem, CampingItemFormData } from '@/api/types'
 import type { RootState } from './store'
+import type { LoadingStatus } from './types'
 
 const adapter = createEntityAdapter<CampingItem>()
 
@@ -22,8 +23,6 @@ export const deleteCampingItem = createAsyncThunk('campingItems/delete', async (
   await campingItemsApi.deleteCampingItem(id)
   return id
 })
-
-type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
 
 const campingItemsSlice = createSlice({
   name: 'campingItems',

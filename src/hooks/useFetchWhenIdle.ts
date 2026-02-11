@@ -1,7 +1,6 @@
 import { useEffect } from 'react'
 import { useAppDispatch } from '@/store/hooks'
-
-type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
+import type { LoadingStatus } from '@/store/types'
 
 export function useFetchWhenIdle(
   getFetchAction: () => unknown,

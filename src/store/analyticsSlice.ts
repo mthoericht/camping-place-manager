@@ -1,12 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { fetchAnalytics as fetchAnalyticsApi } from '@/api/analytics'
 import type { AnalyticsData } from '@/api/types'
+import type { LoadingStatus } from './types'
 
 export const fetchAnalytics = createAsyncThunk('analytics/fetch', () =>
   fetchAnalyticsApi()
 )
-
-type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
 
 const analyticsSlice = createSlice({
   name: 'analytics',

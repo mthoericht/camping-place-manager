@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Calendar, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,20 +8,21 @@ import BookingFormDialog from './components/BookingFormDialog'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { useAppSelector } from '@/store/hooks'
 import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice'
-import { fetchCampingPlaces } from '@/store/campingPlacesSlice'
-import { fetchCampingItems } from '@/store/campingItemsSlice'
+import { fetchCampingPlaces, campingPlacesSelectors } from '@/store/campingPlacesSlice'
+import { fetchCampingItems, campingItemsSelectors } from '@/store/campingItemsSlice'
 import { useBookingCrud } from './useBookingCrud'
 import { statusLabels, statusColors } from './constants'
-import { useBookingFormDerived } from './useBookingFormDerived'
+import { getBookingFormDerived } from './useBookingFormDerived'
 import { useBookingFormItems } from './useBookingFormItems'
 
 export default function BookingsPage() 
 {
-  const dispatch = useAppDispatch()
   const bookings = useAppSelector(bookingsSelectors.selectAll)
   const bStatus = useAppSelector((s) => s.bookings.status)
+  const placesStatus = useAppSelector((s) => s.campingPlaces.status)
+  const itemsStatus = useAppSelector((s) => s.campingItems.status)
   const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit, places, items, calcTotalPrice } = useBookingCrud()
   const handleDelete = useConfirmDelete(deleteBooking, {
     confirmMessage: 'Buchung wirklich löschen?',
@@ -31,16 +31,12 @@ export default function BookingsPage()
   })
 
   useFetchWhenIdle(() => fetchBookings(), bStatus)
+  useFetchWhenIdle(() => fetchCampingPlaces(), placesStatus)
+  useFetchWhenIdle(() => fetchCampingItems(), itemsStatus)
   useOpenEditFromLocationState(openEdit)
 
-  useEffect(() => 
-  {
-    dispatch(fetchCampingPlaces())
-    dispatch(fetchCampingItems())
-  }, [dispatch])
-
-  const { selectedPlace, totalItemSize, sizeError } = useBookingFormDerived(form, places, items)
-  const { addItem, removeItem } = useBookingFormItems(form, setForm)
+  const { selectedPlace, totalItemSize, sizeError } = getBookingFormDerived(form, places, items)
+  const { addItem, removeItem } = useBookingFormItems(setForm)
 
   return (
     <div className="space-y-6">
@@ -48,8 +44,7 @@ export default function BookingsPage()
         <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
       </PageHeader>
       <BookingFormDialog
-        open={dialogProps.open ?? false}
-        onOpenChange={(openValue) => (openValue ? openCreate() : close())}
+        {...dialogProps}
         editing={editing}
         form={form}
         setForm={setForm}

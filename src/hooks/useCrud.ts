@@ -60,9 +60,9 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
   const dialogProps = useMemo(
     () => ({
       open: isOpen,
-      onOpenChange: (openValue: boolean) => (openValue ? openCreate() : close()),
+      onOpenChange: (openValue: boolean) => { if (!openValue) close() },
     }),
-    [isOpen, openCreate, close]
+    [isOpen, close]
   )
 
   const handleSubmit = useCallback(

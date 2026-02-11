@@ -1,6 +1,6 @@
 import type { BookingFormData, CampingPlace, CampingItem } from '@/api/types'
 
-export function useBookingFormDerived(
+export function getBookingFormDerived(
   form: BookingFormData,
   places: CampingPlace[],
   items: CampingItem[]

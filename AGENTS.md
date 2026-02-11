@@ -7,6 +7,7 @@ Camping place management application with a React frontend (Vite) and Express ba
 ## Common Commands
 
 ### Development
+
 ```bash
 npm run dev              # Start frontend + backend in parallel
 npm run dev:client       # Vite frontend only (port 5173)
@@ -14,6 +15,7 @@ npm run dev:server       # Express backend only (port 3001)
 ```
 
 ### Build & Check
+
 ```bash
 npx tsc -p tsconfig.app.json --noEmit   # Frontend TypeScript check
 npx vite build                           # Frontend production build
@@ -22,6 +24,7 @@ npm run lint                             # ESLint
 ```
 
 ### Database
+
 ```bash
 npm run prisma:generate  # Generate Prisma client (after schema changes)
 npm run prisma:push      # Sync schema to SQLite
@@ -29,6 +32,7 @@ npm run prisma:studio    # Prisma Studio (data browser)
 ```
 
 ### Tests
+
 ```bash
 npm test                 # Vitest (unit tests)
 npm run test:watch       # Vitest watch mode
@@ -36,9 +40,11 @@ npm run test:e2e         # Playwright (E2E tests)
 ```
 
 ### Storybook
+
 ```bash
 npm run storybook        # Start Storybook (UI/component docs and isolation)
 ```
+
 Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/components/layout/`, and `src/features/<domain>/components/`.
 
 ## Architecture Conventions

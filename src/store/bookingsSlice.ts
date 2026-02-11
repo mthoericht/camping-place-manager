@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/too
 import * as bookingsApi from '@/api/bookings'
 import type { Booking, BookingFormData, BookingStatusChange } from '@/api/types'
 import type { RootState } from './store'
+import type { LoadingStatus } from './types'
 
 const adapter = createEntityAdapter<Booking>()
 
@@ -35,8 +36,6 @@ export const fetchBookingStatusChanges = createAsyncThunk('bookings/fetchStatusC
   bookingsApi.fetchBookingStatusChanges(id)
 )
 
-type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed'
-
 const bookingsSlice = createSlice({
   name: 'bookings',
   initialState: adapter.getInitialState({
@@ -54,7 +53,11 @@ const bookingsSlice = createSlice({
       .addCase(fetchBookingById.fulfilled, adapter.upsertOne)
       .addCase(createBooking.fulfilled, adapter.addOne)
       .addCase(updateBooking.fulfilled, adapter.upsertOne)
-      .addCase(deleteBooking.fulfilled, adapter.removeOne)
+      .addCase(deleteBooking.fulfilled, (state, action) => 
+      {
+        adapter.removeOne(state, action.payload)
+        delete state.statusChanges[action.payload]
+      })
       .addCase(changeBookingStatus.fulfilled, adapter.upsertOne)
       .addCase(fetchBookingStatusChanges.fulfilled, (state, action) => 
       {
