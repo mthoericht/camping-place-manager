@@ -55,14 +55,14 @@ export function useBookingCrud()
     updateThunk: updateBooking,
     getPayload: (f) => ({
       ...f,
-      totalPrice: calcTotalPrice(f.startDate, f.endDate, places.find((p) => p.id === f.campingPlaceId)),
+      totalPrice: calcTotalPrice(f.startDate ?? '', f.endDate ?? '', places.find((p) => p.id === f.campingPlaceId)),
     }),
     successCreate: 'Buchung erstellt',
     successUpdate: 'Buchung aktualisiert',
     validate: (f) =>
     {
       const place = places.find((p) => p.id === f.campingPlaceId)
-      const total = f.bookingItems.reduce(
+      const total = (f.bookingItems ?? []).reduce(
         (s, bi) => s + (items.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
         0
       )

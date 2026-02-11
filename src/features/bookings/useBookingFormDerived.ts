@@ -11,7 +11,7 @@ export function getBookingFormDerived(
 }
 {
   const selectedPlace = places.find((p) => p.id === form.campingPlaceId)
-  const totalItemSize = form.bookingItems.reduce((s, bi) =>
+  const totalItemSize = (form.bookingItems ?? []).reduce((s, bi) =>
   {
     const item = items.find((i) => i.id === bi.campingItemId)
     return s + (item?.size ?? 0) * bi.quantity

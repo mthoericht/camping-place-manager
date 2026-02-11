@@ -12,8 +12,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, './shared')
+      '@': path.resolve(dirname, './src'),
+      '@shared': path.resolve(dirname, './shared')
     }
   },
   server: {
@@ -26,26 +26,58 @@ export default defineConfig({
     }
   },
   test: {
-    projects: [{
-      extends: true,
-      plugins: [
-      // The plugin will run tests for the stories defined in your Storybook config
-      // See options at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon#storybooktest
-        storybookTest({
-          configDir: path.join(dirname, '.storybook')
-        })],
-      test: {
-        name: 'storybook',
-        browser: {
-          enabled: true,
-          headless: true,
-          provider: 'playwright',
-          instances: [{
-            browser: 'chromium'
-          }]
+    projects: [
+      {
+        extends: true,
+        plugins: [
+          storybookTest({
+            configDir: path.join(dirname, '.storybook')
+          })
+        ],
+        test: {
+          name: 'storybook',
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: 'playwright',
+            instances: [{ browser: 'chromium' }]
+          },
+          setupFiles: ['.storybook/vitest.setup.ts']
+        }
+      },
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(dirname, './src'),
+            '@shared': path.resolve(dirname, './shared')
+          }
         },
-        setupFiles: ['.storybook/vitest.setup.ts']
+        test: {
+          name: 'unit',
+          environment: 'jsdom',
+          include: ['src/**/*.test.{ts,tsx}', 'shared/**/*.test.ts'],
+          exclude: ['**/*.integration.test.{ts,tsx}'],
+          setupFiles: ['vitest.setup.unit.ts'],
+          globals: true
+        }
+      },
+      {
+        resolve: {
+          alias: {
+            '@': path.resolve(dirname, './src'),
+            '@shared': path.resolve(dirname, './shared')
+          }
+        },
+        test: {
+          name: 'integration',
+          environment: 'node',
+          include: ['src/api/**/*.integration.test.ts'],
+          setupFiles: ['vitest.setup.integration.ts'],
+          globals: true,
+          pool: 'forks',
+          poolOptions: { forks: { singleFork: true } }
+        }
       }
-    }]
+    ]
   }
 });

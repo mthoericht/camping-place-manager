@@ -34,10 +34,19 @@ npm run prisma:studio    # Prisma Studio (data browser)
 ### Tests
 
 ```bash
-npm test                 # Vitest (unit tests)
+npm test                 # Vitest (alle Projekte: Unit, Integration, Storybook)
+npm run test:unit        # Nur Unit-Tests (shared, src/lib, src/store)
+npm run test:integration # API-Integrationstests (Frontend-API + Test-DB)
 npm run test:watch       # Vitest watch mode
+npm run test:coverage    # Coverage-Report (Vitest)
 npm run test:e2e         # Playwright (E2E tests)
 ```
+
+- **Unit-Tests**: `src/**/*.test.{ts,tsx}`, `shared/**/*.test.ts` — Vitest, jsdom, Setup: `vitest.setup.unit.ts` (u. a. `@testing-library/jest-dom`). Die API (client.ts) wird nur über die Integrationstests abgedeckt.
+- **Integrationstests**: `src/api/**/*.integration.test.ts` — Vitest, node. Nutzen nur die **Frontend-API-Module** und eine Backend-Setup-Funktion; keine direkten Imports von Express/Prisma in der Testdatei. Das Backend stellt `server/src/test/integrationEnv.ts` bereit: `setupIntegrationTest()` (legt Supertest-Adapter als `fetch` ein) und `clearTestDb()` (leert die Test-DB). Die Testdatei ruft `setupIntegrationTest()` in `beforeAll` und `clearDb()` in `beforeEach` auf. Setup: `vitest.setup.integration.ts`.
+- **Test-DB**: Integrationstests nutzen **nur** `data/test.db`. `DATABASE_URL` wird im Integration-Setup auf `file:…/data/test.db` gesetzt, **bevor** Server-Code/Prisma geladen wird; `.env` wird beim Testlauf nicht geladen. Die bestehende Datenbank (z. B. `data/dev.db`) wird **nicht verändert**.
+- **DB-Aufräumen**: Vor jedem Test wird die Test-DB über die vom Backend bereitgestellte Funktion `clearTestDb()` geleert (BookingItem, BookingStatusChange, Booking, CampingPlace, CampingItem).
+- **Test-Ausgabe in .gitignore**: `test-results`, `playwright-report`, `blob-report`, `coverage` werden nicht versioniert.
 
 ### Storybook
 
@@ -103,6 +112,9 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 | `prisma/schema.prisma` | Database schema (SQLite) |
 | `shared/bookingPrice.ts` | Shared booking total price calculation (frontend + backend) |
 | `src/api/types.ts` | All TypeScript interfaces |
+| `src/api/client.ts` | Fetch wrapper (api, ApiError), von allen API-Modulen genutzt |
+| `src/api/*.integration.test.ts` | API-Integrationstests pro Bereich (campingPlaces, campingItems, bookings, analytics) |
+| `server/src/test/integrationEnv.ts` | Backend: Setup für API-Integrationstests (Express, Prisma, Supertest-Adapter, clearTestDb) |
 | `src/store/store.ts` | Redux store configuration |
 | `src/app/App.tsx` | App shell (BrowserRouter, Toaster) |
 | `src/app/routes.tsx` | Route definitions (default: `/bookings`) |
@@ -113,6 +125,11 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 | `src/lib/dateUtils.ts` | Date helpers (e.g. toDateInputValue for inputs) |
 | `server/src/app.ts` | Express app setup |
 | `server/src/routes/index.ts` | API route registry |
+| `vitest.setup.unit.ts` | Unit-Test-Setup (jsdom, jest-dom) |
+| `vitest.setup.integration.ts` | Integration-Setup (DATABASE_URL=test.db, prisma db push) |
+| `shared/bookingPrice.test.ts` | Unit-Tests für calcBookingTotalPrice |
+| `src/lib/dateUtils.test.ts` | Unit-Tests für toDateInputValue |
+| `src/store/bookingsSlice.test.ts` | Unit-Tests für bookings-Reducer |
 | `.env` | `DATABASE_URL` and `PORT` |
 
 ## Delete Protection Rule

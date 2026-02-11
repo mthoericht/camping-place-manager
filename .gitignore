@@ -32,3 +32,9 @@ Campingplatz-Manager-figma-preset
 
 *storybook.log
 storybook-static
+
+# Test output
+test-results
+playwright-report
+blob-report
+coverage

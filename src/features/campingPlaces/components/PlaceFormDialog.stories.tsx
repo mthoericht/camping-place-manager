@@ -58,7 +58,7 @@ type Story = StoryObj<typeof meta>
 
 export const Create: Story = {
   render: () => <PlaceFormDialogWrapper initialForm={emptyForm} editing={null} />,
-}
+} as unknown as Story
 
 function PlaceFormDialogEditWrapper()
 {
@@ -85,4 +85,4 @@ function PlaceFormDialogEditWrapper()
 export const Edit: Story = {
   render: () => <PlaceFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Bearbeiten“ öffnet den Dialog mit ausgefüllten Stellplatz-Daten.' } } },
-}
+} as unknown as Story

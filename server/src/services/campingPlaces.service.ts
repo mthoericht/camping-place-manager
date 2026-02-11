@@ -27,6 +27,8 @@ export async function createCampingPlace(data: {
 
 export async function updateCampingPlace(id: number, data: Record<string, unknown>) 
 {
+  const place = await prisma.campingPlace.findUnique({ where: { id } })
+  if (!place) throw new HttpError(404, 'Camping place not found')
   return prisma.campingPlace.update({ where: { id }, data })
 }
 

@@ -55,7 +55,7 @@ function BookingFormDialogWrapper({ initialForm, editing, defaultOpen }: { initi
   const [form, setForm] = useState<BookingFormData>(initialForm)
   const [open, setOpen] = useState(defaultOpen ?? false)
   const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
-  const totalItemSize = form.bookingItems.reduce(
+  const totalItemSize = (form.bookingItems ?? []).reduce(
     (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
     0
   )
@@ -66,12 +66,12 @@ function BookingFormDialogWrapper({ initialForm, editing, defaultOpen }: { initi
   const addItem = useCallback((itemId: string) =>
   {
     const id = Number(itemId)
-    setForm((f) => ({ ...f, bookingItems: [...f.bookingItems, { campingItemId: id, quantity: 1 }] }))
+    setForm((f) => ({ ...f, bookingItems: [...(f.bookingItems ?? []), { campingItemId: id, quantity: 1 }] }))
   }, [])
 
   const removeItem = useCallback((index: number) =>
   {
-    setForm((f) => ({ ...f, bookingItems: f.bookingItems.filter((_, i) => i !== index) }))
+    setForm((f) => ({ ...f, bookingItems: (f.bookingItems ?? []).filter((_, i) => i !== index) }))
   }, [])
 
   const openCreate = () => { setForm(emptyForm); setOpen(true) }
@@ -113,7 +113,7 @@ type Story = StoryObj<typeof meta>
 
 export const Create: Story = {
   render: () => <BookingFormDialogWrapper initialForm={emptyForm} editing={null} />,
-}
+} as unknown as Story
 
 function BookingFormDialogEditWrapper()
 {
@@ -121,7 +121,7 @@ function BookingFormDialogEditWrapper()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<{ id: number } | null>(null)
   const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
-  const totalItemSize = form.bookingItems.reduce(
+  const totalItemSize = (form.bookingItems ?? []).reduce(
     (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
     0
   )
@@ -131,11 +131,11 @@ function BookingFormDialogEditWrapper()
   const addItem = useCallback((itemId: string) =>
   {
     const id = Number(itemId)
-    setForm((f) => ({ ...f, bookingItems: [...f.bookingItems, { campingItemId: id, quantity: 1 }] }))
+    setForm((f) => ({ ...f, bookingItems: [...(f.bookingItems ?? []), { campingItemId: id, quantity: 1 }] }))
   }, [])
   const removeItem = useCallback((index: number) =>
   {
-    setForm((f) => ({ ...f, bookingItems: f.bookingItems.filter((_, i) => i !== index) }))
+    setForm((f) => ({ ...f, bookingItems: (f.bookingItems ?? []).filter((_, i) => i !== index) }))
   }, [])
   const openEdit = () => { setForm(filledForm); setEditing({ id: 1 }); setOpen(true) }
   return (
@@ -165,4 +165,4 @@ function BookingFormDialogEditWrapper()
 export const Edit: Story = {
   render: () => <BookingFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Buchung bearbeiten“ öffnet den Dialog mit ausgefüllten Buchungsdaten.' } } },
-}
+} as unknown as Story

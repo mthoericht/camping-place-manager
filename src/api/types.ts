@@ -13,12 +13,12 @@ export interface CampingPlace {
 
 export interface CampingPlaceFormData {
   name: string
-  description: string
+  description?: string
   location: string
   size: number
   price: number
-  amenities: string
-  isActive: boolean
+  amenities?: string
+  isActive?: boolean
 }
 
 export interface CampingItem {
@@ -36,8 +36,8 @@ export interface CampingItemFormData {
   name: string
   category: string
   size: number
-  description: string
-  isActive: boolean
+  description?: string
+  isActive?: boolean
 }
 
 export type BookingStatus = 'PENDING' | 'CONFIRMED' | 'PAID' | 'CANCELLED' | 'COMPLETED'
@@ -82,14 +82,14 @@ export interface BookingFormData {
   campingPlaceId: number
   customerName: string
   customerEmail: string
-  customerPhone: string
-  startDate: string
-  endDate: string
+  customerPhone?: string
+  startDate?: string
+  endDate?: string
   guests: number
-  totalPrice: number
-  status: BookingStatus
-  notes: string
-  bookingItems: Array<{ campingItemId: number; quantity: number }>
+  totalPrice?: number
+  status?: BookingStatus
+  notes?: string
+  bookingItems?: Array<{ campingItemId: number; quantity: number }>
 }
 
 export interface AnalyticsData {

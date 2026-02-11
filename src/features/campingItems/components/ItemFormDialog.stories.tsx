@@ -54,7 +54,7 @@ type Story = StoryObj<typeof meta>
 
 export const Create: Story = {
   render: () => <ItemFormDialogWrapper initialForm={emptyForm} editing={null} />,
-}
+} as unknown as Story
 
 function ItemFormDialogEditWrapper()
 {
@@ -81,4 +81,4 @@ function ItemFormDialogEditWrapper()
 export const Edit: Story = {
   render: () => <ItemFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Bearbeiten“ öffnet den Dialog mit ausgefüllten Item-Daten.' } } },
-}
+} as unknown as Story

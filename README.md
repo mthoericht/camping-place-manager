@@ -24,7 +24,8 @@ A modern camping place management application built with React, TypeScript, Expr
 - **Backend**: Express.js, Node.js
 - **Database**: SQLite
 - **ORM**: Prisma
-- **Unit Tests**: Vitest
+- **Unit Tests**: Vitest (jsdom, `@testing-library/jest-dom`)
+- **Integration Tests**: Vitest + Supertest (API gegen Express, Test-DB `data/test.db`)
 - **E2E Tests**: Playwright
 
 ## Quick Start
@@ -138,12 +139,16 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 
 ### Tests
 
-- `npm test` — Unit tests (Vitest)
-- `npm run test:watch` — Unit tests in watch mode
-- `npm run test:coverage` — Generate test coverage
+- `npm test` — All Vitest projects (unit, integration, Storybook)
+- `npm run test:unit` — Unit tests only (`shared/**/*.test.ts`, `src/**/*.test.{ts,tsx}`)
+- `npm run test:integration` — API integration tests only (`server/**/*.integration.test.ts`, uses `data/test.db`)
+- `npm run test:watch` — Vitest watch mode
+- `npm run test:coverage` — Test coverage report
 - `npm run test:e2e` — E2E tests (Playwright)
 - `npm run test:e2e:ui` — E2E tests with Playwright UI
 - `npm run test:e2e:install` — Install Playwright browsers
+
+**Test database:** Integration tests use a separate SQLite file `data/test.db`. The setup (`vitest.setup.integration.ts`) sets `DATABASE_URL` to this file before any server code runs, so the development database (`data/dev.db`) is **never modified**. Before each integration test, the test DB is cleared so tests are isolated. Test output directories (`test-results`, `playwright-report`, `blob-report`, `coverage`) are in `.gitignore`.
 
 ### Storybook
 
@@ -153,16 +158,19 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 
 ```
 ├── shared/                      # Code shared by frontend and backend
-│   └── bookingPrice.ts          # calcBookingTotalPrice (nights × price)
+│   ├── bookingPrice.ts          # calcBookingTotalPrice (nights × price)
+│   └── bookingPrice.test.ts     # Unit tests for bookingPrice
 ├── prisma/
 │   └── schema.prisma            # Database schema (SQLite)
 ├── data/
-│   ├── .gitkeep                 # Folder tracked empty; dev.db is gitignored
-│   └── dev.db                   # SQLite database (created on first run)
+│   ├── .gitkeep                 # Folder tracked empty; DB files gitignored
+│   ├── dev.db                   # Development database (created on first run)
+│   └── test.db                  # Integration test database (created by test setup)
 ├── server/
 │   └── src/
 │       ├── index.ts             # Server entry point
 │       ├── app.ts               # Express app setup
+│       ├── api.integration.test.ts  # API integration tests (Supertest, test DB)
 │       ├── prisma/
 │       │   └── client.ts        # Prisma client singleton
 │       ├── middleware/
@@ -198,11 +206,15 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   ├── store/
 │   │   ├── store.ts             # Redux store (configureStore)
 │   │   ├── hooks.ts             # Typed useAppDispatch / useAppSelector
+│   │   ├── bookingsSlice.ts
+│   │   ├── bookingsSlice.test.ts # Unit tests for bookings reducer
 │   │   ├── campingPlacesSlice.ts
 │   │   ├── campingItemsSlice.ts
-│   │   ├── bookingsSlice.ts
 │   │   ├── analyticsSlice.ts
 │   │   └── uiSlice.ts           # UI state (theme, sidebar, mobile nav)
+│   ├── lib/
+│   │   ├── dateUtils.ts
+│   │   └── dateUtils.test.ts    # Unit tests for dateUtils
 │   ├── hooks/
 │   │   ├── use-mobile.ts        # Mobile breakpoint (responsive)
 │   │   ├── useConfirmDelete.ts  # Confirm dialog + delete + toast
@@ -257,6 +269,8 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │       ├── theme.css            # Design tokens (light/dark)
 │       └── fonts.css
 ├── .env                         # Environment variables
+├── vitest.setup.unit.ts         # Unit test setup (jsdom, @testing-library/jest-dom)
+├── vitest.setup.integration.ts  # Integration setup (DATABASE_URL=test.db, prisma db push)
 ├── index.html                   # HTML entry point (favicon: tent icon)
 ├── public/
 │   └── favicon.svg              # Tent icon favicon

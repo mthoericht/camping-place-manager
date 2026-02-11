@@ -168,6 +168,10 @@ export async function getBookingItems(bookingId: number)
 
 export async function addBookingItem(bookingId: number, data: { campingItemId: number; quantity: number }) 
 {
+  const booking = await prisma.booking.findUnique({ where: { id: bookingId } })
+  if (!booking) throw new HttpError(404, 'Booking not found')
+  const item = await prisma.campingItem.findUnique({ where: { id: data.campingItemId } })
+  if (!item) throw new HttpError(400, `Camping-Item mit ID ${data.campingItemId} existiert nicht.`)
   return prisma.bookingItem.create({
     data: { bookingId, campingItemId: data.campingItemId, quantity: data.quantity },
     include: { campingItem: true },

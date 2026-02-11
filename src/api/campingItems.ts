@@ -6,6 +6,11 @@ export function fetchCampingItems(): Promise<CampingItem[]>
   return api<CampingItem[]>('/api/camping-items')
 }
 
+export function fetchCampingItemById(id: number): Promise<CampingItem> 
+{
+  return api<CampingItem>(`/api/camping-items/${id}`)
+}
+
 export function createCampingItem(data: CampingItemFormData): Promise<CampingItem> 
 {
   return api<CampingItem>('/api/camping-items', { method: 'POST', body: JSON.stringify(data) })

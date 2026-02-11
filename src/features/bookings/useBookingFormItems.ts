@@ -9,12 +9,12 @@ export function useBookingFormItems(
   const addItem = useCallback((itemId: string) =>
   {
     const id = Number(itemId)
-    setForm(prev => ({ ...prev, bookingItems: [...prev.bookingItems, { campingItemId: id, quantity: 1 }] }))
+    setForm(prev => ({ ...prev, bookingItems: [...(prev.bookingItems ?? []), { campingItemId: id, quantity: 1 }] }))
   }, [setForm])
 
   const removeItem = useCallback((index: number) =>
   {
-    setForm(prev => ({ ...prev, bookingItems: prev.bookingItems.filter((_, i) => i !== index) }))
+    setForm(prev => ({ ...prev, bookingItems: (prev.bookingItems ?? []).filter((_, i) => i !== index) }))
   }, [setForm])
 
   return { addItem, removeItem }

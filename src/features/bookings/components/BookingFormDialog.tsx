@@ -64,13 +64,13 @@ export default function BookingFormDialog({
               <div className="space-y-2"><Label>Anzahl Gäste</Label><Input type="number" min="1" value={form.guests} onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })} required /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label>Check-in</Label><Input type="date" value={form.startDate} onChange={(e) => { const v = e.target.value; setForm({ ...form, startDate: v, totalPrice: calcTotalPrice(v, form.endDate, selectedPlace) }) }} required /></div>
-              <div className="space-y-2"><Label>Check-out</Label><Input type="date" value={form.endDate} onChange={(e) => { const v = e.target.value; setForm({ ...form, endDate: v, totalPrice: calcTotalPrice(form.startDate, v, selectedPlace) }) }} required /></div>
+              <div className="space-y-2"><Label>Check-in</Label><Input type="date" value={form.startDate} onChange={(e) => { const v = e.target.value; setForm({ ...form, startDate: v, totalPrice: calcTotalPrice(v, form.endDate ?? '', selectedPlace) }) }} required /></div>
+              <div className="space-y-2"><Label>Check-out</Label><Input type="date" value={form.endDate} onChange={(e) => { const v = e.target.value; setForm({ ...form, endDate: v, totalPrice: calcTotalPrice(form.startDate ?? '', v, selectedPlace) }) }} required /></div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Stellplatz</Label>
-                <Select value={form.campingPlaceId ? String(form.campingPlaceId) : ''} onValueChange={(v) => { const placeId = Number(v); const place = places.find((p) => p.id === placeId); setForm({ ...form, campingPlaceId: placeId, totalPrice: calcTotalPrice(form.startDate, form.endDate, place) }) }}>
+                <Select value={form.campingPlaceId ? String(form.campingPlaceId) : ''} onValueChange={(v) => { const placeId = Number(v); const place = places.find((p) => p.id === placeId); setForm({ ...form, campingPlaceId: placeId, totalPrice: calcTotalPrice(form.startDate ?? '', form.endDate ?? '', place) }) }}>
                   <SelectTrigger><SelectValue placeholder="Stellplatz wählen" /></SelectTrigger>
                   <SelectContent>{places.filter((p) => p.isActive).map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.size} m²)</SelectItem>)}</SelectContent>
                 </Select>
@@ -95,7 +95,7 @@ export default function BookingFormDialog({
                 <Label>Camping-Ausrüstung</Label>
                 <span className="text-sm text-muted-foreground">{totalItemSize} m² / {selectedPlace?.size ?? 0} m²</span>
               </div>
-              {form.bookingItems.map((bi, idx) =>
+              {(form.bookingItems ?? []).map((bi, idx) =>
               {
                 const item = items.find((i) => i.id === bi.campingItemId)
                 return (
