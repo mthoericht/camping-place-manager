@@ -110,3 +110,25 @@ export interface AnalyticsData {
   maxDailyRevenue: number
   avgPricePerNight: number
 }
+
+export interface Employee {
+  id: number
+  email: string
+  fullName: string
+}
+
+export interface AuthResponse {
+  token: string
+  employee: Employee
+}
+
+export interface LoginFormData {
+  email: string
+  password: string
+}
+
+export interface SignupFormData {
+  email: string
+  fullName: string
+  password: string
+}

@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
+import authReducer from './authSlice'
 import campingPlacesReducer from './campingPlacesSlice'
 import campingItemsReducer from './campingItemsSlice'
 import bookingsReducer from './bookingsSlice'
@@ -7,6 +8,7 @@ import uiReducer from './uiSlice'
 
 export const store = configureStore({
   reducer: {
+    auth: authReducer,
     campingPlaces: campingPlacesReducer,
     campingItems: campingItemsReducer,
     bookings: bookingsReducer,

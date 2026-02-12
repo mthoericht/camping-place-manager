@@ -1,8 +1,9 @@
-import { Link, NavLink, useLocation } from 'react-router-dom'
-import { Tent, MapPin, Package, Calendar, BarChart3, Menu, Sun, Moon, X } from 'lucide-react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { Tent, MapPin, Package, Calendar, BarChart3, Menu, Sun, Moon, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { setMobileNavOpen, toggleTheme } from '@/store/uiSlice'
+import { logout } from '@/store/authSlice'
 import { useEffect } from 'react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -17,8 +18,10 @@ const navItems = [
 export default function Topbar() 
 {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const theme = useAppSelector((s) => s.ui.theme)
   const mobileNavOpen = useAppSelector((s) => s.ui.mobileNavOpen)
+  const employee = useAppSelector((s) => s.auth.employee)
   const location = useLocation()
 
   useEffect(() => 
@@ -72,6 +75,14 @@ export default function Topbar()
               <Button variant="ghost" size="icon" onClick={() => dispatch(toggleTheme())}>
                 {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
               </Button>
+              {employee && (
+                <span className="hidden sm:inline text-sm text-muted-foreground truncate max-w-[140px]" title={employee.fullName}>
+                  {employee.fullName}
+                </span>
+              )}
+              <Button variant="ghost" size="icon" onClick={() => { dispatch(logout()); navigate('/login') }}>
+                <LogOut className="h-5 w-5" />
+              </Button>
             </div>
           </div>
           <div className="hidden md:block pb-3">{navLinks}</div>
@@ -80,11 +91,8 @@ export default function Topbar()
 
       <Sheet open={mobileNavOpen} onOpenChange={(open) => dispatch(setMobileNavOpen(open))}>
         <SheetContent side="left" className="w-64 p-0">
-          <div className="flex items-center justify-between p-4 border-b">
+          <div className="p-4 border-b">
             <span className="font-semibold">Menü</span>
-            <Button variant="ghost" size="icon" onClick={() => dispatch(setMobileNavOpen(false))}>
-              <X className="h-5 w-5" />
-            </Button>
           </div>
           <nav className="flex flex-col p-2 gap-1">
             {navItems.map((item) => (

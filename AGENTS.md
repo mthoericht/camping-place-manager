@@ -34,19 +34,19 @@ npm run prisma:studio    # Prisma Studio (data browser)
 ### Tests
 
 ```bash
-npm test                 # Vitest (alle Projekte: Unit, Integration, Storybook)
-npm run test:unit        # Nur Unit-Tests (shared, src/lib, src/store)
-npm run test:integration # API-Integrationstests (Frontend-API + Test-DB)
+npm test                 # Vitest (all projects: unit, integration, Storybook)
+npm run test:unit        # Unit tests only (shared, src/lib, src/store)
+npm run test:integration # API integration tests (frontend API + test DB)
 npm run test:watch       # Vitest watch mode
-npm run test:coverage    # Coverage-Report (Vitest)
+npm run test:coverage    # Coverage report (Vitest)
 npm run test:e2e         # Playwright (E2E tests)
 ```
 
-- **Unit-Tests**: `src/**/*.test.{ts,tsx}`, `shared/**/*.test.ts` — Vitest, jsdom, Setup: `vitest.setup.unit.ts` (u. a. `@testing-library/jest-dom`). Die API (client.ts) wird nur über die Integrationstests abgedeckt.
-- **Integrationstests**: `src/api/**/*.integration.test.ts` — Vitest, node. Nutzen nur die **Frontend-API-Module** und eine Backend-Setup-Funktion; keine direkten Imports von Express/Prisma in der Testdatei. Das Backend stellt `server/src/test/integrationEnv.ts` bereit: `setupIntegrationTest()` (legt Supertest-Adapter als `fetch` ein) und `clearTestDb()` (leert die Test-DB). Die Testdatei ruft `setupIntegrationTest()` in `beforeAll` und `clearDb()` in `beforeEach` auf. Setup: `vitest.setup.integration.ts`.
-- **Test-DB**: Integrationstests nutzen **nur** `data/test.db`. `DATABASE_URL` wird im Integration-Setup auf `file:…/data/test.db` gesetzt, **bevor** Server-Code/Prisma geladen wird; `.env` wird beim Testlauf nicht geladen. Die bestehende Datenbank (z. B. `data/dev.db`) wird **nicht verändert**.
-- **DB-Aufräumen**: Vor jedem Test wird die Test-DB über die vom Backend bereitgestellte Funktion `clearTestDb()` geleert (BookingItem, BookingStatusChange, Booking, CampingPlace, CampingItem).
-- **Test-Ausgabe in .gitignore**: `test-results`, `playwright-report`, `blob-report`, `coverage` werden nicht versioniert.
+- **Unit tests**: `src/**/*.test.{ts,tsx}`, `shared/**/*.test.ts` — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests.
+- **Integration tests**: `src/api/**/*.integration.test.ts` — Vitest, node. Use only the **frontend API modules** and a backend setup function; no direct imports from Express/Prisma in test files. The backend provides `server/src/test/integrationEnv.ts`: `setupIntegrationTest()` (installs Supertest adapter as `fetch`) and `clearTestDb()` (clears the test DB). Test files call `setupIntegrationTest()` in `beforeAll` and `clearDb()` in `beforeEach`. Setup: `vitest.setup.integration.ts`.
+- **Test DB**: Integration tests use **only** `data/test.db`. `DATABASE_URL` is set to `file:…/data/test.db` in the integration setup **before** any server code/Prisma is loaded; `.env` is not loaded during tests. The existing database (e.g. `data/dev.db`) is **never modified**.
+- **DB cleanup**: Before each test, the test DB is cleared via the backend-provided `clearTestDb()` function (BookingItem, BookingStatusChange, Booking, CampingPlace, CampingItem, Employee).
+- **Test output in .gitignore**: `test-results`, `playwright-report`, `blob-report`, `coverage` are not versioned.
 
 ### Storybook
 
@@ -71,6 +71,7 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 - **Path Aliases**: `@/` → `./src/`, `@shared` → `./shared` (Vite + `tsconfig.app.json`). Shared code (e.g. price calculation) lives in `shared/` and is used by backend and frontend.
 - **Types**: Centralized in `src/api/types.ts` — IDs are `number` (SQLite autoincrement)
 - **API Client**: `src/api/client.ts` — Fetch wrapper, API proxy via Vite (`/api` → port 3001)
+- **Authentication**: JWT token stored in `localStorage` (`auth_token`), automatically attached to all API requests by `client.ts`. Auth state managed in `src/store/authSlice.ts` (employee, token, login/signup/fetchMe thunks, logout). `AuthGuard` component wraps protected routes and redirects to `/login` if unauthenticated. Login/Signup pages are standalone (no AppLayout).
 
 - **Logic: Store vs composables (hooks)**
   - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Optional: memoized selectors (e.g. `selectActivePlaces`) if the same derived list is used in many places.
@@ -83,13 +84,14 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 - **Database**: SQLite via Prisma, DB file at `data/dev.db`
 - **Prisma Client**: Singleton in `server/src/prisma/client.ts`
 - **Error Handling**: `HttpError` class in `server/src/middleware/error.middleware.ts`
+- **Authentication**: JWT-based auth via `server/src/middleware/auth.middleware.ts` (`requireAuth` middleware). Auth service in `server/src/services/auth.service.ts` (bcrypt password hashing, JWT token generation/verification). All API routes except `/api/auth/login` and `/api/auth/signup` require a valid `Authorization: Bearer <token>` header.
 - **Imports**: No `.js` extensions in imports (tsx is used for dev)
 - **Shared logic**: Use `shared/` at project root (e.g. `shared/bookingPrice.ts`) for code shared with frontend; import via relative path (e.g. `../../../shared/bookingPrice`). Server build includes `shared/`; production entry is `node server/dist/server/src/index.js`.
 
 ### File Organization
 
 - **Shared code** (`shared/` at project root): Logic used by both frontend and backend (e.g. `bookingPrice.ts`). Backend imports via relative path; frontend via Vite/tsconfig alias `@shared` → `./shared`.
-- **Feature modules** (`src/features/<domain>/`): Page(s) and detail pages in the feature root; UI subcomponents (list cards `*Card.tsx`, form content `*FormContent.tsx`, charts, etc.) in a `components/` subfolder. Hooks and `constants.ts` stay in the root. Pages orchestrate hooks and UI.
+- **Feature modules** (`src/features/<domain>/`): Page(s) and detail pages in the feature root; UI subcomponents (list cards `*Card.tsx`, form content `*FormContent.tsx`, charts, etc.) in a `components/` subfolder. Hooks and `constants.ts` stay in the root. Pages orchestrate hooks and UI. `src/features/auth/` contains `LoginPage`, `SignupPage`, and `AuthGuard` (standalone pages without AppLayout).
 - **App-level components** (`src/components/`): Shared across the app. Use `layout/` for layout (e.g. `AppLayout`, `Topbar`, `PageHeader`, `EmptyState`) and `ui/` for reusable UI (shadcn/ui, Figma-aligned). See `src/components/ui/README.md`.
 - **Feature-level components** (`src/features/<domain>/components/`): UI used only in that feature (e.g. `BookingCard`, `CampingPlaceFormContent`, `CampingItemFormContent`, analytics charts). Form dialogs: Pages use `FormDialog` (from `@/components/ui/dialog`) with `*FormContent` as children; the trigger button is rendered by the page. Form content components receive an entity id prop for edit vs create mode (`bookingId`, `campingPlaceId`, `campingItemId`; `null` = create). Do not put feature-specific components in `src/components/`.
 - **Hooks** in `src/hooks/`: `use-mobile`, `useConfirmDelete`, `useFetchWhenIdle`, `useFormDialog`, `useCrud` (CRUD dialog + form + submit for CRUD pages), `useOpenEditFromLocationState` (open edit from `location.state`, e.g. from detail page)
@@ -112,29 +114,42 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 | `prisma/schema.prisma` | Database schema (SQLite) |
 | `shared/bookingPrice.ts` | Shared booking total price calculation (frontend + backend) |
 | `src/api/types.ts` | All TypeScript interfaces |
-| `src/api/client.ts` | Fetch wrapper (api, ApiError), von allen API-Modulen genutzt |
-| `src/api/*.integration.test.ts` | API-Integrationstests pro Bereich (campingPlaces, campingItems, bookings, analytics) |
-| `server/src/test/integrationEnv.ts` | Backend: Setup für API-Integrationstests (Express, Prisma, Supertest-Adapter, clearTestDb) |
+| `src/api/client.ts` | Fetch wrapper (api, ApiError), used by all API modules; attaches JWT token |
+| `src/api/auth.ts` | Auth API module (login, signup, getMe) |
+| `src/api/*.integration.test.ts` | API integration tests per domain (campingPlaces, campingItems, bookings, analytics) |
+| `server/src/test/integrationEnv.ts` | Backend: integration test setup (Express, Prisma, Supertest adapter, clearTestDb) |
+| `server/src/services/auth.service.ts` | Auth service (signup, login, getMe, verifyToken; bcrypt + JWT) |
+| `server/src/middleware/auth.middleware.ts` | JWT auth middleware (requireAuth, AuthRequest) |
 | `src/store/store.ts` | Redux store configuration |
+| `src/store/authSlice.ts` | Auth state (employee, token, login/signup/fetchMe thunks, logout) |
 | `src/app/App.tsx` | App shell (BrowserRouter, Toaster) |
-| `src/app/routes.tsx` | Route definitions (default: `/bookings`) |
-| `src/components/layout/Topbar.tsx` | Top bar and navigation (Bookings first, no dashboard) |
+| `src/app/routes.tsx` | Route definitions (public: /login, /signup; protected: all others, default: /bookings) |
+| `src/features/auth/LoginPage.tsx` | Employee login page (Card-based form) |
+| `src/features/auth/SignupPage.tsx` | Employee signup page (Card-based form) |
+| `src/features/auth/AuthGuard.tsx` | Route guard (token check, fetchMe, redirect to /login) |
+| `src/components/layout/Topbar.tsx` | Top bar, navigation, dark mode toggle, logout button |
 | `src/components/layout/PageHeader.tsx` | Page title + description + optional actions |
 | `src/components/layout/EmptyState.tsx` | Empty list state (icon + message) |
 | `src/features/bookings/useBookingCrud.ts` | Booking CRUD hook (calcTotalPrice, bookingToForm, validate); uses `@shared/bookingPrice` |
 | `src/lib/dateUtils.ts` | Date helpers (e.g. toDateInputValue for inputs) |
 | `server/src/app.ts` | Express app setup |
-| `server/src/routes/index.ts` | API route registry |
-| `vitest.setup.unit.ts` | Unit-Test-Setup (jsdom, jest-dom) |
-| `vitest.setup.integration.ts` | Integration-Setup (DATABASE_URL=test.db, prisma db push) |
-| `shared/bookingPrice.test.ts` | Unit-Tests für calcBookingTotalPrice |
-| `src/lib/dateUtils.test.ts` | Unit-Tests für toDateInputValue |
-| `src/store/bookingsSlice.test.ts` | Unit-Tests für bookings-Reducer |
-| `.env` | `DATABASE_URL` and `PORT` |
+| `server/src/routes/index.ts` | API route registry (auth routes public, all others behind requireAuth) |
+| `vitest.setup.unit.ts` | Unit test setup (jsdom, jest-dom) |
+| `vitest.setup.integration.ts` | Integration setup (DATABASE_URL=test.db, prisma db push) |
+| `shared/bookingPrice.test.ts` | Unit tests for calcBookingTotalPrice |
+| `src/lib/dateUtils.test.ts` | Unit tests for toDateInputValue |
+| `src/store/bookingsSlice.test.ts` | Unit tests for bookings reducer |
+| `.env` | `DATABASE_URL`, `PORT`, and `JWT_SECRET` |
 
 ## Delete Protection Rule
 
 Camping places and camping items cannot be deleted when active bookings (PENDING, CONFIRMED, PAID) exist. This validation is in the respective services.
+
+## Authentication
+
+- **Backend**: JWT-based authentication. `server/src/services/auth.service.ts` handles signup (bcrypt hash), login (bcrypt compare + JWT sign), and token verification. `server/src/middleware/auth.middleware.ts` exports `requireAuth` middleware that validates the `Authorization: Bearer <token>` header. All routes except `/api/auth/login` and `/api/auth/signup` are protected.
+- **Frontend**: `src/store/authSlice.ts` manages auth state (employee, token). On app load, `AuthGuard` checks for a stored token in `localStorage` and validates it via `GET /api/auth/me`. Login/Signup pages (`src/features/auth/`) are standalone (no AppLayout/Topbar). The API client (`src/api/client.ts`) automatically attaches the JWT token to all requests.
+- **Environment**: `JWT_SECRET` env var (defaults to a dev fallback). Set a secure value in production.
 
 ## Adding a New Entity (Checklist)
 

@@ -11,6 +11,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - 🎨 **Modern UI**: Responsive interface with Tailwind CSS and dark mode
 - 📱 **Responsive Design**: Top bar navigation on desktop, hamburger menu and slide-out drawer on mobile
 - 🗄️ **Database**: SQLite with Prisma ORM
+- 🔐 **Authentication**: Employee login/signup with JWT tokens and bcrypt password hashing
 
 ## Tech Stack
 
@@ -24,6 +25,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - **Backend**: Express.js, Node.js
 - **Database**: SQLite
 - **ORM**: Prisma
+- **Authentication**: JWT (jsonwebtoken), bcrypt (bcryptjs)
 - **Unit Tests**: Vitest (jsdom, `@testing-library/jest-dom`)
 - **Integration Tests**: Vitest + Supertest (API gegen Express, Test-DB `data/test.db`)
 - **E2E Tests**: Playwright
@@ -45,13 +47,21 @@ A modern camping place management application built with React, TypeScript, Expr
    npm run prisma:push
    ```
 
-3. **Start the application:**
+3. **Configure environment** (optional):
+
+   Create a `.env` file (or use the existing one). For production, set a secure JWT secret:
+
+   ```
+   JWT_SECRET=your-secure-secret-key
+   ```
+
+4. **Start the application:**
 
    ```bash
    npm run dev
    ```
 
-4. **Open in browser:**
+5. **Open in browser:**
    - Frontend: [http://localhost:5173](http://localhost:5173) (opens on Bookings by default)
    - API: [http://localhost:3001/api](http://localhost:3001/api)
 
@@ -112,6 +122,14 @@ DATABASE_URL="file:../data/dev.db"
 - `bookingId`: Reference to booking
 - `status`: Status at time of change
 - `changedAt`: Timestamp of the status change (used for timeline on booking detail page)
+
+#### Employee
+
+- `id`: Auto-increment integer
+- `email`: Unique email address
+- `fullName`: Full name of the employee
+- `password`: Bcrypt-hashed password
+- `createdAt`/`updatedAt`: Timestamps
 
 ### Delete Protection
 
@@ -174,23 +192,27 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │       ├── prisma/
 │       │   └── client.ts        # Prisma client singleton
 │       ├── middleware/
-│       │   └── error.middleware.ts
+│       │   ├── error.middleware.ts
+│       │   ├── auth.middleware.ts
 │       ├── routes/
 │       │   ├── index.ts         # Route registry
 │       │   ├── campingPlaces.routes.ts
 │       │   ├── campingItems.routes.ts
 │       │   ├── bookings.routes.ts
-│       │   └── analytics.routes.ts
+│       │   ├── analytics.routes.ts
+│       │   ├── auth.routes.ts
 │       ├── controllers/
 │       │   ├── campingPlaces.controller.ts
 │       │   ├── campingItems.controller.ts
 │       │   ├── bookings.controller.ts
-│       │   └── analytics.controller.ts
+│       │   ├── analytics.controller.ts
+│       │   ├── auth.controller.ts
 │       └── services/
 │           ├── campingPlaces.service.ts
 │           ├── campingItems.service.ts
 │           ├── bookings.service.ts
-│           └── analytics.service.ts
+│           ├── analytics.service.ts
+│           ├── auth.service.ts
 ├── src/
 │   ├── main.tsx                 # React entry point
 │   ├── app/
@@ -202,7 +224,8 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── bookings.ts          # Booking API calls
 │   │   ├── campingPlaces.ts     # Camping places API calls
 │   │   ├── campingItems.ts      # Camping items API calls
-│   │   └── analytics.ts         # Analytics API calls
+│   │   ├── analytics.ts         # Analytics API calls
+│   │   ├── auth.ts              # Auth API calls (login, signup, me)
 │   ├── store/
 │   │   ├── store.ts             # Redux store (configureStore)
 │   │   ├── hooks.ts             # Typed useAppDispatch / useAppSelector
@@ -211,6 +234,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── campingPlacesSlice.ts
 │   │   ├── campingItemsSlice.ts
 │   │   ├── analyticsSlice.ts
+│   │   ├── authSlice.ts         # Auth state (employee, token, login/signup/logout)
 │   │   └── uiSlice.ts           # UI state (theme, sidebar, mobile nav)
 │   ├── lib/
 │   │   ├── dateUtils.ts
@@ -223,6 +247,10 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── useCrud.ts           # CRUD dialog + submit (openCreate, openEdit, form, handleSubmit)
 │   │   └── useOpenEditFromLocationState.ts  # Open edit from location.state (e.g. detail → list)
 │   ├── features/
+│   │   ├── auth/
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── SignupPage.tsx
+│   │   │   └── AuthGuard.tsx
 │   │   ├── bookings/
 │   │   │   ├── constants.ts
 │   │   │   ├── useBookingCrud.ts
@@ -305,13 +333,14 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 
 2. **Redux Store** (`src/store/`)
    - One slice per entity using `createEntityAdapter` + `createAsyncThunk`
+   - `authSlice`: Auth state (employee, token, login/signup/logout)
    - Thunks call into the API layer (`src/api/*.ts`), not the fetch client directly
    - Normalized state for performant selectors
    - UI slice for theme, sidebar state, and mobile navigation
 
 3. **API Layer** (`src/api/`)
    - `client.ts`: Central fetch wrapper with error handling (`ApiError`), JSON, and base URL
-   - Entity modules (`bookings.ts`, `campingPlaces.ts`, `campingItems.ts`, `analytics.ts`): All HTTP calls for that domain; used by Redux thunks only
+   - Entity modules (`bookings.ts`, `campingPlaces.ts`, `campingItems.ts`, `analytics.ts`, `auth.ts`): All HTTP calls for that domain; used by Redux thunks only
    - `types.ts`: Single source of truth for TypeScript interfaces and form data types
 
 4. **Custom Hooks** (`src/hooks/`)
@@ -326,6 +355,12 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 5. **Shared & lib**
    - `shared/`: Code used by both frontend and backend (e.g. `bookingPrice.ts` for total price calculation). Frontend resolves `@shared` via Vite/tsconfig to `./shared`.
    - `src/lib/`: Frontend-only utilities (e.g. `dateUtils.ts` for `toDateInputValue`, `utils.ts` for `cn()`).
+
+6. **Authentication** (`src/features/auth/`)
+   - `LoginPage` and `SignupPage`: Standalone pages (no AppLayout) with Card-based forms
+   - `AuthGuard`: Wraps protected routes, verifies JWT token via `/api/auth/me`, redirects to `/login` if unauthenticated
+   - JWT token stored in `localStorage` (`auth_token`), automatically attached to all API requests by `client.ts`
+   - `authSlice`: Manages employee session, login/signup thunks, logout action
 
 ### Server Architecture
 
@@ -344,10 +379,15 @@ User → React Component → Redux Thunk → fetch(/api/...) → Express Route �
 User ← React Component ← Redux Store ← Response ← Express Route ← Controller ← Service ← Prisma ← SQLite
 ```
 
+Authentication: Login → authSlice thunk → POST /api/auth/login → JWT token → localStorage → Authorization header on all subsequent requests
+
 ### API Endpoints
 
 | Method | Path                              | Description              |
 |--------|-----------------------------------|--------------------------|
+| POST   | `/api/auth/signup`                | Register new employee    |
+| POST   | `/api/auth/login`                 | Login (returns JWT token)|
+| GET    | `/api/auth/me`                    | Get current employee (requires auth) |
 | GET    | `/api/camping-places`             | List all camping places  |
 | POST   | `/api/camping-places`             | Create camping place     |
 | GET    | `/api/camping-places/:id`         | Get camping place        |
@@ -369,6 +409,8 @@ User ← React Component ← Redux Store ← Response ← Express Route ← Cont
 | POST   | `/api/bookings/:id/items`         | Add item to booking      |
 | DELETE | `/api/bookings/:id/items/:itemId` | Remove item from booking |
 | GET    | `/api/analytics`                  | Get analytics data       |
+
+All endpoints except `/api/auth/signup` and `/api/auth/login` require a valid JWT token in the `Authorization: Bearer <token>` header.
 
 ## Adding New Features
 

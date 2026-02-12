@@ -22,6 +22,14 @@ function createFetchAdapter(app: ReturnType<typeof createApp>)
 
     const agent = getSupertestAgent(app)
     let req = agent[method](path).set('Content-Type', 'application/json')
+    if (init?.headers)
+    {
+      const hdrs = init.headers as Record<string, string>
+      for (const [k, v] of Object.entries(hdrs))
+      {
+        req = (req as { set: (k: string, v: string) => typeof req }).set(k, v)
+      }
+    }
     if (bodyPayload !== undefined)
       req = (req as { send: (b: unknown) => typeof req }).send(bodyPayload)
 
@@ -85,17 +93,46 @@ export async function clearTestDb(): Promise<void>
   await prisma.booking.deleteMany()
   await prisma.campingPlace.deleteMany()
   await prisma.campingItem.deleteMany()
+  await prisma.employee.deleteMany()
+}
+
+/**
+ * Creates a test user via the auth service and stubs `localStorage` so the
+ * frontend API client (`client.ts`) attaches the JWT token to all requests.
+ * Call after `clearTestDb()` in `beforeEach` to re-create the user.
+ * @returns The JWT token string
+ */
+export async function loginTestUser(): Promise<string>
+{
+  const { signup, login } = await import('../services/auth.service')
+  let token: string
+  try
+  {
+    ;({ token } = await signup({ email: 'test@test.de', fullName: 'Test User', password: 'test1234' }))
+  }
+  catch
+  {
+    ;({ token } = await login({ email: 'test@test.de', password: 'test1234' }))
+  }
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => key === 'auth_token' ? token : null,
+    setItem: () => {},
+    removeItem: () => {},
+  })
+  return token
 }
 
 /**
  * Configures the environment for API integration tests: creates the Express app,
- * installs a fetch adapter that forwards to the app via Supertest, and returns
- * a clearDb function for use in beforeEach. Call once in beforeAll.
- * @returns Object with clearDb (alias for clearTestDb) for test teardown
+ * installs a fetch adapter that forwards to the app via Supertest, creates a
+ * test user for JWT auth, and returns helper functions for test lifecycle.
+ * Call once in beforeAll.
+ * @returns Object with clearDb and loginTestUser for test lifecycle
  */
-export function setupIntegrationTest(): { clearDb: () => Promise<void> }
+export async function setupIntegrationTest(): Promise<{ clearDb: () => Promise<void>; loginTestUser: () => Promise<string> }>
 {
   const app = createApp()
   vi.stubGlobal('fetch', createFetchAdapter(app))
-  return { clearDb: clearTestDb }
+  await loginTestUser()
+  return { clearDb: clearTestDb, loginTestUser }
 }

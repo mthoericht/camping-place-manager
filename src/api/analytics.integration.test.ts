@@ -4,12 +4,14 @@ import * as bookingsApi from '@/api/bookings'
 import * as analyticsApi from '@/api/analytics'
 
 let clearDb: () => Promise<void>
+let loginTestUser: () => Promise<string>
 
 beforeAll(async () => 
 {
   const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = setupIntegrationTest()
+  const env = await setupIntegrationTest()
   clearDb = env.clearDb
+  loginTestUser = env.loginTestUser
 })
 
 describe('API Integration: Analytics', () => 
@@ -17,6 +19,7 @@ describe('API Integration: Analytics', () =>
   beforeEach(async () => 
   {
     await clearDb()
+    await loginTestUser()
   })
 
   it('fetchAnalytics returns zero values when db empty', async () => 

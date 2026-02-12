@@ -75,3 +75,12 @@ model BookingStatusChange {
 
   booking   Booking  @relation(fields: [bookingId], references: [id])
 }
+
+model Employee {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  fullName  String
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

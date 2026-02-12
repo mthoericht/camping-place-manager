@@ -5,12 +5,14 @@ import * as campingItemsApi from '@/api/campingItems'
 import * as bookingsApi from '@/api/bookings'
 
 let clearDb: () => Promise<void>
+let loginTestUser: () => Promise<string>
 
 beforeAll(async () => 
 {
   const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = setupIntegrationTest()
+  const env = await setupIntegrationTest()
   clearDb = env.clearDb
+  loginTestUser = env.loginTestUser
 })
 
 describe('API Integration: Bookings', () => 
@@ -18,6 +20,7 @@ describe('API Integration: Bookings', () =>
   beforeEach(async () => 
   {
     await clearDb()
+    await loginTestUser()
   })
 
   it('createBooking calculates totalPrice', async () => 

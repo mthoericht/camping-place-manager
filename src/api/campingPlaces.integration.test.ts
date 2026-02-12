@@ -4,12 +4,14 @@ import * as campingPlacesApi from '@/api/campingPlaces'
 import * as bookingsApi from '@/api/bookings'
 
 let clearDb: () => Promise<void>
+let loginTestUser: () => Promise<string>
 
 beforeAll(async () => 
 {
   const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = setupIntegrationTest()
+  const env = await setupIntegrationTest()
   clearDb = env.clearDb
+  loginTestUser = env.loginTestUser
 })
 
 describe('API Integration: Camping-Plätze', () => 
@@ -17,6 +19,7 @@ describe('API Integration: Camping-Plätze', () =>
   beforeEach(async () => 
   {
     await clearDb()
+    await loginTestUser()
   })
 
   it('fetchCampingPlaces returns empty array when no places exist', async () => 
