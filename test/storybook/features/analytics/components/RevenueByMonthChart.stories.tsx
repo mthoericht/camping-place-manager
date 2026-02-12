@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { ReactNode } from 'react'
-import RevenueByPlaceChart from './RevenueByPlaceChart'
+import RevenueByMonthChart from '@/features/analytics/components/RevenueByMonthChart'
 
 function ChartWrapper({ children }: { children: ReactNode })
 {
@@ -8,16 +8,17 @@ function ChartWrapper({ children }: { children: ReactNode })
 }
 
 const mockData = [
-  { name: 'Platz A1', revenue: 3200, bookings: 42 },
-  { name: 'Platz B2', revenue: 2800, bookings: 35 },
-  { name: 'Platz C3', revenue: 2100, bookings: 28 },
-  { name: 'Platz D4', revenue: 1800, bookings: 22 },
-  { name: 'Platz E5', revenue: 1500, bookings: 18 },
+  { month: 'Jan', revenue: 1200 },
+  { month: 'Feb', revenue: 980 },
+  { month: 'Mär', revenue: 1450 },
+  { month: 'Apr', revenue: 2100 },
+  { month: 'Mai', revenue: 1890 },
+  { month: 'Jun', revenue: 2400 },
 ]
 
 const meta = {
-  title: 'Features/Analytics/RevenueByPlaceChart',
-  component: RevenueByPlaceChart,
+  title: 'Features/Analytics/RevenueByMonthChart',
+  component: RevenueByMonthChart,
   parameters: { layout: 'centered' },
   tags: ['autodocs'],
   decorators: [
@@ -27,11 +28,15 @@ const meta = {
       </ChartWrapper>
     ),
   ],
-} satisfies Meta<typeof RevenueByPlaceChart>
+} satisfies Meta<typeof RevenueByMonthChart>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: { data: mockData },
+}
+
+export const SingleMonth: Story = {
+  args: { data: [{ month: 'Jun', revenue: 2400 }] },
 }

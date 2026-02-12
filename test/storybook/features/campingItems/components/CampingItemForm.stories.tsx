@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/dialog'
-import CampingItemFormContent from './CampingItemFormContent'
+import CampingItemFormContent from '@/features/campingItems/components/CampingItemFormContent'
 import type { CampingItemFormData } from '@/api/types'
 
 const emptyForm: CampingItemFormData = {
@@ -25,11 +25,6 @@ const filledForm: CampingItemFormData = {
 
 const formContainerClass = 'max-w-lg rounded-lg border bg-background p-6 shadow-lg'
 
-/**
- * Holds form state and provides it to CampingItemFormContent inside a FormDialog.
- * Needed because the form component is controlled (expects form/setForm) and stories
- * supply initial data via props rather than component args.
- */
 function CampingItemFormDialogWrapper({ initialForm, campingItemId }: { initialForm: CampingItemFormData; campingItemId: number | null })
 {
   const [form, setForm] = useState<CampingItemFormData>(initialForm)
@@ -45,10 +40,6 @@ function CampingItemFormDialogWrapper({ initialForm, campingItemId }: { initialF
   )
 }
 
-/**
- * Holds form state and syncs it when initialForm changes (e.g. from Storybook controls).
- * Renders CampingItemFormContent without a dialog so the form is visible directly in the canvas.
- */
 function CampingItemFormContentWrapper({ initialForm, campingItemId }: { initialForm: CampingItemFormData; campingItemId: number | null })
 {
   const [form, setForm] = useState<CampingItemFormData>(initialForm)

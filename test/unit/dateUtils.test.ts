@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { toDateInputValue } from './dateUtils'
+import { toDateInputValue } from '@/lib/dateUtils'
 
 describe('toDateInputValue', () => 
 {

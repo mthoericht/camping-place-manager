@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { MemoryRouter } from 'react-router-dom'
 import { fn } from 'storybook/test'
-import BookingCard from './BookingCard'
-import { statusLabels, statusColors } from '../constants'
+import BookingCard from '@/features/bookings/components/BookingCard'
+import { statusLabels, statusColors } from '@/features/bookings/constants'
 import type { Booking } from '@/api/types'
 
 const mockBooking: Booking = {

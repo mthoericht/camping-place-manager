@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcBookingTotalPrice } from './bookingPrice'
+import { calcBookingTotalPrice } from '@shared/bookingPrice'
 
 describe('calcBookingTotalPrice', () => 
 {

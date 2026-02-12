@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
-import CampingItemCard from './CampingItemCard'
+import CampingItemCard from '@/features/campingItems/components/CampingItemCard'
 import type { CampingItem } from '@/api/types'
 
 const mockItem: CampingItem = {

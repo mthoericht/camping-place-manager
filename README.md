@@ -158,8 +158,8 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 ### Tests
 
 - `npm test` — All Vitest projects (unit, integration, Storybook)
-- `npm run test:unit` — Unit tests only (`shared/**/*.test.ts`, `src/**/*.test.{ts,tsx}`)
-- `npm run test:integration` — API integration tests only (`server/**/*.integration.test.ts`, uses `data/test.db`)
+- `npm run test:unit` — Unit tests only (`test/unit/**/*.test.{ts,tsx}`)
+- `npm run test:integration` — API integration tests only (`test/integration/**/*.integration.test.ts`, uses `data/test.db`)
 - `npm run test:watch` — Vitest watch mode
 - `npm run test:coverage` — Test coverage report
 - `npm run test:e2e` — E2E tests (Playwright)
@@ -170,14 +170,29 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 
 ### Storybook
 
-- `npm run storybook` — Start Storybook (component docs; stories in `src/components/ui/`, `src/components/layout/`, `src/features/*/components/`)
+- `npm run storybook` — Start Storybook (component docs; stories in `test/storybook/`, mirroring app structure)
 
 ## Project Structure
 
 ```
+├── test/                        # All tests and Storybook stories
+│   ├── unit/                    # Unit tests (Vitest, jsdom)
+│   │   ├── authSlice.test.ts
+│   │   ├── bookingsSlice.test.ts
+│   │   ├── bookingPrice.test.ts
+│   │   └── dateUtils.test.ts
+│   ├── integration/             # API integration tests (Vitest, frontend API + test DB)
+│   │   ├── auth.integration.test.ts
+│   │   ├── bookings.integration.test.ts
+│   │   ├── campingPlaces.integration.test.ts
+│   │   ├── campingItems.integration.test.ts
+│   │   └── analytics.integration.test.ts
+│   └── storybook/               # Storybook stories (mirror src: components/, features/)
+│       ├── components/ui/
+│       ├── components/layout/
+│       └── features/<domain>/components/
 ├── shared/                      # Code shared by frontend and backend
-│   ├── bookingPrice.ts          # calcBookingTotalPrice (nights × price)
-│   └── bookingPrice.test.ts     # Unit tests for bookingPrice
+│   └── bookingPrice.ts          # calcBookingTotalPrice (nights × price)
 ├── prisma/
 │   └── schema.prisma            # Database schema (SQLite)
 ├── data/
@@ -188,7 +203,8 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   └── src/
 │       ├── index.ts             # Server entry point
 │       ├── app.ts               # Express app setup
-│       ├── api.integration.test.ts  # API integration tests (Supertest, test DB)
+│       ├── test/
+│       │   └── integrationEnv.ts    # Integration test setup (Supertest adapter, clearTestDb)
 │       ├── prisma/
 │       │   └── client.ts        # Prisma client singleton
 │       ├── middleware/
@@ -230,7 +246,6 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── store.ts             # Redux store (configureStore)
 │   │   ├── hooks.ts             # Typed useAppDispatch / useAppSelector
 │   │   ├── bookingsSlice.ts
-│   │   ├── bookingsSlice.test.ts # Unit tests for bookings reducer
 │   │   ├── campingPlacesSlice.ts
 │   │   ├── campingItemsSlice.ts
 │   │   ├── analyticsSlice.ts
@@ -238,7 +253,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   └── uiSlice.ts           # UI state (theme, sidebar, mobile nav)
 │   ├── lib/
 │   │   ├── dateUtils.ts
-│   │   └── dateUtils.test.ts    # Unit tests for dateUtils
+│   │   └── utils.ts
 │   ├── hooks/
 │   │   ├── use-mobile.ts        # Mobile breakpoint (responsive)
 │   │   ├── useConfirmDelete.ts  # Confirm dialog + delete + toast
@@ -288,9 +303,6 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   │   ├── PageHeader.tsx   # Page title + description + optional actions
 │   │   │   └── EmptyState.tsx   # Empty list state (icon + message)
 │   │   └── ui/                  # shadcn/ui components (Radix-based)
-│   ├── lib/
-│   │   ├── utils.ts             # cn() utility
-│   │   └── dateUtils.ts         # toDateInputValue (ISO → YYYY-MM-DD)
 │   └── styles/
 │       ├── index.css            # CSS entry point
 │       ├── tailwind.css         # Tailwind v4 setup
@@ -315,7 +327,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 All components in `src/components/ui/` are part of the shared UI library and correspond to the **Figma design system** (Campingplatz-Manager Figma preset).
 
 - **Source**: [shadcn/ui](https://ui.shadcn.com/) (Radix UI primitives + Tailwind CSS), aligned with the Figma preset.
-- **Stack**: Radix UI (`@radix-ui/react-*`), `class-variance-authority` (cva), `cn()` from `@/lib/utils`.
+- **Stack**: Radix UI (`@radix-ui/react-*`), `class-variance-authority` (cva), `mergeClasses()` from `@/lib/utils`.
 - **Styling**: Theme and tokens from `src/styles/theme.css`; components use semantic classes (e.g. `bg-primary`, `text-popover-foreground`).
 
 When adding or changing UI elements, keep them consistent with the Figma design and this component set. See also `src/components/ui/README.md`.
@@ -354,7 +366,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 
 5. **Shared & lib**
    - `shared/`: Code used by both frontend and backend (e.g. `bookingPrice.ts` for total price calculation). Frontend resolves `@shared` via Vite/tsconfig to `./shared`.
-   - `src/lib/`: Frontend-only utilities (e.g. `dateUtils.ts` for `toDateInputValue`, `utils.ts` for `cn()`).
+   - `src/lib/`: Frontend-only utilities (e.g. `dateUtils.ts` for `toDateInputValue`, `utils.ts` for `mergeClasses()`).
 
 6. **Authentication** (`src/features/auth/`)
    - `LoginPage` and `SignupPage`: Standalone pages (no AppLayout) with Card-based forms

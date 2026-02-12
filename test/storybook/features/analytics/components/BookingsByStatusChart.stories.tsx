@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import type { ReactNode } from 'react'
-import BookingsByStatusChart from './BookingsByStatusChart'
+import BookingsByStatusChart from '@/features/analytics/components/BookingsByStatusChart'
 
 function ChartWrapper({ children }: { children: ReactNode })
 {

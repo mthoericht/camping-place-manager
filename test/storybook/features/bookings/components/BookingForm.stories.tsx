@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/dialog'
 import { calcBookingTotalPrice } from '@shared/bookingPrice'
-import BookingFormContent from './BookingFormContent'
+import BookingFormContent from '@/features/bookings/components/BookingFormContent'
 import type { BookingFormData, CampingPlace, CampingItem } from '@/api/types'
 
 const emptyForm: BookingFormData = {
@@ -54,11 +54,6 @@ function calcTotalPrice(start: string, end: string, place: CampingPlace | undefi
 
 const formContainerClass = 'max-w-3xl rounded-lg border bg-background p-6 shadow-lg'
 
-/**
- * Holds form state and provides it to BookingFormContent inside a FormDialog.
- * Needed because the form component is controlled (expects form/setForm) and stories
- * supply initial data via props rather than component args.
- */
 function BookingFormDialogWrapper({ initialForm, bookingId }: { initialForm: BookingFormData; bookingId: number | null })
 {
   const [form, setForm] = useState<BookingFormData>(initialForm)
@@ -108,10 +103,6 @@ function BookingFormDialogWrapper({ initialForm, bookingId }: { initialForm: Boo
   )
 }
 
-/**
- * Holds form state and syncs it when initialForm changes (e.g. from Storybook controls).
- * Renders BookingFormContent without a dialog so the form is visible directly in the canvas.
- */
 function BookingFormContentWrapper({ initialForm, bookingId }: { initialForm: BookingFormData; bookingId: number | null })
 {
   const [form, setForm] = useState<BookingFormData>(initialForm)

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
-import CampingPlaceCard from './CampingPlaceCard'
+import CampingPlaceCard from '@/features/campingPlaces/components/CampingPlaceCard'
 import type { CampingPlace } from '@/api/types'
 
 const mockPlace: CampingPlace = {

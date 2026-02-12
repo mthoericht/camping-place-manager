@@ -55,8 +55,7 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'jsdom',
-          include: ['src/**/*.test.{ts,tsx}', 'shared/**/*.test.ts'],
-          exclude: ['**/*.integration.test.{ts,tsx}'],
+          include: ['test/unit/**/*.test.{ts,tsx}'],
           setupFiles: ['vitest.setup.unit.ts'],
           globals: true
         }
@@ -71,7 +70,7 @@ export default defineConfig({
         test: {
           name: 'integration',
           environment: 'node',
-          include: ['src/api/**/*.integration.test.ts'],
+          include: ['test/integration/**/*.integration.test.ts'],
           setupFiles: ['vitest.setup.integration.ts'],
           globals: true,
           pool: 'forks',

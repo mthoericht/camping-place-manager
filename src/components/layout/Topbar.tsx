@@ -6,7 +6,7 @@ import { setMobileNavOpen, toggleTheme } from '@/store/uiSlice'
 import { logout } from '@/store/authSlice'
 import { useEffect } from 'react'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
-import { cn } from '@/lib/utils'
+import { mergeClasses } from '@/lib/utils'
 
 const navItems = [
   { to: '/bookings', label: 'Buchungen', icon: Calendar },
@@ -42,7 +42,7 @@ export default function Topbar()
           to={item.to}
           onClick={() => dispatch(setMobileNavOpen(false))}
           role="tab"
-          className={cn(
+          className={mergeClasses(
             'inline-flex h-[calc(100%-2px)] flex-1 items-center justify-center rounded-lg border px-3 py-1 text-sm font-medium whitespace-nowrap transition-colors',
             isActive(item.to)
               ? 'bg-card text-foreground border-input shadow-sm'
@@ -100,7 +100,7 @@ export default function Topbar()
                 key={item.to}
                 to={item.to}
                 onClick={() => dispatch(setMobileNavOpen(false))}
-                className={cn(
+                className={mergeClasses(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                   isActive(item.to)
                     ? 'bg-primary text-primary-foreground'

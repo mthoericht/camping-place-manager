@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { mergeClasses } from '@/lib/utils'
 
 interface EmptyStateProps {
   icon: ReactNode
@@ -11,7 +11,7 @@ export default function EmptyState({ icon, message, className }: EmptyStateProps
 {
   return (
     <div
-      className={cn(
+      className={mergeClasses(
         'flex flex-col items-center justify-center py-12 text-muted-foreground',
         className
       )}

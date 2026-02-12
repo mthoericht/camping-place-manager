@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Euro, Calendar, Tent, Package } from 'lucide-react'
-import StatCard from './StatCard'
+import StatCard from '@/features/analytics/components/StatCard'
 
 const meta = {
   title: 'Features/Analytics/StatCard',

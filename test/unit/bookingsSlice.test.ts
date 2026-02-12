@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import reducer, { fetchBookings, deleteBooking, fetchBookingStatusChanges, bookingsSelectors } from './bookingsSlice'
+import reducer, { fetchBookings, deleteBooking, fetchBookingStatusChanges, bookingsSelectors } from '@/store/bookingsSlice'
 import type { Booking, BookingStatusChange } from '@/api/types'
 
 const mockBooking = (overrides: Partial<Booking> = {}): Booking => ({

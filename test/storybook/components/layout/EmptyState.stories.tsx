@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Calendar, Package } from 'lucide-react'
-import EmptyState from './EmptyState'
+import EmptyState from '@/components/layout/EmptyState'
 
 const meta = {
   title: 'Layout/EmptyState',
