@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { useState, useCallback } from 'react'
+import type React from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormDialog } from '@/components/ui/dialog'
@@ -53,7 +54,12 @@ function calcTotalPrice(start: string, end: string, place: CampingPlace | undefi
 
 const formContainerClass = 'max-w-3xl rounded-lg border bg-background p-6 shadow-lg'
 
-function BookingFormDialogWrapper({ initialForm, editing }: { initialForm: BookingFormData; editing: { id: number } | null })
+/**
+ * Holds form state and provides it to BookingFormContent inside a FormDialog.
+ * Needed because the form component is controlled (expects form/setForm) and stories
+ * supply initial data via props rather than component args.
+ */
+function BookingFormDialogWrapper({ initialForm, bookingId }: { initialForm: BookingFormData; bookingId: number | null })
 {
   const [form, setForm] = useState<BookingFormData>(initialForm)
   const [open, setOpen] = useState(false)
@@ -83,7 +89,7 @@ function BookingFormDialogWrapper({ initialForm, editing }: { initialForm: Booki
       <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
       <FormDialog open={open} onOpenChange={(v) => (v ? openCreate() : setOpen(false))} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
         <BookingFormContent
-          editing={editing}
+          bookingId={bookingId}
           form={form}
           setForm={setForm}
           places={mockPlaces}
@@ -102,9 +108,14 @@ function BookingFormDialogWrapper({ initialForm, editing }: { initialForm: Booki
   )
 }
 
-function BookingFormContentWrapper({ initialForm, editing }: { initialForm: BookingFormData; editing: { id: number } | null })
+/**
+ * Holds form state and syncs it when initialForm changes (e.g. from Storybook controls).
+ * Renders BookingFormContent without a dialog so the form is visible directly in the canvas.
+ */
+function BookingFormContentWrapper({ initialForm, bookingId }: { initialForm: BookingFormData; bookingId: number | null })
 {
   const [form, setForm] = useState<BookingFormData>(initialForm)
+  useEffect(() => { setForm(initialForm) }, [initialForm])
   const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
   const totalItemSize = (form.bookingItems ?? []).reduce(
     (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
@@ -128,7 +139,7 @@ function BookingFormContentWrapper({ initialForm, editing }: { initialForm: Book
   return (
     <div className={formContainerClass}>
       <BookingFormContent
-        editing={editing}
+        bookingId={bookingId}
         form={form}
         setForm={setForm}
         places={mockPlaces}
@@ -155,21 +166,26 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+type FormStory = {
+  args?: Partial<BookingFormData>
+  render?: (args: Partial<BookingFormData>) => React.ReactElement
+  parameters?: Story['parameters']
+}
 
-export const Create: Story = {
-  render: () => <BookingFormDialogWrapper initialForm={emptyForm} editing={null} />,
-} as unknown as Story
+export const Create: FormStory = {
+  render: () => <BookingFormDialogWrapper initialForm={emptyForm} bookingId={null} />,
+}
 
-export const CreateContent: Story = {
-  render: () => <BookingFormContentWrapper initialForm={emptyForm} editing={null} />,
+export const CreateContent: FormStory = {
+  render: () => <BookingFormContentWrapper initialForm={emptyForm} bookingId={null} />,
   parameters: { docs: { description: { story: 'Formular-Inhalt direkt im Storybook-Container.' } } },
-} as unknown as Story
+}
 
 function BookingFormDialogEditWrapper()
 {
   const [form, setForm] = useState<BookingFormData>(emptyForm)
   const [open, setOpen] = useState(false)
-  const [editing, setEditing] = useState<{ id: number } | null>(null)
+  const [bookingId, setBookingId] = useState<number | null>(null)
   const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
   const totalItemSize = (form.bookingItems ?? []).reduce(
     (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
@@ -187,13 +203,13 @@ function BookingFormDialogEditWrapper()
   {
     setForm((f) => ({ ...f, bookingItems: (f.bookingItems ?? []).filter((_, i) => i !== index) }))
   }, [])
-  const openEdit = () => { setForm(filledForm); setEditing({ id: 1 }); setOpen(true) }
+  const openEdit = () => { setForm(filledForm); setBookingId(1); setOpen(true) }
   return (
     <>
       <Button onClick={openEdit}>Buchung bearbeiten</Button>
       <FormDialog open={open} onOpenChange={(v) => { if (!v) setOpen(false) }} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
         <BookingFormContent
-          editing={editing}
+          bookingId={bookingId}
           form={form}
           setForm={setForm}
           places={mockPlaces}
@@ -212,12 +228,28 @@ function BookingFormDialogEditWrapper()
   )
 }
 
-export const Edit: Story = {
+export const Edit: FormStory = {
   render: () => <BookingFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Buchung bearbeiten“ öffnet den Dialog mit ausgefüllten Buchungsdaten.' } } },
-} as unknown as Story
+}
 
-export const EditContent: Story = {
-  render: () => <BookingFormContentWrapper initialForm={filledForm} editing={{ id: 1 }} />,
-  parameters: { docs: { description: { story: 'Formular-Inhalt direkt im Storybook-Container.' } } },
-} as unknown as Story
+export const EditContent: FormStory = {
+  args: {
+    campingPlaceId: filledForm.campingPlaceId,
+    customerName: filledForm.customerName,
+    customerEmail: filledForm.customerEmail,
+    customerPhone: filledForm.customerPhone,
+    startDate: filledForm.startDate,
+    endDate: filledForm.endDate,
+    guests: filledForm.guests,
+    totalPrice: filledForm.totalPrice,
+    status: filledForm.status,
+    notes: filledForm.notes,
+  },
+  render: (args) =>
+  {
+    const initialForm: BookingFormData = { ...filledForm, ...args }
+    return <BookingFormContentWrapper initialForm={initialForm} bookingId={1} />
+  },
+  parameters: { docs: { description: { story: 'Formular-Inhalt mit über Controls änderbaren Ausgangsdaten.' } } },
+}

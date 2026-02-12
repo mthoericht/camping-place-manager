@@ -6,26 +6,27 @@ import { Switch } from '@/components/ui/switch'
 import type { CampingItemFormData } from '@/api/types'
 import { categories } from '../constants'
 
-export type ItemFormContentProps = {
-  editing: { id: number } | null
+export type CampingItemFormContentProps = {
+  /** Camping item id when editing, or null for create mode. */
+  campingItemId: number | null
   form: CampingItemFormData
   setForm: (f: CampingItemFormData) => void
   onSubmit: (e: React.FormEvent) => void
   onClose: () => void
 }
 
-export default function ItemFormContent({
-  editing,
+export default function CampingItemFormContent({
+  campingItemId,
   form,
   setForm,
   onSubmit,
   onClose,
-}: ItemFormContentProps)
+}: CampingItemFormContentProps)
 {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{editing ? 'Item bearbeiten' : 'Neues Item'}</h2>
+        <h2 className="text-lg font-semibold leading-none">{campingItemId != null ? 'Camping-Item bearbeiten' : 'Neues Camping-Item'}</h2>
         <p className="text-sm text-muted-foreground">Geben Sie die Details des Camping-Items ein</p>
       </div>
       <div className="grid gap-4 py-4">
@@ -57,7 +58,7 @@ export default function ItemFormContent({
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
-        <Button type="submit">{editing ? 'Aktualisieren' : 'Erstellen'}</Button>
+        <Button type="submit">{campingItemId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
   )

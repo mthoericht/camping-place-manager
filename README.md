@@ -234,18 +234,18 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   │       ├── BookingCard.tsx
 │   │   │       └── BookingFormContent.tsx
 │   │   ├── campingPlaces/
-│   │   │   ├── usePlaceCrud.ts
+│   │   │   ├── useCampingPlaceCrud.ts
 │   │   │   ├── CampingPlacesPage.tsx
 │   │   │   └── components/
-│   │   │       ├── PlaceCard.tsx
-│   │   │       └── PlaceFormContent.tsx
+│   │   │       ├── CampingPlaceCard.tsx
+│   │   │       └── CampingPlaceFormContent.tsx
 │   │   ├── campingItems/
 │   │   │   ├── constants.ts
-│   │   │   ├── useItemCrud.ts
+│   │   │   ├── useCampingItemCrud.ts
 │   │   │   ├── CampingItemsPage.tsx
 │   │   │   └── components/
-│   │   │       ├── ItemCard.tsx
-│   │   │       └── ItemFormContent.tsx
+│   │   │       ├── CampingItemCard.tsx
+│   │   │       └── CampingItemFormContent.tsx
 │   │   └── analytics/
 │   │       ├── AnalyticsPage.tsx
 │   │       └── components/
@@ -300,7 +300,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - One or more pages per feature (e.g. `BookingsPage`, `BookingDetailPage`)
    - Page components orchestrate state, hooks, and feature subcomponents
    - Feature UI lives in a `components/` subfolder: list cards (`*Card.tsx`), form content (`*FormContent.tsx`), analytics charts. Pages use `FormDialog` + `*FormContent`; the trigger button is rendered by the page (e.g. in `PageHeader`).
-   - Hooks and `constants.ts` in the feature root (e.g. `useBookingCrud`, `usePlaceCrud`, `useItemCrud`)
+   - Hooks and `constants.ts` in the feature root (e.g. `useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`)
    - Use layout components (`PageHeader`, `EmptyState`) and custom hooks
 
 2. **Redux Store** (`src/store/`)
@@ -377,7 +377,7 @@ User ← React Component ← Redux Store ← Response ← Express Route ← Cont
 3. **Create backend**: Service → Controller → Route, register in `routes/index.ts`
 4. **Add API module** (`src/api/<entity>.ts`) — Functions that call `api()` from `client.ts` for each endpoint
 5. **Create Redux slice** (`src/store/`) with Entity Adapter + Thunks that use the API module, register in `store.ts`
-6. **Create feature** (`src/features/<domain>/`): add page(s), optional feature CRUD hook (e.g. `usePlaceCrud`), and `components/` (e.g. `*Card.tsx`, `*FormContent.tsx`). Use `FormDialog` + `*FormContent` in the page; the trigger button is rendered by the page. Use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useCrud` or feature hook, `useOpenEditFromLocationState` where needed) and layout components (`PageHeader`, `EmptyState`)
+6. **Create feature** (`src/features/<domain>/`): add page(s), optional feature CRUD hook (e.g. `useCampingPlaceCrud`), and `components/` (e.g. `*Card.tsx`, `*FormContent.tsx`). Use `FormDialog` + `*FormContent` in the page; the trigger button is rendered by the page. Use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useCrud` or feature hook, `useOpenEditFromLocationState` where needed) and layout components (`PageHeader`, `EmptyState`)
 7. **Add route** in `src/app/routes.tsx` and navigation entry in `src/components/layout/Topbar.tsx`
 8. **Write tests** (Vitest for unit, Playwright for E2E)
 

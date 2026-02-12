@@ -74,7 +74,7 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 
 - **Logic: Store vs composables (hooks)**
   - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Optional: memoized selectors (e.g. `selectActivePlaces`) if the same derived list is used in many places.
-  - **Composables (hooks)**: Form state, dialog open/close, submit flow (dispatch + toast + close), and any derivation from form + store (e.g. `useBookingFormDerived`, `useBookingFormItems`). Entity-specific CRUD config (emptyForm, toForm, getPayload, validate) lives in a feature hook (e.g. `useBookingCrud`, `usePlaceCrud`, `useItemCrud`) so pages stay thin and only orchestrate hooks and UI.
+  - **Composables (hooks)**: Form state, dialog open/close, submit flow (dispatch + toast + close), and any derivation from form + store (e.g. `useBookingFormDerived`, `useBookingFormItems`). Entity-specific CRUD config (emptyForm, toForm, getPayload, validate) lives in a feature hook (e.g. `useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`) so pages stay thin and only orchestrate hooks and UI.
 
 ### Backend (`server/src/`)
 
@@ -91,9 +91,9 @@ Stories live next to components: `*.stories.tsx` in `src/components/ui/`, `src/c
 - **Shared code** (`shared/` at project root): Logic used by both frontend and backend (e.g. `bookingPrice.ts`). Backend imports via relative path; frontend via Vite/tsconfig alias `@shared` → `./shared`.
 - **Feature modules** (`src/features/<domain>/`): Page(s) and detail pages in the feature root; UI subcomponents (list cards `*Card.tsx`, form content `*FormContent.tsx`, charts, etc.) in a `components/` subfolder. Hooks and `constants.ts` stay in the root. Pages orchestrate hooks and UI.
 - **App-level components** (`src/components/`): Shared across the app. Use `layout/` for layout (e.g. `AppLayout`, `Topbar`, `PageHeader`, `EmptyState`) and `ui/` for reusable UI (shadcn/ui, Figma-aligned). See `src/components/ui/README.md`.
-- **Feature-level components** (`src/features/<domain>/components/`): UI used only in that feature (e.g. `BookingCard`, `PlaceFormContent`, `ItemFormContent`, analytics charts). Form dialogs: Pages use `FormDialog` (from `@/components/ui/dialog`) with `*FormContent` as children; the trigger button is rendered by the page. Do not put feature-specific components in `src/components/`.
+- **Feature-level components** (`src/features/<domain>/components/`): UI used only in that feature (e.g. `BookingCard`, `CampingPlaceFormContent`, `CampingItemFormContent`, analytics charts). Form dialogs: Pages use `FormDialog` (from `@/components/ui/dialog`) with `*FormContent` as children; the trigger button is rendered by the page. Form content components receive an entity id prop for edit vs create mode (`bookingId`, `campingPlaceId`, `campingItemId`; `null` = create). Do not put feature-specific components in `src/components/`.
 - **Hooks** in `src/hooks/`: `use-mobile`, `useConfirmDelete`, `useFetchWhenIdle`, `useFormDialog`, `useCrud` (CRUD dialog + form + submit for CRUD pages), `useOpenEditFromLocationState` (open edit from `location.state`, e.g. from detail page)
-- **Feature-level hooks** in `src/features/<domain>/`: CRUD config hooks (`useBookingCrud`, `usePlaceCrud`, `useItemCrud`) and form helpers when needed (e.g. `useBookingFormDerived`, `useBookingFormItems`)
+- **Feature-level hooks** in `src/features/<domain>/`: CRUD config hooks (`useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`) and form helpers when needed (e.g. `useBookingFormDerived`, `useBookingFormItems`)
 - **Frontend lib** in `src/lib/`: `utils.ts` (e.g. `cn()`), `dateUtils.ts` (e.g. `toDateInputValue` for date inputs)
 
 ## Code Style
@@ -145,6 +145,6 @@ Camping places and camping items cannot be deleted when active bookings (PENDING
 5. `server/src/routes/` — Route file, register in `routes/index.ts`
 6. `src/store/` — Slice with EntityAdapter + Thunks, register in `store.ts`
 7. `src/api/<entity>.ts` — API module (used by slice thunks)
-8. `src/features/<domain>/` — Feature page; add `*Card.tsx`, `*FormContent.tsx`, optional `constants.ts`/`utils.ts`, and a feature CRUD hook (e.g. `usePlaceCrud`, `useItemCrud`) so the page only orchestrates hooks. Use `FormDialog` + `*FormContent` in the page, `useCrud` or the feature hook, `useConfirmDelete`, `useFetchWhenIdle` (and `useOpenEditFromLocationState` if edit-from-detail is required).
+8. `src/features/<domain>/` — Feature page; add `*Card.tsx`, `*FormContent.tsx`, optional `constants.ts`/`utils.ts`, and a feature CRUD hook (e.g. `useCampingPlaceCrud`, `useCampingItemCrud`) so the page only orchestrates hooks. Use `FormDialog` + `*FormContent` in the page, `useCrud` or the feature hook, `useConfirmDelete`, `useFetchWhenIdle` (and `useOpenEditFromLocationState` if edit-from-detail is required).
 9. `src/app/routes.tsx` — Add route
 10. `src/components/layout/Topbar.tsx` — Add navigation entry

@@ -4,9 +4,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { FormDialog } from '@/components/ui/dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
-import ItemCard from './components/ItemCard'
-import ItemFormContent from './components/ItemFormContent'
-import { useItemCrud } from './useItemCrud'
+import CampingItemCard from './components/CampingItemCard'
+import CampingItemFormContent from './components/CampingItemFormContent'
+import { useCampingItemCrud } from './useCampingItemCrud'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useAppSelector } from '@/store/hooks'
@@ -17,10 +17,10 @@ export default function CampingItemsPage()
   const items = useAppSelector(campingItemsSelectors.selectAll)
   const status = useAppSelector((s) => s.campingItems.status)
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useItemCrud()
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingItemCrud()
   const handleDelete = useConfirmDelete(deleteCampingItem, {
-    confirmMessage: 'Item wirklich löschen?',
-    successMessage: 'Item gelöscht',
+    confirmMessage: 'Camping-Item wirklich löschen?',
+    successMessage: 'Camping-Item gelöscht',
     errorMessage: 'Fehler beim Löschen',
   })
 
@@ -29,17 +29,17 @@ export default function CampingItemsPage()
   return (
     <div className="space-y-6">
       <PageHeader title="Camping-Ausrüstung" description="Verwalten Sie verfügbare Camping-Items">
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Item</Button>
+        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Camping-Item</Button>
       </PageHeader>
       <FormDialog {...dialogProps}>
-        <ItemFormContent editing={editing} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
+        <CampingItemFormContent campingItemId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
       </FormDialog>
 
       {status === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => (
-          <ItemCard
+          <CampingItemCard
             key={item.id}
             item={item}
             onEdit={openEdit}

@@ -4,9 +4,9 @@ import { Card, CardContent } from '@/components/ui/card'
 import { FormDialog } from '@/components/ui/dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
-import PlaceCard from './components/PlaceCard'
-import PlaceFormContent from './components/PlaceFormContent'
-import { usePlaceCrud } from './usePlaceCrud'
+import CampingPlaceCard from './components/CampingPlaceCard'
+import CampingPlaceFormContent from './components/CampingPlaceFormContent'
+import { useCampingPlaceCrud } from './useCampingPlaceCrud'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useAppSelector } from '@/store/hooks'
@@ -17,7 +17,7 @@ export default function CampingPlacesPage()
   const places = useAppSelector(campingPlacesSelectors.selectAll)
   const status = useAppSelector((s) => s.campingPlaces.status)
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = usePlaceCrud()
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingPlaceCrud()
   const handleDelete = useConfirmDelete(deleteCampingPlace, {
     confirmMessage: 'Stellplatz wirklich löschen?',
     successMessage: 'Stellplatz gelöscht',
@@ -32,14 +32,14 @@ export default function CampingPlacesPage()
         <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neuer Stellplatz</Button>
       </PageHeader>
       <FormDialog {...dialogProps} contentClassName="max-w-2xl">
-        <PlaceFormContent editing={editing} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
+        <CampingPlaceFormContent campingPlaceId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
       </FormDialog>
 
       {status === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {places.map((place) => (
-          <PlaceCard
+          <CampingPlaceCard
             key={place.id}
             place={place}
             onEdit={openEdit}

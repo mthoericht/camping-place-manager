@@ -10,7 +10,7 @@ const emptyForm: CampingItemFormData = {
   isActive: true,
 }
 
-function itemToForm(item: CampingItem): CampingItemFormData
+function campingItemToForm(item: CampingItem): CampingItemFormData
 {
   return {
     name: item.name,
@@ -21,15 +21,15 @@ function itemToForm(item: CampingItem): CampingItemFormData
   }
 }
 
-export function useItemCrud()
+export function useCampingItemCrud()
 {
   return useCrud<CampingItemFormData, CampingItem>({
     emptyForm,
-    toForm: itemToForm,
+    toForm: campingItemToForm,
     createThunk: createCampingItem,
     updateThunk: updateCampingItem,
     getPayload: (f) => f,
-    successCreate: 'Item erstellt',
-    successUpdate: 'Item aktualisiert',
+    successCreate: 'Camping-Item erstellt',
+    successUpdate: 'Camping-Item aktualisiert',
   })
 }

@@ -12,7 +12,7 @@ const emptyForm: CampingPlaceFormData = {
   isActive: true,
 }
 
-function placeToForm(place: CampingPlace): CampingPlaceFormData
+function campingPlaceToForm(place: CampingPlace): CampingPlaceFormData
 {
   return {
     name: place.name,
@@ -25,11 +25,11 @@ function placeToForm(place: CampingPlace): CampingPlaceFormData
   }
 }
 
-export function usePlaceCrud()
+export function useCampingPlaceCrud()
 {
   return useCrud<CampingPlaceFormData, CampingPlace>({
     emptyForm,
-    toForm: placeToForm,
+    toForm: campingPlaceToForm,
     createThunk: createCampingPlace,
     updateThunk: updateCampingPlace,
     getPayload: (f) => f,

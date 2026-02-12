@@ -10,7 +10,8 @@ import type { BookingFormData, BookingStatus, CampingPlace, CampingItem } from '
 import { statusLabels } from '../constants'
 
 export type BookingFormContentProps = {
-  editing: { id: number } | null
+  /** Booking id when editing, or null for create mode. */
+  bookingId: number | null
   form: BookingFormData
   setForm: (f: BookingFormData) => void
   places: CampingPlace[]
@@ -26,7 +27,7 @@ export type BookingFormContentProps = {
 }
 
 export default function BookingFormContent({
-  editing,
+  bookingId,
   form,
   setForm,
   places,
@@ -44,8 +45,8 @@ export default function BookingFormContent({
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{editing ? 'Buchung bearbeiten' : 'Neue Buchung erstellen'}</h2>
-        <p className="text-sm text-muted-foreground">{editing ? 'Buchungsdetails anpassen' : 'Geben Sie die Buchungsdetails ein'}</p>
+        <h2 className="text-lg font-semibold leading-none">{bookingId != null ? 'Buchung bearbeiten' : 'Neue Buchung erstellen'}</h2>
+        <p className="text-sm text-muted-foreground">{bookingId != null ? 'Buchungsdetails anpassen' : 'Geben Sie die Buchungsdetails ein'}</p>
       </div>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-2 gap-4">
@@ -111,7 +112,7 @@ export default function BookingFormContent({
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
-        <Button type="submit" disabled={!!sizeError}>{editing ? 'Aktualisieren' : 'Erstellen'}</Button>
+        <Button type="submit" disabled={!!sizeError}>{bookingId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
   )

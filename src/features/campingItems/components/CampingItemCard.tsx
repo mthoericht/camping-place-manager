@@ -5,13 +5,13 @@ import { Badge } from '@/components/ui/badge'
 import type { CampingItem } from '@/api/types'
 import { categories, getCategoryColor } from '../constants'
 
-export type ItemCardProps = {
+export type CampingItemCardProps = {
   item: CampingItem
   onEdit: (item: CampingItem) => void
   onDelete: (id: number) => void
 }
 
-export default function ItemCard({ item, onEdit, onDelete }: ItemCardProps)
+export default function CampingItemCard({ item, onEdit, onDelete }: CampingItemCardProps)
 {
   return (
     <Card>

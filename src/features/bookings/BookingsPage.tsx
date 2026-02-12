@@ -46,7 +46,7 @@ export default function BookingsPage()
       </PageHeader>
       <FormDialog {...dialogProps} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
         <BookingFormContent
-          editing={editing}
+          bookingId={editing?.id ?? null}
           form={form}
           setForm={setForm}
           places={places}

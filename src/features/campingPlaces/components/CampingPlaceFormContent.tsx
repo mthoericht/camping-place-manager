@@ -5,26 +5,27 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import type { CampingPlaceFormData } from '@/api/types'
 
-export type PlaceFormContentProps = {
-  editing: { id: number } | null
+export type CampingPlaceFormContentProps = {
+  /** Camping place id when editing, or null for create mode. */
+  campingPlaceId: number | null
   form: CampingPlaceFormData
   setForm: (f: CampingPlaceFormData) => void
   onSubmit: (e: React.FormEvent) => void
   onClose: () => void
 }
 
-export default function PlaceFormContent({
-  editing,
+export default function CampingPlaceFormContent({
+  campingPlaceId,
   form,
   setForm,
   onSubmit,
   onClose,
-}: PlaceFormContentProps)
+}: CampingPlaceFormContentProps)
 {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{editing ? 'Stellplatz bearbeiten' : 'Neuer Stellplatz'}</h2>
+        <h2 className="text-lg font-semibold leading-none">{campingPlaceId != null ? 'Stellplatz bearbeiten' : 'Neuer Stellplatz'}</h2>
         <p className="text-sm text-muted-foreground">Geben Sie die Details des Stellplatzes ein</p>
       </div>
       <div className="grid gap-4 py-4">
@@ -63,7 +64,7 @@ export default function PlaceFormContent({
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
-        <Button type="submit">{editing ? 'Aktualisieren' : 'Erstellen'}</Button>
+        <Button type="submit">{campingPlaceId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
   )

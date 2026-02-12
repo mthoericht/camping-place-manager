@@ -4,13 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import type { CampingPlace } from '@/api/types'
 
-export type PlaceCardProps = {
+export type CampingPlaceCardProps = {
   place: CampingPlace
   onEdit: (place: CampingPlace) => void
   onDelete: (id: number) => void
 }
 
-export default function PlaceCard({ place, onEdit, onDelete }: PlaceCardProps)
+export default function CampingPlaceCard({ place, onEdit, onDelete }: CampingPlaceCardProps)
 {
   return (
     <Card>

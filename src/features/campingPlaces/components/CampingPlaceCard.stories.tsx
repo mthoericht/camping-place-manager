@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { fn } from 'storybook/test'
-import PlaceCard from './PlaceCard'
+import CampingPlaceCard from './CampingPlaceCard'
 import type { CampingPlace } from '@/api/types'
 
 const mockPlace: CampingPlace = {
@@ -17,15 +17,15 @@ const mockPlace: CampingPlace = {
 }
 
 const meta = {
-  title: 'Features/CampingPlaces/PlaceCard',
-  component: PlaceCard,
+  title: 'Features/CampingPlaces/CampingPlaceCard',
+  component: CampingPlaceCard,
   parameters: { layout: 'centered' },
   tags: ['autodocs'],
   args: {
     onEdit: fn(),
     onDelete: fn(),
   },
-} satisfies Meta<typeof PlaceCard>
+} satisfies Meta<typeof CampingPlaceCard>
 
 export default meta
 type Story = StoryObj<typeof meta>
