@@ -1,10 +1,11 @@
 import { Package, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FormDialog } from '@/components/ui/dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
 import ItemCard from './components/ItemCard'
-import ItemFormDialog from './components/ItemFormDialog'
+import ItemFormContent from './components/ItemFormContent'
 import { useItemCrud } from './useItemCrud'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
@@ -30,14 +31,9 @@ export default function CampingItemsPage()
       <PageHeader title="Camping-Ausrüstung" description="Verwalten Sie verfügbare Camping-Items">
         <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Item</Button>
       </PageHeader>
-      <ItemFormDialog
-        {...dialogProps}
-        editing={editing}
-        form={form}
-        setForm={setForm}
-        onSubmit={handleSubmit}
-        onClose={close}
-      />
+      <FormDialog {...dialogProps}>
+        <ItemFormContent editing={editing} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
+      </FormDialog>
 
       {status === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 

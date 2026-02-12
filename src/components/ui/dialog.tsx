@@ -134,6 +134,25 @@ function DialogDescription({
   );
 }
 
+function FormDialog({
+  open,
+  onOpenChange,
+  contentClassName,
+  children,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  contentClassName?: string
+  children: React.ReactNode
+})
+{
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={contentClassName}>{children}</DialogContent>
+    </Dialog>
+  )
+}
+
 export {
   Dialog,
   DialogClose,
@@ -145,4 +164,5 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+  FormDialog,
 };

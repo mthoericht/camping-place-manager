@@ -1,22 +1,29 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useAppDispatch } from '@/store/hooks'
-import type { AppDispatch } from '@/store/store'
 import { toast } from 'sonner'
 
-type Dispatchable = Parameters<AppDispatch>[0]
-type Unwrappable = { unwrap: () => Promise<unknown> }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DispatchableThunk<TArg> = (arg: TArg) => any
 
+/**
+ * Configuration for useCrud: form shape, entity mapping, thunks, validation, and success messages.
+ */
 export type UseCrudOptions<TForm, TEntity extends { id: number }, TPayload = TForm> = {
   emptyForm: TForm
   toForm: (entity: TEntity) => TForm
-  createThunk: (payload: TPayload) => unknown
-  updateThunk: (arg: { id: number; data: TPayload }) => unknown
+  createThunk: DispatchableThunk<TPayload>
+  updateThunk: DispatchableThunk<{ id: number; data: TPayload }>
   getPayload: (form: TForm) => TPayload
   successCreate: string
   successUpdate: string
   validate?: (form: TForm) => boolean
 }
 
+/**
+ * Manages CRUD dialog state, form data, and submit flow for create/edit.
+ * @param options - CRUD configuration (emptyForm, toForm, thunks, validation, messages)
+ * @returns Dialog state, form, handlers (openCreate, openEdit, close), dialogProps, handleSubmit
+ */
 export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>({
   emptyForm,
   toForm,
@@ -75,19 +82,19 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
       {
         if (editing)
         {
-          await ((dispatch(updateThunk({ id: editing.id, data: payload }) as Dispatchable)) as unknown as Unwrappable).unwrap()
+          await dispatch(updateThunk({ id: editing.id, data: payload })).unwrap()
           toast.success(successUpdate)
         }
         else
         {
-          await ((dispatch(createThunk(payload) as Dispatchable)) as unknown as Unwrappable).unwrap()
+          await dispatch(createThunk(payload)).unwrap()
           toast.success(successCreate)
         }
         close()
       }
       catch (err: unknown)
       {
-        toast.error(err instanceof Error ? err.message : 'Fehler')
+        toast.error(typeof err === 'string' ? err : err instanceof Error ? err.message : 'Fehler')
       }
     },
     [dispatch, form, editing, validate, getPayload, createThunk, updateThunk, successCreate, successUpdate, close]

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Calendar, Users, MapPin, Package, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,42 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchBookingById, changeBookingStatus, fetchBookingStatusChanges, bookingsSelectors } from '@/store/bookingsSlice'
 import { statusLabels, statusColors } from './constants'
-import { toast } from 'sonner'
-import type { BookingStatusChange } from '@/api/types'
-
-const EMPTY_STATUS_CHANGES: BookingStatusChange[] = []
+import { useBookingDetail } from './useBookingDetail'
+import type { BookingStatus } from '@/api/types'
 
 export default function BookingDetailPage() 
 {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
   const bookingId = Number(id)
-  const booking = useAppSelector((s) => bookingsSelectors.selectById(s, bookingId))
-  const statusChanges = useAppSelector((s) => s.bookings.statusChanges[bookingId] ?? EMPTY_STATUS_CHANGES)
-
-  useEffect(() => 
-  {
-    dispatch(fetchBookingById(bookingId))
-    dispatch(fetchBookingStatusChanges(bookingId))
-  }, [dispatch, bookingId])
-
-  const handleStatusChange = async (status: string) => 
-  {
-    try 
-    {
-      await dispatch(changeBookingStatus({ id: bookingId, status })).unwrap()
-      dispatch(fetchBookingStatusChanges(bookingId))
-      toast.success('Status aktualisiert')
-    }
-    catch (err: unknown) 
-    {
-      toast.error(err instanceof Error ? err.message : 'Fehler')
-    }
-  }
+  const { booking, statusChanges, handleStatusChange } = useBookingDetail(bookingId)
 
   if (!booking) return <p className="text-muted-foreground">Laden...</p>
 
@@ -88,7 +61,7 @@ export default function BookingDetailPage()
           <Card>
             <CardHeader><CardTitle>Status ändern</CardTitle></CardHeader>
             <CardContent>
-              <Select value={booking.status} onValueChange={handleStatusChange}>
+              <Select value={booking.status} onValueChange={(v) => handleStatusChange(v as BookingStatus)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>{Object.entries(statusLabels).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}</SelectContent>
               </Select>

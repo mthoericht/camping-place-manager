@@ -1,10 +1,11 @@
 import { Calendar, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { FormDialog } from '@/components/ui/dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import EmptyState from '@/components/layout/EmptyState'
 import BookingCard from './components/BookingCard'
-import BookingFormDialog from './components/BookingFormDialog'
+import BookingFormContent from './components/BookingFormContent'
 import { useConfirmDelete } from '@/hooks/useConfirmDelete'
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState'
@@ -43,22 +44,23 @@ export default function BookingsPage()
       <PageHeader title="Buchungen" description="Verwalten Sie alle Campingplatz-Buchungen">
         <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
       </PageHeader>
-      <BookingFormDialog
-        {...dialogProps}
-        editing={editing}
-        form={form}
-        setForm={setForm}
-        places={places}
-        items={items}
-        selectedPlace={selectedPlace}
-        totalItemSize={totalItemSize}
-        sizeError={sizeError}
-        addItem={addItem}
-        removeItem={removeItem}
-        onSubmit={handleSubmit}
-        onClose={close}
-        calcTotalPrice={calcTotalPrice}
-      />
+      <FormDialog {...dialogProps} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <BookingFormContent
+          editing={editing}
+          form={form}
+          setForm={setForm}
+          places={places}
+          items={items}
+          selectedPlace={selectedPlace}
+          totalItemSize={totalItemSize}
+          sizeError={sizeError}
+          addItem={addItem}
+          removeItem={removeItem}
+          onSubmit={handleSubmit}
+          onClose={close}
+          calcTotalPrice={calcTotalPrice}
+        />
+      </FormDialog>
 
       {bStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 

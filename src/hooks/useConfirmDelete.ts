@@ -3,14 +3,23 @@ import { useCallback } from 'react'
 import { useAppDispatch } from '@/store/hooks'
 import { toast } from 'sonner'
 
+/**
+ * Options for useConfirmDelete: confirmation prompt and toast messages.
+ */
 export interface UseConfirmDeleteOptions {
   confirmMessage: string
   successMessage?: string
   errorMessage?: string
 }
 
+/**
+ * Returns a callback that prompts for confirmation, dispatches the delete thunk, and shows success/error toasts.
+ * @param deleteThunk - Async thunk that accepts entity ID and returns the deleted ID
+ * @param options - Confirm message and optional success/error toast messages
+ * @returns Callback that accepts entity ID and performs the delete flow
+ */
 export function useConfirmDelete(
-  deleteThunk: AsyncThunk<number, number, object>,
+  deleteThunk: AsyncThunk<number, number, { rejectValue: string }>,
   options: UseConfirmDeleteOptions
 ) 
 {

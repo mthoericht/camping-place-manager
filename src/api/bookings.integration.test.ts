@@ -223,7 +223,7 @@ describe('API Integration: Bookings', () =>
       startDate: '2025-06-01',
       endDate: '2025-06-02'
     })
-    await expect(bookingsApi.changeBookingStatus(booking.id, '')).rejects.toMatchObject({ status: 400 })
+    await expect(bookingsApi.changeBookingStatus(booking.id, '' as never)).rejects.toMatchObject({ status: 400 })
   })
 
   it('fetchBookingStatusChanges returns changes in order', async () => 

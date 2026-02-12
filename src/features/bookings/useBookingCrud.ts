@@ -5,6 +5,7 @@ import { campingPlacesSelectors } from '@/store/campingPlacesSlice'
 import { campingItemsSelectors } from '@/store/campingItemsSlice'
 import { toDateInputValue } from '@/lib/dateUtils'
 import { calcBookingTotalPrice } from '@shared/bookingPrice'
+import { calcTotalItemSize } from './useBookingFormDerived'
 import type { BookingFormData, Booking, CampingPlace } from '@/api/types'
 
 const emptyForm: BookingFormData = {
@@ -44,6 +45,10 @@ function calcTotalPrice(startDate: string, endDate: string, place: CampingPlace 
   return calcBookingTotalPrice(startDate, endDate, place.price)
 }
 
+/**
+ * Provides CRUD operations for bookings with form validation, total price calculation, and size validation.
+ * @returns CRUD state and handlers plus places, items, and calcTotalPrice
+ */
 export function useBookingCrud()
 {
   const places = useAppSelector(campingPlacesSelectors.selectAll)
@@ -62,10 +67,7 @@ export function useBookingCrud()
     validate: (f) =>
     {
       const place = places.find((p) => p.id === f.campingPlaceId)
-      const total = (f.bookingItems ?? []).reduce(
-        (s, bi) => s + (items.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
-        0
-      )
+      const total = calcTotalItemSize(f.bookingItems ?? [], items)
       return !(place && total > place.size)
     },
   })

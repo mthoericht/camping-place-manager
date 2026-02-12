@@ -6,37 +6,74 @@ import type { LoadingStatus } from './types'
 
 const adapter = createEntityAdapter<CampingItem>()
 
-export const fetchCampingItems = createAsyncThunk('campingItems/fetchAll', () =>
-  campingItemsApi.fetchCampingItems()
-)
-
-export const createCampingItem = createAsyncThunk('campingItems/create', (data: CampingItemFormData) =>
-  campingItemsApi.createCampingItem(data)
-)
-
-export const updateCampingItem = createAsyncThunk('campingItems/update', ({ id, data }: { id: number; data: Partial<CampingItemFormData> }) =>
-  campingItemsApi.updateCampingItem(id, data)
-)
-
-export const deleteCampingItem = createAsyncThunk('campingItems/delete', async (id: number) => 
+export const fetchCampingItems = createAsyncThunk<CampingItem[], void, { rejectValue: string }>('campingItems/fetchAll', async (_, { rejectWithValue }) =>
 {
-  await campingItemsApi.deleteCampingItem(id)
-  return id
+  try
+  {
+    return await campingItemsApi.fetchCampingItems()
+  }
+  catch (e)
+  {
+    return rejectWithValue(e instanceof Error ? e.message : 'Fehler')
+  }
+})
+
+export const createCampingItem = createAsyncThunk<CampingItem, CampingItemFormData, { rejectValue: string }>('campingItems/create', async (data, { rejectWithValue }) =>
+{
+  try
+  {
+    return await campingItemsApi.createCampingItem(data)
+  }
+  catch (e)
+  {
+    return rejectWithValue(e instanceof Error ? e.message : 'Fehler')
+  }
+})
+
+export const updateCampingItem = createAsyncThunk<CampingItem, { id: number; data: Partial<CampingItemFormData> }, { rejectValue: string }>('campingItems/update', async ({ id, data }, { rejectWithValue }) =>
+{
+  try
+  {
+    return await campingItemsApi.updateCampingItem(id, data)
+  }
+  catch (e)
+  {
+    return rejectWithValue(e instanceof Error ? e.message : 'Fehler')
+  }
+})
+
+export const deleteCampingItem = createAsyncThunk<number, number, { rejectValue: string }>('campingItems/delete', async (id, { rejectWithValue }) =>
+{
+  try
+  {
+    await campingItemsApi.deleteCampingItem(id)
+    return id
+  }
+  catch (e)
+  {
+    return rejectWithValue(e instanceof Error ? e.message : 'Fehler')
+  }
 })
 
 const campingItemsSlice = createSlice({
   name: 'campingItems',
-  initialState: adapter.getInitialState({ status: 'idle' as LoadingStatus, error: null as string | null }),
+  initialState: adapter.getInitialState({ status: 'idle' as LoadingStatus, error: null as string | null, mutationError: null as string | null }),
   reducers: {},
   extraReducers: (builder) => 
   {
     builder
       .addCase(fetchCampingItems.pending, (state) => { state.status = 'loading'; state.error = null })
       .addCase(fetchCampingItems.fulfilled, (state, action) => { state.status = 'succeeded'; adapter.setAll(state, action.payload) })
-      .addCase(fetchCampingItems.rejected, (state, action) => { state.status = 'failed'; state.error = action.error.message ?? 'Fehler' })
+      .addCase(fetchCampingItems.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload ?? 'Fehler' })
+      .addCase(createCampingItem.pending, (state) => { state.mutationError = null })
       .addCase(createCampingItem.fulfilled, adapter.addOne)
+      .addCase(createCampingItem.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
+      .addCase(updateCampingItem.pending, (state) => { state.mutationError = null })
       .addCase(updateCampingItem.fulfilled, adapter.upsertOne)
+      .addCase(updateCampingItem.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
+      .addCase(deleteCampingItem.pending, (state) => { state.mutationError = null })
       .addCase(deleteCampingItem.fulfilled, adapter.removeOne)
+      .addCase(deleteCampingItem.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
   },
 })
 

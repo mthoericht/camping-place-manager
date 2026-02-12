@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useState, useCallback } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { FormDialog } from '@/components/ui/dialog'
 import { calcBookingTotalPrice } from '@shared/bookingPrice'
-import BookingFormDialog from './BookingFormDialog'
+import BookingFormContent from './BookingFormContent'
 import type { BookingFormData, CampingPlace, CampingItem } from '@/api/types'
 
 const emptyForm: BookingFormData = {
@@ -50,10 +51,12 @@ function calcTotalPrice(start: string, end: string, place: CampingPlace | undefi
   return calcBookingTotalPrice(start, end, place.price)
 }
 
-function BookingFormDialogWrapper({ initialForm, editing, defaultOpen }: { initialForm: BookingFormData; editing: { id: number } | null; defaultOpen?: boolean })
+const formContainerClass = 'max-w-3xl rounded-lg border bg-background p-6 shadow-lg'
+
+function BookingFormDialogWrapper({ initialForm, editing }: { initialForm: BookingFormData; editing: { id: number } | null })
 {
   const [form, setForm] = useState<BookingFormData>(initialForm)
-  const [open, setOpen] = useState(defaultOpen ?? false)
+  const [open, setOpen] = useState(false)
   const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
   const totalItemSize = (form.bookingItems ?? []).reduce(
     (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
@@ -77,12 +80,54 @@ function BookingFormDialogWrapper({ initialForm, editing, defaultOpen }: { initi
   const openCreate = () => { setForm(emptyForm); setOpen(true) }
   return (
     <>
-      {!defaultOpen && (
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
-      )}
-      <BookingFormDialog
-        open={open}
-        onOpenChange={(v) => (v ? openCreate() : setOpen(false))}
+      <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
+      <FormDialog open={open} onOpenChange={(v) => (v ? openCreate() : setOpen(false))} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <BookingFormContent
+          editing={editing}
+          form={form}
+          setForm={setForm}
+          places={mockPlaces}
+          items={mockItems}
+          selectedPlace={selectedPlace}
+          totalItemSize={totalItemSize}
+          sizeError={sizeError}
+          addItem={addItem}
+          removeItem={removeItem}
+          onSubmit={(e) => { e.preventDefault(); setOpen(false) }}
+          onClose={() => setOpen(false)}
+          calcTotalPrice={calcTotalPrice}
+        />
+      </FormDialog>
+    </>
+  )
+}
+
+function BookingFormContentWrapper({ initialForm, editing }: { initialForm: BookingFormData; editing: { id: number } | null })
+{
+  const [form, setForm] = useState<BookingFormData>(initialForm)
+  const selectedPlace = mockPlaces.find((p) => p.id === form.campingPlaceId)
+  const totalItemSize = (form.bookingItems ?? []).reduce(
+    (s, bi) => s + (mockItems.find((i) => i.id === bi.campingItemId)?.size ?? 0) * bi.quantity,
+    0
+  )
+  const sizeError = selectedPlace && totalItemSize > selectedPlace.size
+    ? `Gesamtfläche (${totalItemSize} m²) überschreitet Stellplatzgröße (${selectedPlace.size} m²)`
+    : null
+
+  const addItem = useCallback((itemId: string) =>
+  {
+    const id = Number(itemId)
+    setForm((f) => ({ ...f, bookingItems: [...(f.bookingItems ?? []), { campingItemId: id, quantity: 1 }] }))
+  }, [])
+
+  const removeItem = useCallback((index: number) =>
+  {
+    setForm((f) => ({ ...f, bookingItems: (f.bookingItems ?? []).filter((_, i) => i !== index) }))
+  }, [])
+
+  return (
+    <div className={formContainerClass}>
+      <BookingFormContent
         editing={editing}
         form={form}
         setForm={setForm}
@@ -93,26 +138,31 @@ function BookingFormDialogWrapper({ initialForm, editing, defaultOpen }: { initi
         sizeError={sizeError}
         addItem={addItem}
         removeItem={removeItem}
-        onSubmit={(e) => { e.preventDefault(); setOpen(false) }}
-        onClose={() => setOpen(false)}
+        onSubmit={(e) => e.preventDefault()}
+        onClose={() => undefined}
         calcTotalPrice={calcTotalPrice}
       />
-    </>
+    </div>
   )
 }
 
 const meta = {
-  title: 'Features/Bookings/BookingFormDialog',
-  component: BookingFormDialog,
+  title: 'Features/Bookings/BookingForm',
+  component: BookingFormContent,
   parameters: { layout: 'centered' },
   tags: ['autodocs'],
-} satisfies Meta<typeof BookingFormDialog>
+} satisfies Meta<typeof BookingFormContent>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
 export const Create: Story = {
   render: () => <BookingFormDialogWrapper initialForm={emptyForm} editing={null} />,
+} as unknown as Story
+
+export const CreateContent: Story = {
+  render: () => <BookingFormContentWrapper initialForm={emptyForm} editing={null} />,
+  parameters: { docs: { description: { story: 'Formular-Inhalt direkt im Storybook-Container.' } } },
 } as unknown as Story
 
 function BookingFormDialogEditWrapper()
@@ -141,23 +191,23 @@ function BookingFormDialogEditWrapper()
   return (
     <>
       <Button onClick={openEdit}>Buchung bearbeiten</Button>
-      <BookingFormDialog
-        open={open}
-        onOpenChange={(v) => { if (!v) setOpen(false) }}
-        editing={editing}
-        form={form}
-        setForm={setForm}
-        places={mockPlaces}
-        items={mockItems}
-        selectedPlace={selectedPlace}
-        totalItemSize={totalItemSize}
-        sizeError={sizeError}
-        addItem={addItem}
-        removeItem={removeItem}
-        onSubmit={(e) => { e.preventDefault(); setOpen(false) }}
-        onClose={() => setOpen(false)}
-        calcTotalPrice={calcTotalPrice}
-      />
+      <FormDialog open={open} onOpenChange={(v) => { if (!v) setOpen(false) }} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <BookingFormContent
+          editing={editing}
+          form={form}
+          setForm={setForm}
+          places={mockPlaces}
+          items={mockItems}
+          selectedPlace={selectedPlace}
+          totalItemSize={totalItemSize}
+          sizeError={sizeError}
+          addItem={addItem}
+          removeItem={removeItem}
+          onSubmit={(e) => { e.preventDefault(); setOpen(false) }}
+          onClose={() => setOpen(false)}
+          calcTotalPrice={calcTotalPrice}
+        />
+      </FormDialog>
     </>
   )
 }
@@ -165,4 +215,9 @@ function BookingFormDialogEditWrapper()
 export const Edit: Story = {
   render: () => <BookingFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Buchung bearbeiten“ öffnet den Dialog mit ausgefüllten Buchungsdaten.' } } },
+} as unknown as Story
+
+export const EditContent: Story = {
+  render: () => <BookingFormContentWrapper initialForm={filledForm} editing={{ id: 1 }} />,
+  parameters: { docs: { description: { story: 'Formular-Inhalt direkt im Storybook-Container.' } } },
 } as unknown as Story

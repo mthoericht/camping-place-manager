@@ -1,17 +1,25 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useAppDispatch } from '@/store/hooks'
 import type { LoadingStatus } from '@/store/types'
 
+/**
+ * Dispatches the given thunk when the loading status becomes idle.
+ * @param thunk - Redux thunk to dispatch
+ * @param status - Current loading status; thunk runs when this is 'idle'
+ */
 export function useFetchWhenIdle(
-  getFetchAction: () => unknown,
+  thunk: () => unknown,
   status: LoadingStatus
-) 
+)
 {
   const dispatch = useAppDispatch()
+  const thunkRef = useRef(thunk)
 
-  useEffect(() => 
+  useEffect(() => { thunkRef.current = thunk })
+
+  useEffect(() =>
   {
     if (status === 'idle')
-      dispatch(getFetchAction() as Parameters<ReturnType<typeof useAppDispatch>>[0])
-  }, [dispatch, getFetchAction, status])
+      dispatch(thunkRef.current() as Parameters<ReturnType<typeof useAppDispatch>>[0])
+  }, [dispatch, status])
 }
