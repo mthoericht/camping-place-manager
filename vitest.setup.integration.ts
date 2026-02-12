@@ -12,3 +12,6 @@ execSync('npx prisma db push', {
   stdio: 'pipe',
   env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL }
 })
+
+const { installIntegrationFetch } = await import('./server/src/test/integrationEnv')
+installIntegrationFetch()

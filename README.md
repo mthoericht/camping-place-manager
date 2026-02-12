@@ -27,7 +27,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - **ORM**: Prisma
 - **Authentication**: JWT (jsonwebtoken), bcrypt (bcryptjs)
 - **Unit Tests**: Vitest (jsdom, `@testing-library/jest-dom`)
-- **Integration Tests**: Vitest + Supertest (API gegen Express, Test-DB `data/test.db`)
+- **Integration Tests**: Vitest (frontend API only, no server imports; test API `/api/test/clear-db`, `/api/test/login`; Test-DB `data/test.db`)
 - **E2E Tests**: Playwright
 
 ## Quick Start
@@ -166,7 +166,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 - `npm run test:e2e:ui` — E2E tests with Playwright UI
 - `npm run test:e2e:install` — Install Playwright browsers
 
-**Test database:** Integration tests use a separate SQLite file `data/test.db`. The setup (`vitest.setup.integration.ts`) sets `DATABASE_URL` to this file before any server code runs, so the development database (`data/dev.db`) is **never modified**. Before each integration test, the test DB is cleared so tests are isolated. Test output directories (`test-results`, `playwright-report`, `blob-report`, `coverage`) are in `.gitignore`.
+**Test database:** Integration tests use a separate SQLite file `data/test.db`. The setup (`vitest.setup.integration.ts`) sets `DATABASE_URL` to this file, runs `prisma db push`, and installs the Supertest fetch adapter; test files use `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`) which call the test API (`POST /api/test/clear-db`, `POST /api/test/login`), so the development database (`data/dev.db`) is **never modified**. **E2E tests (Playwright)** use the same `data/test.db`: `globalSetup` (`test/e2e/globalSetup.ts`) runs `prisma db push` and seeds a test user (`e2e@test.de` / `test1234`); the `webServer` is started with `DATABASE_URL` pointing to the test DB. The auth setup (`test/e2e/0-auth.setup.ts`) runs first in the single Playwright project and saves auth state to `test/e2e/.auth/user.json`. **Vor `npm run test:e2e` bitte `npm run dev` beenden**, damit der E2E-Server auf Port 5173 starten kann. Test output directories (`test-results`, `playwright-report`, `blob-report`, `coverage`, `test/e2e/.auth`) are in `.gitignore`.
 
 ### Storybook
 
@@ -181,12 +181,21 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── bookingsSlice.test.ts
 │   │   ├── bookingPrice.test.ts
 │   │   └── dateUtils.test.ts
-│   ├── integration/             # API integration tests (Vitest, frontend API + test DB)
+│   ├── integration/             # API integration tests (Vitest, frontend API + test DB, no server imports)
+│   │   ├── helpers.ts           # clearDb(), loginTestUser() via POST /api/test/clear-db, /api/test/login
 │   │   ├── auth.integration.test.ts
 │   │   ├── bookings.integration.test.ts
 │   │   ├── campingPlaces.integration.test.ts
 │   │   ├── campingItems.integration.test.ts
 │   │   └── analytics.integration.test.ts
+│   ├── e2e/                     # E2E tests (Playwright, single project)
+│   │   ├── globalSetup.ts       # DATABASE_URL, prisma db push, seedE2e
+│   │   ├── 0-auth.setup.ts      # Login and save auth state (runs first)
+│   │   ├── authApi.ts           # getE2eAuthToken for setup
+│   │   ├── auth.spec.ts
+│   │   ├── analytics.spec.ts
+│   │   ├── bookings.spec.ts
+│   │   └── camping-places.spec.ts
 │   └── storybook/               # Storybook stories (mirror src: components/, features/)
 │       ├── components/ui/
 │       ├── components/layout/
@@ -204,14 +213,16 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │       ├── index.ts             # Server entry point
 │       ├── app.ts               # Express app setup
 │       ├── test/
-│       │   └── integrationEnv.ts    # Integration test setup (Supertest adapter, clearTestDb)
+│       │   ├── clearTestDb.ts      # Clear test DB (used by test routes)
+│       │   └── integrationEnv.ts   # installIntegrationFetch() for Vitest integration setup
 │       ├── prisma/
 │       │   └── client.ts        # Prisma client singleton
 │       ├── middleware/
 │       │   ├── error.middleware.ts
 │       │   ├── auth.middleware.ts
 │       ├── routes/
-│       │   ├── index.ts         # Route registry
+│       │   ├── index.ts         # Route registry (+ test.routes when DATABASE_URL contains test.db)
+│       │   ├── test.routes.ts   # Test-only: POST /api/test/clear-db, /api/test/login
 │       │   ├── campingPlaces.routes.ts
 │       │   ├── campingItems.routes.ts
 │       │   ├── bookings.routes.ts
@@ -310,7 +321,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │       └── fonts.css
 ├── .env                         # Environment variables
 ├── vitest.setup.unit.ts         # Unit test setup (jsdom, @testing-library/jest-dom)
-├── vitest.setup.integration.ts  # Integration setup (DATABASE_URL=test.db, prisma db push)
+├── vitest.setup.integration.ts  # Integration setup (DATABASE_URL=test.db, prisma db push, installIntegrationFetch)
 ├── index.html                   # HTML entry point (favicon: tent icon)
 ├── public/
 │   └── favicon.svg              # Tent icon favicon

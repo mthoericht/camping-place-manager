@@ -1,22 +1,12 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import * as campingPlacesApi from '@/api/campingPlaces'
 import * as bookingsApi from '@/api/bookings'
 import * as analyticsApi from '@/api/analytics'
+import { clearDb, loginTestUser } from './helpers'
 
-let clearDb: () => Promise<void>
-let loginTestUser: () => Promise<string>
-
-beforeAll(async () => 
+describe('API Integration: Analytics', () =>
 {
-  const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = await setupIntegrationTest()
-  clearDb = env.clearDb
-  loginTestUser = env.loginTestUser
-})
-
-describe('API Integration: Analytics', () => 
-{
-  beforeEach(async () => 
+  beforeEach(async () =>
   {
     await clearDb()
     await loginTestUser()

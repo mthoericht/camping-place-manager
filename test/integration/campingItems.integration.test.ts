@@ -1,19 +1,9 @@
-import { describe, it, expect, beforeEach, beforeAll } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { ApiError } from '@/api/client'
 import * as campingPlacesApi from '@/api/campingPlaces'
 import * as campingItemsApi from '@/api/campingItems'
 import * as bookingsApi from '@/api/bookings'
-
-let clearDb: () => Promise<void>
-let loginTestUser: () => Promise<string>
-
-beforeAll(async () => 
-{
-  const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = await setupIntegrationTest()
-  clearDb = env.clearDb
-  loginTestUser = env.loginTestUser
-})
+import { clearDb, loginTestUser } from './helpers'
 
 describe('API Integration: Camping-Items', () => 
 {

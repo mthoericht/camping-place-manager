@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../app'
-import prisma from '../prisma/client'
+import { clearTestDb } from './clearTestDb'
 
 /**
  * Returns a fetch-like function that forwards HTTP requests to the Express app
@@ -81,20 +81,7 @@ function getSupertestAgent(app: ReturnType<typeof createApp>): SupertestAgent
   return request(app) as unknown as SupertestAgent
 }
 
-/**
- * Clears all data in the test database so integration tests start from a
- * clean state. Deletes in dependency order: booking items, status changes,
- * bookings, camping places, camping items.
- */
-export async function clearTestDb(): Promise<void>
-{
-  await prisma.bookingItem.deleteMany()
-  await prisma.bookingStatusChange.deleteMany()
-  await prisma.booking.deleteMany()
-  await prisma.campingPlace.deleteMany()
-  await prisma.campingItem.deleteMany()
-  await prisma.employee.deleteMany()
-}
+export { clearTestDb } from './clearTestDb'
 
 /**
  * Creates a test user via the auth service and stubs `localStorage` so the
@@ -123,16 +110,13 @@ export async function loginTestUser(): Promise<string>
 }
 
 /**
- * Configures the environment for API integration tests: creates the Express app,
- * installs a fetch adapter that forwards to the app via Supertest, creates a
- * test user for JWT auth, and returns helper functions for test lifecycle.
- * Call once in beforeAll.
- * @returns Object with clearDb and loginTestUser for test lifecycle
+ * Installs the fetch adapter for integration tests so that all fetch() calls
+ * go to the Express app via Supertest. Call from vitest.setup.integration.ts
+ * so test files never need to import from server. Test files use the test API
+ * (POST /api/test/clear-db, POST /api/test/login) for lifecycle.
  */
-export async function setupIntegrationTest(): Promise<{ clearDb: () => Promise<void>; loginTestUser: () => Promise<string> }>
+export function installIntegrationFetch(): void
 {
   const app = createApp()
   vi.stubGlobal('fetch', createFetchAdapter(app))
-  await loginTestUser()
-  return { clearDb: clearTestDb, loginTestUser }
 }

@@ -1,15 +1,8 @@
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import * as authApi from '@/api/auth'
+import { clearDb } from './helpers'
 
-let clearDb: () => Promise<void>
 let authToken: string | null = null
-
-beforeAll(async () =>
-{
-  const { setupIntegrationTest } = await import('../../server/src/test/integrationEnv')
-  const env = await setupIntegrationTest()
-  clearDb = env.clearDb
-})
 
 beforeEach(async () =>
 {

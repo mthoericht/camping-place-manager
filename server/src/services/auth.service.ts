@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import prisma from '../prisma/client'
 import { HttpError } from '../middleware/error.middleware'
 
-const JWT_SECRET = process.env.JWT_SECRET || (() => 
+const JWT_SECRET = process.env.JWT_SECRET || (() =>
 {
   if (process.env.NODE_ENV === 'production')
     throw new Error('JWT_SECRET muss in Produktion gesetzt sein.')
@@ -11,8 +11,17 @@ const JWT_SECRET = process.env.JWT_SECRET || (() =>
 })()
 const JWT_EXPIRES_IN = '7d'
 
+const E2E_TEST_EMAIL = 'e2e@test.de'
+
+function rejectTestCredentialsInProduction(email: string): void
+{
+  if (process.env.NODE_ENV === 'production' && email === E2E_TEST_EMAIL)
+    throw new HttpError(401, 'Ungültige E-Mail oder Passwort.')
+}
+
 export async function signup(data: { email: string; fullName: string; password: string })
 {
+  rejectTestCredentialsInProduction(data.email)
   const existing = await prisma.employee.findUnique({ where: { email: data.email } })
   if (existing) throw new HttpError(409, 'E-Mail wird bereits verwendet.')
 
@@ -27,6 +36,7 @@ export async function signup(data: { email: string; fullName: string; password: 
 
 export async function login(data: { email: string; password: string })
 {
+  rejectTestCredentialsInProduction(data.email)
   const employee = await prisma.employee.findUnique({ where: { email: data.email } })
   if (!employee) throw new HttpError(401, 'Ungültige E-Mail oder Passwort.')
 

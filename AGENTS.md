@@ -43,10 +43,11 @@ npm run test:e2e         # Playwright (E2E tests)
 ```
 
 - **Unit tests**: `test/unit/**/*.test.{ts,tsx}` — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests.
-- **Integration tests**: `test/integration/**/*.integration.test.ts` — Vitest, node. Use only the **frontend API modules** and a backend setup function; no direct imports from Express/Prisma in test files. The backend provides `server/src/test/integrationEnv.ts`: `setupIntegrationTest()` (installs Supertest adapter as `fetch`) and `clearTestDb()` (clears the test DB). Test files call `setupIntegrationTest()` in `beforeAll` and `clearDb()` in `beforeEach`. Setup: `vitest.setup.integration.ts`.
+- **Integration tests**: `test/integration/**/*.integration.test.ts` — Vitest, node. Use only the **frontend API modules**; test files must **not** import from the server. Lifecycle (DB clear, test user login) is done via **test API endpoints** (`POST /api/test/clear-db`, `POST /api/test/login`) called from `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`). The Supertest fetch adapter is installed once in `vitest.setup.integration.ts` (calls `installIntegrationFetch()` from `server/src/test/integrationEnv.ts`). Setup: `vitest.setup.integration.ts`.
 - **Test DB**: Integration tests use **only** `data/test.db`. `DATABASE_URL` is set to `file:…/data/test.db` in the integration setup **before** any server code/Prisma is loaded; `.env` is not loaded during tests. The existing database (e.g. `data/dev.db`) is **never modified**.
-- **DB cleanup**: Before each test, the test DB is cleared via the backend-provided `clearTestDb()` function (BookingItem, BookingStatusChange, Booking, CampingPlace, CampingItem, Employee).
-- **Test output in .gitignore**: `test-results`, `playwright-report`, `blob-report`, `coverage` are not versioned.
+- **DB cleanup**: Before each test, the test DB is cleared via `POST /api/test/clear-db` (test routes are only mounted when `DATABASE_URL` contains `test.db`).
+- **E2E tests**: `test/e2e/**/*.spec.ts` and `test/e2e/0-auth.setup.ts` — Playwright (single project so UI shows all tests). Use **only** `data/test.db`: `test/e2e/globalSetup.ts` sets `DATABASE_URL`, runs `prisma db push`, and seeds one user (`e2e@test.de` / `test1234`) via `server/src/test/seedE2e.ts`. The Playwright `webServer` is started with `DATABASE_URL` pointing to the test DB. Auth state is saved in `test/e2e/.auth/user.json` by the `0-auth.setup.ts` test (runs first in the single project).
+- **Test output in .gitignore**: `test-results`, `playwright-report`, `blob-report`, `coverage`, `test/e2e/.auth` are not versioned.
 
 ### Storybook
 
@@ -116,8 +117,11 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `src/api/types.ts` | All TypeScript interfaces |
 | `src/api/client.ts` | Fetch wrapper (api, ApiError), used by all API modules; attaches JWT token |
 | `src/api/auth.ts` | Auth API module (login, signup, getMe) |
-| `test/integration/*.integration.test.ts` | API integration tests per domain (auth, campingPlaces, campingItems, bookings, analytics) |
-| `server/src/test/integrationEnv.ts` | Backend: integration test setup (Express, Prisma, Supertest adapter, clearTestDb) |
+| `test/integration/*.integration.test.ts` | API integration tests per domain (auth, campingPlaces, campingItems, bookings, analytics); use `./helpers` (clearDb, loginTestUser), no server imports |
+| `test/integration/helpers.ts` | clearDb() and loginTestUser() via POST /api/test/clear-db and /api/test/login |
+| `server/src/test/clearTestDb.ts` | Clears test DB (Employee, CampingItem, CampingPlace, Booking, etc.); used by test routes and integrationEnv |
+| `server/src/test/integrationEnv.ts` | Backend: installIntegrationFetch() (Supertest adapter as global fetch); used by vitest.setup.integration.ts only |
+| `server/src/routes/test.routes.ts` | Test-only routes (clear-db, login) when DATABASE_URL contains test.db |
 | `server/src/services/auth.service.ts` | Auth service (signup, login, getMe, verifyToken; bcrypt + JWT) |
 | `server/src/middleware/auth.middleware.ts` | JWT auth middleware (requireAuth, AuthRequest) |
 | `src/store/store.ts` | Redux store configuration |
@@ -135,7 +139,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `server/src/app.ts` | Express app setup |
 | `server/src/routes/index.ts` | API route registry (auth routes public, all others behind requireAuth) |
 | `vitest.setup.unit.ts` | Unit test setup (jsdom, jest-dom) |
-| `vitest.setup.integration.ts` | Integration setup (DATABASE_URL=test.db, prisma db push) |
+| `vitest.setup.integration.ts` | Integration setup (DATABASE_URL=test.db, prisma db push, installIntegrationFetch) |
 | `test/unit/bookingPrice.test.ts` | Unit tests for calcBookingTotalPrice |
 | `test/unit/dateUtils.test.ts` | Unit tests for toDateInputValue |
 | `test/unit/bookingsSlice.test.ts` | Unit tests for bookings reducer |

@@ -38,3 +38,4 @@ test-results
 playwright-report
 blob-report
 coverage
+test/e2e/.auth
