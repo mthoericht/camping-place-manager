@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import reducer, { fetchBookings, deleteBooking, fetchBookingStatusChanges, bookingsSelectors } from '@/store/bookingsSlice'
 import { receiveCampingPlaceFromWebSocket } from '@/store/campingPlacesSlice'
 import { receiveCampingItemFromWebSocket } from '@/store/campingItemsSlice'
+import type { RootState } from '@/store/store'
 import type { Booking, BookingStatusChange, CampingPlace, CampingItem, BookingItemData } from '@/api/types'
 
 const mockCampingPlace = (overrides: Partial<CampingPlace> = {}): CampingPlace => ({
@@ -53,7 +54,7 @@ describe('bookingsSlice', () =>
     const list = [mockBooking({ id: 1 }), mockBooking({ id: 2 })]
     const state = reducer(undefined, fetchBookings.fulfilled(list, '', undefined))
     expect(state.status).toBe('succeeded')
-    expect(bookingsSelectors.selectIds({ bookings: state } as never)).toEqual([1, 2])
+    expect(bookingsSelectors.selectIds({ bookings: state } as RootState)).toEqual([1, 2])
   })
 
   it('removes booking and its statusChanges on deleteBooking.fulfilled', () => 
@@ -63,7 +64,7 @@ describe('bookingsSlice', () =>
       statusChanges: { 1: [{ id: 1, bookingId: 1, status: 'PENDING', changedAt: '' }] as BookingStatusChange[] }
     }
     const state = reducer(withStatusChanges, deleteBooking.fulfilled(1, '', 1))
-    expect(bookingsSelectors.selectById({ bookings: state } as never, 1)).toBeUndefined()
+    expect(bookingsSelectors.selectById({ bookings: state } as RootState, 1)).toBeUndefined()
     expect(state.statusChanges[1]).toBeUndefined()
   })
 
@@ -82,7 +83,7 @@ describe('bookingsSlice', () =>
     const booking = mockBooking({ campingPlaceId: 1, campingPlace: mockCampingPlace({ id: 1, name: 'Old Name' }) })
     const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
     const state = reducer(initial, receiveCampingPlaceFromWebSocket(mockCampingPlace({ id: 1, name: 'New Name' })))
-    const updated = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    const updated = bookingsSelectors.selectById({ bookings: state } as RootState, 1)
     expect(updated?.campingPlace.name).toBe('New Name')
   })
 
@@ -91,7 +92,7 @@ describe('bookingsSlice', () =>
     const booking = mockBooking({ campingPlaceId: 1, campingPlace: mockCampingPlace({ id: 1, name: 'Original' }) })
     const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
     const state = reducer(initial, receiveCampingPlaceFromWebSocket(mockCampingPlace({ id: 99, name: 'Other' })))
-    const unchanged = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    const unchanged = bookingsSelectors.selectById({ bookings: state } as RootState, 1)
     expect(unchanged?.campingPlace.name).toBe('Original')
   })
 
@@ -103,7 +104,7 @@ describe('bookingsSlice', () =>
     })
     const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
     const state = reducer(initial, receiveCampingItemFromWebSocket(mockCampingItem({ id: 5, name: 'Updated Item' })))
-    const updated = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    const updated = bookingsSelectors.selectById({ bookings: state } as RootState, 1)
     expect(updated?.bookingItems[0].campingItem.name).toBe('Updated Item')
   })
 
@@ -115,7 +116,7 @@ describe('bookingsSlice', () =>
     })
     const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
     const state = reducer(initial, receiveCampingItemFromWebSocket(mockCampingItem({ id: 99, name: 'Other Item' })))
-    const unchanged = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    const unchanged = bookingsSelectors.selectById({ bookings: state } as RootState, 1)
     expect(unchanged?.bookingItems[0].campingItem.name).toBe('Original Item')
   })
 })

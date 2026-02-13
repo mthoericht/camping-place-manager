@@ -4,6 +4,8 @@ import type { CampingPlace, CampingPlaceFormData } from '@/api/types'
 import type { RootState } from './store'
 import type { LoadingStatus } from './types'
 
+type UpdateCampingPlaceArg = { id: number; data: Partial<CampingPlaceFormData> };
+
 const campingPlaces = createEntityAdapter<CampingPlace>()
 
 export const fetchCampingPlaces = createAsyncThunk<CampingPlace[], void, { rejectValue: string }>('campingPlaces/fetchAll', async (_, { rejectWithValue }) =>
@@ -42,7 +44,7 @@ export const createCampingPlace = createAsyncThunk<CampingPlace, CampingPlaceFor
   }
 })
 
-export const updateCampingPlace = createAsyncThunk<CampingPlace, { id: number; data: Partial<CampingPlaceFormData> }, { rejectValue: string }>('campingPlaces/update', async ({ id, data }, { rejectWithValue }) =>
+export const updateCampingPlace = createAsyncThunk<CampingPlace, UpdateCampingPlaceArg, { rejectValue: string }>('campingPlaces/update', async ({ id, data }, { rejectWithValue }) =>
 {
   try
   {
