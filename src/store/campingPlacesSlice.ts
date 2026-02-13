@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit'
 import * as campingPlacesApi from '@/api/campingPlaces'
 import type { CampingPlace, CampingPlaceFormData } from '@/api/types'
 import type { RootState } from './store'
@@ -70,7 +70,16 @@ export const deleteCampingPlace = createAsyncThunk<number, number, { rejectValue
 const campingPlacesSlice = createSlice({
   name: 'campingPlaces',
   initialState: adapter.getInitialState({ status: 'idle' as LoadingStatus, error: null as string | null, mutationError: null as string | null }),
-  reducers: {},
+  reducers: {
+    receiveUpserted(state, action: PayloadAction<CampingPlace>)
+    {
+      adapter.upsertOne(state, action.payload)
+    },
+    receiveDeleted(state, action: PayloadAction<number>)
+    {
+      adapter.removeOne(state, action.payload)
+    },
+  },
   extraReducers: (builder) => 
   {
     builder
@@ -91,4 +100,5 @@ const campingPlacesSlice = createSlice({
 })
 
 export default campingPlacesSlice.reducer
+export const { receiveUpserted: receiveCampingPlaceFromWebSocket, receiveDeleted: receiveCampingPlaceDeletedFromWebSocket } = campingPlacesSlice.actions
 export const campingPlacesSelectors = adapter.getSelectors((state: RootState) => state.campingPlaces)

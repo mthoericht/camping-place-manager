@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, createEntityAdapter } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit'
 import * as bookingsApi from '@/api/bookings'
 import type { Booking, BookingFormData, BookingStatus, BookingStatusChange } from '@/api/types'
 import type { RootState } from './store'
@@ -99,7 +99,17 @@ const bookingsSlice = createSlice({
     mutationError: null as string | null,
     statusChanges: {} as Record<number, BookingStatusChange[]>,
   }),
-  reducers: {},
+  reducers: {
+    receiveUpserted(state, action: PayloadAction<Booking>)
+    {
+      adapter.upsertOne(state, action.payload)
+    },
+    receiveDeleted(state, action: PayloadAction<number>)
+    {
+      adapter.removeOne(state, action.payload)
+      delete state.statusChanges[action.payload]
+    },
+  },
   extraReducers: (builder) => 
   {
     builder
@@ -132,4 +142,5 @@ const bookingsSlice = createSlice({
 })
 
 export default bookingsSlice.reducer
+export const { receiveUpserted: receiveBookingFromWebSocket, receiveDeleted: receiveBookingDeletedFromWebSocket } = bookingsSlice.actions
 export const bookingsSelectors = adapter.getSelectors((state: RootState) => state.bookings)

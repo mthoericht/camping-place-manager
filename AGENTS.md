@@ -42,7 +42,8 @@ npm run test:coverage    # Coverage report (Vitest)
 npm run test:e2e         # Playwright (E2E tests)
 ```
 
-- **Unit tests**: `test/unit/**/*.test.{ts,tsx}` — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests.
+- **Unit tests**: `test/unit/**/*.test.{ts,tsx}` (excluding `test/unit/server/`) — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests. `test/unit/useWebSocketSync.test.ts` tests `handleWebSocketMessage` (WebSocket message → Redux dispatch).
+- **Server unit tests**: `test/unit/server/**/*.test.ts` — Vitest, node. Controllers are tested with mocked service and `ws/broadcast`; assertions ensure `broadcast({ type, payload })` is called after create/update/delete (and booking changeStatus). Run with all projects (`npm test`) or via the `server-unit` project.
 - **Integration tests**: `test/integration/**/*.integration.test.ts` — Vitest, node. Use only the **frontend API modules**; test files must **not** import from the server. Lifecycle (DB clear, test user login) is done via **test API endpoints** (`POST /api/test/clear-db`, `POST /api/test/login`) called from `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`). The Supertest fetch adapter is installed once in `vitest.setup.integration.ts` (calls `installIntegrationFetch()` from `server/src/test/integrationEnv.ts`). Setup: `vitest.setup.integration.ts`.
 - **Test DB**: Integration tests use **only** `data/test.db`. `DATABASE_URL` is set to `file:…/data/test.db` in the integration setup **before** any server code/Prisma is loaded; `.env` is not loaded during tests. The existing database (e.g. `data/dev.db`) is **never modified**.
 - **DB cleanup**: Before each test, the test DB is cleared via `POST /api/test/clear-db` (test routes are only mounted when `DATABASE_URL` contains `test.db`).
@@ -73,19 +74,20 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 - **Types**: Centralized in `src/api/types.ts` — IDs are `number` (SQLite autoincrement)
 - **API Client**: `src/api/client.ts` — Fetch wrapper, API proxy via Vite (`/api` → port 3001)
 - **Authentication**: JWT token stored in `localStorage` (`auth_token`), automatically attached to all API requests by `client.ts`. Auth state managed in `src/store/authSlice.ts` (employee, token, login/signup/fetchMe thunks, logout). `AuthGuard` component wraps protected routes and redirects to `/login` if unauthenticated. Login/Signup pages are standalone (no AppLayout).
+- **Real-time (WebSocket)**: `useWebSocketSync` (in `src/hooks/useWebSocketSync.ts`) connects to `/ws`, receives server events (`bookings/created`, `bookings/updated`, `bookings/deleted`, and same for `campingPlaces`, `campingItems`), and dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so lists and entities stay in sync across tabs and users. Used once in `App.tsx`. Vite dev proxy: `/ws` → backend port 3001.
 
 - **Logic: Store vs composables (hooks)**
-  - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Optional: memoized selectors (e.g. `selectActivePlaces`) if the same derived list is used in many places.
+  - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Optional: memoized selectors (e.g. `selectActivePlaces`) if the same derived list is used in many places. Entity slices synced via WebSocket export `receiveUpserted`/`receiveDeleted` (as `receive*FromWebSocket` / `receive*DeletedFromWebSocket`) for the hook to dispatch.
   - **Composables (hooks)**: Form state, dialog open/close, submit flow (dispatch + toast + close), and any derivation from form + store (e.g. `useBookingFormDerived`, `useBookingFormItems`). Entity-specific CRUD config (emptyForm, toForm, getPayload, validate) lives in a feature hook (e.g. `useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`) so pages stay thin and only orchestrate hooks and UI.
 
 ### Backend (`server/src/`)
 
-- **Framework**: Express.js
-- **Layers**: Routes → Controllers → Services → Prisma
+- **Framework**: Express.js. **Entry**: `index.ts` creates the HTTP server from the Express app and attaches a **WebSocket server** (package `ws`) on path `/ws`; see `server/src/ws/broadcast.ts` for client set and `broadcast(data)`.
+- **Layers**: Routes → Controllers → Services → Prisma. After successful create/update/delete (and booking status change), controllers call `broadcast({ type: 'bookings/created' | 'bookings/updated' | 'bookings/deleted', payload })` (and same for `campingPlaces`, `campingItems`) so all connected WebSocket clients receive the event.
 - **Database**: SQLite via Prisma, DB file at `data/dev.db`
 - **Prisma Client**: Singleton in `server/src/prisma/client.ts`
 - **Error Handling**: `HttpError` class in `server/src/middleware/error.middleware.ts`
-- **Authentication**: JWT-based auth via `server/src/middleware/auth.middleware.ts` (`requireAuth` middleware). Auth service in `server/src/services/auth.service.ts` (bcrypt password hashing, JWT token generation/verification). All API routes except `/api/auth/login` and `/api/auth/signup` require a valid `Authorization: Bearer <token>` header.
+- **Authentication**: JWT-based auth via `server/src/middleware/auth.middleware.ts` (`requireAuth` middleware). Auth service in `server/src/services/auth.service.ts` (bcrypt password hashing, JWT token generation/verification). All API routes except `/api/auth/login` and `/api/auth/signup` require a valid `Authorization: Bearer <token>` header. WebSocket connections are not authenticated in the current implementation.
 - **Imports**: No `.js` extensions in imports (tsx is used for dev)
 - **Shared logic**: Use `shared/` at project root (e.g. `shared/bookingPrice.ts`) for code shared with frontend; import via relative path (e.g. `../../../shared/bookingPrice`). Server build includes `shared/`; production entry is `node server/dist/server/src/index.js`.
 
@@ -95,7 +97,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 - **Feature modules** (`src/features/<domain>/`): Page(s) and detail pages in the feature root; UI subcomponents (list cards `*Card.tsx`, form content `*FormContent.tsx`, charts, etc.) in a `components/` subfolder. Hooks and `constants.ts` stay in the root. Pages orchestrate hooks and UI. `src/features/auth/` contains `LoginPage`, `SignupPage`, and `AuthGuard` (standalone pages without AppLayout).
 - **App-level components** (`src/components/`): Shared across the app. Use `layout/` for layout (e.g. `AppLayout`, `Topbar`, `PageHeader`, `EmptyState`) and `ui/` for reusable UI (shadcn/ui, Figma-aligned). See `src/components/ui/README.md`.
 - **Feature-level components** (`src/features/<domain>/components/`): UI used only in that feature (e.g. `BookingCard`, `CampingPlaceFormContent`, `CampingItemFormContent`, analytics charts). Form dialogs: Pages use `FormDialog` (from `@/components/ui/dialog`) with `*FormContent` as children; the trigger button is rendered by the page. Form content components receive an entity id prop for edit vs create mode (`bookingId`, `campingPlaceId`, `campingItemId`; `null` = create). Do not put feature-specific components in `src/components/`.
-- **Hooks** in `src/hooks/`: `use-mobile`, `useConfirmDelete`, `useFetchWhenIdle`, `useFormDialog`, `useCrud` (CRUD dialog + form + submit for CRUD pages), `useOpenEditFromLocationState` (open edit from `location.state`, e.g. from detail page)
+- **Hooks** in `src/hooks/`: `use-mobile`, `useConfirmDelete`, `useFetchWhenIdle`, `useWebSocketSync` (WebSocket connection, dispatch receive*FromWebSocket on server events), `useFormDialog`, `useCrud` (CRUD dialog + form + submit for CRUD pages), `useOpenEditFromLocationState` (open edit from `location.state`, e.g. from detail page)
 - **Feature-level hooks** in `src/features/<domain>/`: CRUD config hooks (`useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`) and form helpers when needed (e.g. `useBookingFormDerived`, `useBookingFormItems`)
 - **Frontend lib** in `src/lib/`: `utils.ts` (e.g. `mergeClasses()`), `dateUtils.ts` (e.g. `toDateInputValue` for date inputs)
 
@@ -126,7 +128,8 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `server/src/middleware/auth.middleware.ts` | JWT auth middleware (requireAuth, AuthRequest) |
 | `src/store/store.ts` | Redux store configuration |
 | `src/store/authSlice.ts` | Auth state (employee, token, login/signup/fetchMe thunks, logout) |
-| `src/app/App.tsx` | App shell (BrowserRouter, Toaster) |
+| `src/hooks/useWebSocketSync.ts` | WebSocket connection to `/ws`; dispatches receive*FromWebSocket / receive*DeletedFromWebSocket on server events; used in App.tsx |
+| `src/app/App.tsx` | App shell (BrowserRouter, Toaster, useWebSocketSync) |
 | `src/app/routes.tsx` | Route definitions (public: /login, /signup; protected: all others, default: /bookings) |
 | `src/features/auth/LoginPage.tsx` | Employee login page (Card-based form) |
 | `src/features/auth/SignupPage.tsx` | Employee signup page (Card-based form) |
@@ -137,6 +140,8 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `src/features/bookings/useBookingCrud.ts` | Booking CRUD hook (calcTotalPrice, bookingToForm, validate); uses `@shared/bookingPrice` |
 | `src/lib/dateUtils.ts` | Date helpers (e.g. toDateInputValue for inputs) |
 | `server/src/app.ts` | Express app setup |
+| `server/src/index.ts` | HTTP server + WebSocket server on path /ws (ws package) |
+| `server/src/ws/broadcast.ts` | WebSocket client set; addClient/removeClient/broadcast(data); controllers call broadcast after CRUD |
 | `server/src/routes/index.ts` | API route registry (auth routes public, all others behind requireAuth) |
 | `vitest.setup.unit.ts` | Unit test setup (jsdom, jest-dom) |
 | `vitest.setup.integration.ts` | Integration setup (DATABASE_URL=test.db, prisma db push, installIntegrationFetch) |
@@ -144,6 +149,8 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `test/unit/dateUtils.test.ts` | Unit tests for toDateInputValue |
 | `test/unit/bookingsSlice.test.ts` | Unit tests for bookings reducer |
 | `test/unit/authSlice.test.ts` | Unit tests for auth reducer |
+| `test/unit/useWebSocketSync.test.ts` | Unit tests for handleWebSocketMessage (WebSocket message → dispatch) |
+| `test/unit/server/*.broadcast.test.ts` | Server unit: controller calls broadcast after CRUD |
 | `.env` | `DATABASE_URL`, `PORT`, and `JWT_SECRET` |
 
 ## Delete Protection Rule
@@ -168,3 +175,4 @@ Camping places and camping items cannot be deleted when active bookings (PENDING
 8. `src/features/<domain>/` — Feature page; add `*Card.tsx`, `*FormContent.tsx`, optional `constants.ts`/`utils.ts`, and a feature CRUD hook (e.g. `useCampingPlaceCrud`, `useCampingItemCrud`) so the page only orchestrates hooks. Use `FormDialog` + `*FormContent` in the page, `useCrud` or the feature hook, `useConfirmDelete`, `useFetchWhenIdle` (and `useOpenEditFromLocationState` if edit-from-detail is required).
 9. `src/app/routes.tsx` — Add route
 10. `src/components/layout/Topbar.tsx` — Add navigation entry
+11. **Real-time (optional)**: In the entity’s controller, after create/update/delete, call `broadcast({ type: '<entity>/created'|'updated'|'deleted', payload })`. In the slice, add reducers `receiveUpserted` and `receiveDeleted`, export as `receive*FromWebSocket` and `receive*DeletedFromWebSocket`. In `src/hooks/useWebSocketSync.ts`, handle the new event types and dispatch those actions.

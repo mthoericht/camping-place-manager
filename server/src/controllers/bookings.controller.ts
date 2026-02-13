@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
 import * as service from '../services/bookings.service'
 import { HttpError } from '../middleware/error.middleware'
+import { broadcast } from '../ws/broadcast'
 
 export async function getAll(req: Request, res: Response, next: NextFunction) 
 {
@@ -28,6 +29,7 @@ export async function create(req: Request, res: Response, next: NextFunction)
   try 
   {
     const booking = await service.createBooking(req.body)
+    broadcast({ type: 'bookings/created', payload: booking })
     res.status(201).json(booking)
   }
   catch (err) { next(err) }
@@ -38,6 +40,7 @@ export async function update(req: Request, res: Response, next: NextFunction)
   try 
   {
     const booking = await service.updateBooking(Number(req.params.id), req.body)
+    broadcast({ type: 'bookings/updated', payload: booking })
     res.json(booking)
   }
   catch (err) { next(err) }
@@ -47,7 +50,9 @@ export async function remove(req: Request, res: Response, next: NextFunction)
 {
   try 
   {
-    await service.deleteBooking(Number(req.params.id))
+    const id = Number(req.params.id)
+    await service.deleteBooking(id)
+    broadcast({ type: 'bookings/deleted', payload: { id } })
     res.status(204).end()
   }
   catch (err) { next(err) }
@@ -60,6 +65,7 @@ export async function changeStatus(req: Request, res: Response, next: NextFuncti
     const { status } = req.body
     if (!status) throw new HttpError(400, 'Status is required')
     const booking = await service.changeBookingStatus(Number(req.params.id), status)
+    broadcast({ type: 'bookings/updated', payload: booking })
     res.json(booking)
   }
   catch (err) { next(err) }

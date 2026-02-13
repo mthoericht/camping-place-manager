@@ -8,6 +8,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - 🎒 **Camping Items Management**: Manage camping equipment and items inventory
 - 📅 **Booking System**: Handle customer bookings and reservations (default view), including status timeline
 - 📊 **Analytics**: Revenue, occupancy, and statistics
+- 🔄 **Real-time Updates**: WebSocket sync so list and entity data stay in sync across tabs and users (create/update/delete for bookings, camping places, and camping items)
 - 🎨 **Modern UI**: Responsive interface with Tailwind CSS and dark mode
 - 📱 **Responsive Design**: Top bar navigation on desktop, hamburger menu and slide-out drawer on mobile
 - 🗄️ **Database**: SQLite with Prisma ORM
@@ -23,6 +24,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - **State Management**: Redux Toolkit
 - **Routing**: React Router v7
 - **Backend**: Express.js, Node.js
+- **Real-time**: WebSocket (`ws`) on path `/ws`; server broadcasts create/update/delete events; frontend syncs Redux state via `useWebSocketSync`
 - **Database**: SQLite
 - **ORM**: Prisma
 - **Authentication**: JWT (jsonwebtoken), bcrypt (bcryptjs)
@@ -64,6 +66,7 @@ A modern camping place management application built with React, TypeScript, Expr
 5. **Open in browser:**
    - Frontend: [http://localhost:5173](http://localhost:5173) (opens on Bookings by default)
    - API: [http://localhost:3001/api](http://localhost:3001/api)
+   - WebSocket: `ws://localhost:5173/ws` in dev (proxied to backend); real-time updates for bookings, camping places, and camping items
 
 ## Database
 
@@ -210,8 +213,10 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   └── test.db                  # Integration test database (created by test setup)
 ├── server/
 │   └── src/
-│       ├── index.ts             # Server entry point
+│       ├── index.ts             # HTTP server + WebSocket server on path /ws
 │       ├── app.ts               # Express app setup
+│       ├── ws/
+│       │   └── broadcast.ts     # WebSocket client set; broadcast(data) to all clients
 │       ├── test/
 │       │   ├── clearTestDb.ts      # Clear test DB (used by test routes)
 │       │   └── integrationEnv.ts   # installIntegrationFetch() for Vitest integration setup
@@ -269,6 +274,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── use-mobile.ts        # Mobile breakpoint (responsive)
 │   │   ├── useConfirmDelete.ts  # Confirm dialog + delete + toast
 │   │   ├── useFetchWhenIdle.ts  # Dispatch fetch when slice status is idle
+│   │   ├── useWebSocketSync.ts  # WebSocket connection; dispatches receive*FromWebSocket on server events
 │   │   ├── useFormDialog.ts     # Create-only dialog (open/close, form state)
 │   │   ├── useCrud.ts           # CRUD dialog + submit (openCreate, openEdit, form, handleSubmit)
 │   │   └── useOpenEditFromLocationState.ts  # Open edit from location.state (e.g. detail → list)
@@ -369,6 +375,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 4. **Custom Hooks** (`src/hooks/`)
    - `useConfirmDelete`: Confirm dialog, dispatch delete thunk, success/error toasts
    - `useFetchWhenIdle`: Dispatch a fetch thunk when the slice status is `idle`
+   - `useWebSocketSync`: Connects to `ws://…/ws`, parses server events (e.g. `bookings/created`, `bookings/updated`, `bookings/deleted`), dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so Redux state stays in sync across tabs and users; reconnects after disconnect
    - `useFormDialog`: Create-only dialog (open/close, form state)
    - `useCrud`: CRUD dialog + form state + submit (openCreate, openEdit, form, handleSubmit, optional validate); used by all CRUD pages
    - `useOpenEditFromLocationState`: Open edit dialog when navigating with `location.state` (e.g. from booking detail page)
@@ -387,10 +394,11 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 
 ### Server Architecture
 
-1. **Routes** (`server/src/routes/`) — Define HTTP endpoints and delegate to controllers
-2. **Controllers** (`server/src/controllers/`) — Request/response handling, parameter parsing
-3. **Services** (`server/src/services/`) — Business logic and Prisma database operations; use `shared/` for domain logic shared with the client (e.g. booking total price)
-4. **Database** (SQLite via Prisma) — File-based, no external database required
+1. **HTTP + WebSocket** (`server/src/index.ts`) — Creates the HTTP server from the Express app and attaches a WebSocket server on path `/ws`. Clients connect to `/ws`; the server keeps a set of connections and broadcasts JSON messages on create/update/delete (see `server/src/ws/broadcast.ts`).
+2. **Routes** (`server/src/routes/`) — Define HTTP endpoints and delegate to controllers
+3. **Controllers** (`server/src/controllers/`) — Request/response handling, parameter parsing; after successful create/update/delete (and booking status change), call `broadcast({ type, payload })` so all WebSocket clients receive the event
+4. **Services** (`server/src/services/`) — Business logic and Prisma database operations; use `shared/` for domain logic shared with the client (e.g. booking total price)
+5. **Database** (SQLite via Prisma) — File-based, no external database required
 
 Production server entry after build: `node server/dist/server/src/index.js` (see `npm run start`).
 
@@ -402,7 +410,9 @@ User → React Component → Redux Thunk → fetch(/api/...) → Express Route �
 User ← React Component ← Redux Store ← Response ← Express Route ← Controller ← Service ← Prisma ← SQLite
 ```
 
-Authentication: Login → authSlice thunk → POST /api/auth/login → JWT token → localStorage → Authorization header on all subsequent requests
+Authentication: Login → authSlice thunk → POST /api/auth/login → JWT token → localStorage → Authorization header on all subsequent requests.
+
+Real-time: After any create/update/delete (bookings, camping places, camping items), the server broadcasts a WebSocket message. The frontend hook `useWebSocketSync` receives it and dispatches the corresponding Redux action (e.g. `receiveBookingFromWebSocket`), so all connected clients see the change without a full refetch.
 
 ### API Endpoints
 

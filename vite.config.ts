@@ -22,6 +22,10 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:3001',
         changeOrigin: true
+      },
+      '/ws': {
+        target: 'http://localhost:3001',
+        ws: true
       }
     }
   },
@@ -56,6 +60,7 @@ export default defineConfig({
           name: 'unit',
           environment: 'jsdom',
           include: ['test/unit/**/*.test.{ts,tsx}'],
+          exclude: ['test/unit/server/**'],
           setupFiles: ['vitest.setup.unit.ts'],
           globals: true
         }
@@ -75,6 +80,14 @@ export default defineConfig({
           globals: true,
           pool: 'forks',
           poolOptions: { forks: { singleFork: true } }
+        }
+      },
+      {
+        test: {
+          name: 'server-unit',
+          environment: 'node',
+          include: ['test/unit/server/**/*.test.ts'],
+          globals: true
         }
       }
     ]
