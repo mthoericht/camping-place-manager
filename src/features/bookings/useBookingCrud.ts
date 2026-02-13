@@ -1,12 +1,13 @@
 import { useCrud } from '@/hooks/useCrud'
-import { useAppSelector } from '@/store/hooks'
-import { createBooking, updateBooking } from '@/store/bookingsSlice'
+import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice'
 import { campingPlacesSelectors } from '@/store/campingPlacesSlice'
 import { campingItemsSelectors } from '@/store/campingItemsSlice'
 import { toDateInputValue } from '@/lib/dateUtils'
 import { calcBookingTotalPrice } from '@shared/bookingPrice'
 import { calcTotalItemSize } from './useBookingFormDerived'
-import type { BookingFormData, Booking, CampingPlace } from '@/api/types'
+import type { BookingFormData, Booking, CampingPlace, CampingItem } from '@/api/types'
 
 const emptyForm: BookingFormData = {
   campingPlaceId: 0,
@@ -22,6 +23,7 @@ const emptyForm: BookingFormData = {
   bookingItems: [],
 }
 
+/** Maps a persisted booking entity to local form state, converting dates to input-compatible strings. */
 function bookingToForm(booking: Booking): BookingFormData
 {
   return {
@@ -39,6 +41,10 @@ function bookingToForm(booking: Booking): BookingFormData
   }
 }
 
+/**
+ * Calculates the total booking price based on the date range and the place's daily rate.
+ * Returns 0 if no place is provided.
+ */
 function calcTotalPrice(startDate: string, endDate: string, place: CampingPlace | undefined): number
 {
   if (!place) return 0
@@ -46,30 +52,54 @@ function calcTotalPrice(startDate: string, endDate: string, place: CampingPlace 
 }
 
 /**
- * Provides CRUD operations for bookings with form validation, total price calculation, and size validation.
- * @returns CRUD state and handlers plus places, items, and calcTotalPrice
+ * Validates that the total size of booking items does not exceed the selected camping place size.
+ * @returns Error message string or null if valid
+ */
+export function validateBookingFormSize(form: BookingFormData, places: CampingPlace[], items: CampingItem[]): string | null
+{
+  const place = places.find((p) => p.id === form.campingPlaceId)
+  const total = calcTotalItemSize(form.bookingItems ?? [], items)
+  if (place && total > place.size)
+  {
+    return 'Die Gesamtgröße der Items überschreitet die Stellplatzgröße'
+  }
+  return null
+}
+
+/**
+ * Provides CRUD dialog state and handlers for bookings.
+ * Wires Redux thunks into the generic {@link useCrud} hook and adds
+ * domain-specific logic: automatic total price calculation and
+ * validation that booking items do not exceed the camping place size.
+ *
+ * @returns CRUD state and handlers, plus `places`, `items`, and `calcTotalPrice` for form components.
  */
 export function useBookingCrud()
 {
+  const dispatch = useAppDispatch()
   const places = useAppSelector(campingPlacesSelectors.selectAll)
   const items = useAppSelector(campingItemsSelectors.selectAll)
+
   const crud = useCrud<BookingFormData, Booking, BookingFormData>({
     emptyForm,
     toForm: bookingToForm,
-    createThunk: createBooking,
-    updateThunk: updateBooking,
-    getPayload: (f) => ({
-      ...f,
-      totalPrice: calcTotalPrice(f.startDate ?? '', f.endDate ?? '', places.find((p) => p.id === f.campingPlaceId)),
+    buildPayload: (form) => ({
+      ...form,
+      totalPrice: calcTotalPrice(form.startDate ?? '', form.endDate ?? '', places.find((p) => p.id === form.campingPlaceId)),
     }),
-    successCreate: 'Buchung erstellt',
-    successUpdate: 'Buchung aktualisiert',
-    validate: (f) =>
-    {
-      const place = places.find((p) => p.id === f.campingPlaceId)
-      const total = calcTotalItemSize(f.bookingItems ?? [], items)
-      return !(place && total > place.size)
-    },
+    create: (data) => dispatch(createBooking(data)).unwrap(),
+    update: ({ id, data }) => dispatch(updateBooking({ id, data })).unwrap(),
+    messages: { create: 'Buchung erstellt', update: 'Buchung aktualisiert' },
+    validate: (form) => validateBookingFormSize(form, places, items)
   })
+
+  const { editing, close, setForm } = crud
+  const editingId = editing?.id ?? null
+  const storeBooking = useAppSelector((state) =>
+    editingId != null ? bookingsSelectors.selectById(state, editingId) : undefined
+  )
+  //sync the edit form from the store when the entity is updated via WebSocket or deleted
+  useSyncEditFormFromStore(editing, storeBooking, close, setForm, bookingToForm);
+
   return { ...crud, places, items, calcTotalPrice }
 }

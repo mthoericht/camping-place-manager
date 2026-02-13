@@ -14,17 +14,17 @@ import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/s
 
 export default function CampingItemsPage()
 {
-  const items = useAppSelector(campingItemsSelectors.selectAll)
-  const campingItemsStatus = useAppSelector((state) => state.campingItems.status)
+  const items = useAppSelector(campingItemsSelectors.selectAll);
+  const campingItemsStatus = useAppSelector((state) => state.campingItems.status);
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingItemCrud()
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingItemCrud();
   const handleDelete = useConfirmDelete(deleteCampingItem, {
     confirmMessage: 'Camping-Item wirklich löschen?',
     successMessage: 'Camping-Item gelöscht',
     errorMessage: 'Fehler beim Löschen',
-  })
+  });
 
-  useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus)
+  useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus);
 
   return (
     <div className="space-y-6">

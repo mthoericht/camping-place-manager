@@ -1,104 +1,142 @@
-import { useState, useCallback, useMemo } from 'react'
-import { useAppDispatch } from '@/store/hooks'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type DispatchableThunk<TArg> = (arg: TArg) => any
+type CrudMode<TEntity> =
+  | { type: 'create' }
+  | { type: 'edit'; entity: TEntity }
 
 /**
- * Configuration for useCrud: form shape, entity mapping, thunks, validation, and success messages.
+ * Configuration options for {@link useCrud}.
+ *
+ * @typeParam TForm - Shape of the local form state.
+ * @typeParam TEntity - Entity type returned by the API (must have a numeric `id`).
+ * @typeParam TPayload - Shape of the data sent to create/update (defaults to `TForm`).
  */
 export type UseCrudOptions<TForm, TEntity extends { id: number }, TPayload = TForm> = {
+  /** Initial (empty) form state used when creating a new entity or resetting the dialog. */
   emptyForm: TForm
+  /** Converts an existing entity into form state for editing. */
   toForm: (entity: TEntity) => TForm
-  createThunk: DispatchableThunk<TPayload>
-  updateThunk: DispatchableThunk<{ id: number; data: TPayload }>
-  getPayload: (form: TForm) => TPayload
-  successCreate: string
-  successUpdate: string
-  validate?: (form: TForm) => boolean
+  /** Transforms the current form state into the API payload before submission. */
+  buildPayload: (form: TForm) => TPayload
+
+  /** Persists a new entity. Receives the built payload and should return a promise. */
+  create: (payload: TPayload) => Promise<unknown>
+  /** Updates an existing entity. Receives the entity id and the built payload. */
+  update: (args: { id: number; data: TPayload }) => Promise<unknown>
+
+  /** Toast messages shown after a successful create or update. */
+  messages: { create: string; update: string }
+
+  /**
+   * Optional form validator invoked before submission.
+   * Return an error message string to abort and show a toast, or `null` to proceed.
+   */
+  validate?: (form: TForm) => string | null
 }
 
 /**
- * Manages CRUD dialog state, form data, and submit flow for create/edit.
- * @param options - CRUD configuration (emptyForm, toForm, thunks, validation, messages)
- * @returns Dialog state, form, handlers (openCreate, openEdit, close), dialogProps, handleSubmit
+ * Generic hook that manages CRUD dialog state, form data, validation, and the submit flow.
+ *
+ * This hook is framework-agnostic regarding data fetching — it delegates persistence
+ * to the `create` and `update` promise-based functions provided via options.
+ *
+ * @typeParam TForm - Shape of the local form state.
+ * @typeParam TEntity - Entity type (must have a numeric `id`).
+ * @typeParam TPayload - API payload shape (defaults to `TForm`).
+ * @param options - CRUD configuration (form shape, persistence functions, messages, validation).
+ * @returns Dialog state, form state and setter, open/close/submit handlers, and `dialogProps` for the dialog component.
  */
 export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>({
   emptyForm,
   toForm,
-  createThunk,
-  updateThunk,
-  getPayload,
-  successCreate,
-  successUpdate,
+  buildPayload,
+  create,
+  update,
+  messages,
   validate,
 }: UseCrudOptions<TForm, TEntity, TPayload>)
 {
-  const dispatch = useAppDispatch()
-  const [isOpen, setIsOpen] = useState(false)
-  const [editing, setEditing] = useState<TEntity | null>(null)
+  const [mode, setMode] = useState<CrudMode<TEntity> | null>(null)
   const [form, setForm] = useState<TForm>(emptyForm)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isOpen = mode !== null
+  const editing = mode?.type === 'edit' ? mode.entity : null
 
   const openCreate = useCallback(() =>
   {
-    setEditing(null)
+    setMode({ type: 'create' })
     setForm(emptyForm)
-    setIsOpen(true)
   }, [emptyForm])
 
   const openEdit = useCallback(
     (entity: TEntity) =>
     {
-      setEditing(entity)
+      setMode({ type: 'edit', entity })
       setForm(toForm(entity))
-      setIsOpen(true)
     },
     [toForm]
   )
 
   const close = useCallback(() =>
   {
+    setMode(null)
     setForm(emptyForm)
-    setEditing(null)
-    setIsOpen(false)
   }, [emptyForm])
-
-  const dialogProps = useMemo(
-    () => ({
-      open: isOpen,
-      onOpenChange: (openValue: boolean) => { if (!openValue) close() },
-    }),
-    [isOpen, close]
-  )
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent) =>
     {
       e.preventDefault()
-      if (validate && !validate(form)) return
-      const payload = getPayload(form)
+
+      const validationError = validate?.(form) ?? null
+      if (validationError)
+      {
+        toast.error(validationError)
+        return
+      }
+
+      const payload = buildPayload(form);      
+      const doSave = editing
+        ? () => update({ id: editing.id, data: payload })
+        : () => create(payload);
+
+      const successMessage = editing ? messages.update : messages.create
+
       try
       {
-        if (editing)
-        {
-          await dispatch(updateThunk({ id: editing.id, data: payload })).unwrap()
-          toast.success(successUpdate)
-        }
-        else
-        {
-          await dispatch(createThunk(payload)).unwrap()
-          toast.success(successCreate)
-        }
+        setIsSubmitting(true)
+        await doSave()
+        toast.success(successMessage)
         close()
       }
       catch (err: unknown)
       {
-        toast.error(typeof err === 'string' ? err : err instanceof Error ? err.message : 'Fehler')
+        const message = typeof err === 'string' ? err : err instanceof Error ? err.message : 'Fehler'
+        toast.error(message)
+      }
+      finally
+      {
+        setIsSubmitting(false)
       }
     },
-    [dispatch, form, editing, validate, getPayload, createThunk, updateThunk, successCreate, successUpdate, close]
+    [validate, form, buildPayload, editing, update, create, messages, close]
   )
 
-  return { isOpen, editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit }
+  return {
+    isOpen,
+    editing,
+    form,
+    setForm,
+    isSubmitting,
+    openCreate,
+    openEdit,
+    close,
+    handleSubmit,
+    dialogProps: {
+      open: isOpen,
+      onOpenChange: (openValue: boolean) => { if (!openValue) close() },
+    },
+  }
 }

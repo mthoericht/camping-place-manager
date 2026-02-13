@@ -18,14 +18,14 @@ export function useBookingDetail(bookingId: number): {
 }
 {
   const dispatch = useAppDispatch()
-  const booking = useAppSelector((state) => bookingsSelectors.selectById(state, bookingId))
-  const statusChanges = useAppSelector((state) => state.bookings.statusChanges[bookingId] ?? EMPTY_STATUS_CHANGES)
+  const booking = useAppSelector((state) => bookingsSelectors.selectById(state, bookingId));
+  const statusChanges = useAppSelector((state) => state.bookings.statusChanges[bookingId] ?? EMPTY_STATUS_CHANGES);
 
   useEffect(() => 
   {
     dispatch(fetchBookingById(bookingId))
     dispatch(fetchBookingStatusChanges(bookingId))
-  }, [dispatch, bookingId])
+  }, [dispatch, bookingId]);
 
   const handleStatusChange = useCallback(async (status: BookingStatus) => 
   {

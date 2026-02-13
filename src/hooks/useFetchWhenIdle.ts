@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useAppDispatch } from '@/store/hooks'
+import type { AppDispatch } from '@/store/store'
 import type { LoadingStatus } from '@/store/types'
 
 /**
@@ -12,14 +13,16 @@ export function useFetchWhenIdle(
   status: LoadingStatus
 )
 {
-  const dispatch = useAppDispatch()
-  const thunkRef = useRef(thunk)
+  const dispatch = useAppDispatch();
+  const thunkRef = useRef(thunk);
 
-  useEffect(() => { thunkRef.current = thunk })
+  useEffect(() => { thunkRef.current = thunk; });
 
   useEffect(() =>
   {
     if (status === 'idle')
-      dispatch(thunkRef.current() as Parameters<ReturnType<typeof useAppDispatch>>[0])
-  }, [dispatch, status])
+    {
+      dispatch(thunkRef.current() as Parameters<AppDispatch>[0]);
+    }
+  }, [dispatch, status]);
 }

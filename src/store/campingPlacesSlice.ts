@@ -4,7 +4,7 @@ import type { CampingPlace, CampingPlaceFormData } from '@/api/types'
 import type { RootState } from './store'
 import type { LoadingStatus } from './types'
 
-const adapter = createEntityAdapter<CampingPlace>()
+const campingPlaces = createEntityAdapter<CampingPlace>()
 
 export const fetchCampingPlaces = createAsyncThunk<CampingPlace[], void, { rejectValue: string }>('campingPlaces/fetchAll', async (_, { rejectWithValue }) =>
 {
@@ -69,36 +69,36 @@ export const deleteCampingPlace = createAsyncThunk<number, number, { rejectValue
 
 const campingPlacesSlice = createSlice({
   name: 'campingPlaces',
-  initialState: adapter.getInitialState({ status: 'idle' as LoadingStatus, error: null as string | null, mutationError: null as string | null }),
+  initialState: campingPlaces.getInitialState({ status: 'idle' as LoadingStatus, error: null as string | null, mutationError: null as string | null }),
   reducers: {
     receiveUpserted(state, action: PayloadAction<CampingPlace>)
     {
-      adapter.upsertOne(state, action.payload)
+      campingPlaces.upsertOne(state, action.payload)
     },
     receiveDeleted(state, action: PayloadAction<number>)
     {
-      adapter.removeOne(state, action.payload)
+      campingPlaces.removeOne(state, action.payload)
     },
   },
   extraReducers: (builder) => 
   {
     builder
       .addCase(fetchCampingPlaces.pending, (state) => { state.status = 'loading'; state.error = null })
-      .addCase(fetchCampingPlaces.fulfilled, (state, action) => { state.status = 'succeeded'; adapter.setAll(state, action.payload) })
+      .addCase(fetchCampingPlaces.fulfilled, (state, action) => { state.status = 'succeeded'; campingPlaces.setAll(state, action.payload) })
       .addCase(fetchCampingPlaces.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload ?? 'Fehler' })
-      .addCase(fetchCampingPlaceById.fulfilled, adapter.upsertOne)
+      .addCase(fetchCampingPlaceById.fulfilled, campingPlaces.upsertOne)
       .addCase(createCampingPlace.pending, (state) => { state.mutationError = null })
-      .addCase(createCampingPlace.fulfilled, adapter.addOne)
+      .addCase(createCampingPlace.fulfilled, campingPlaces.addOne)
       .addCase(createCampingPlace.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(updateCampingPlace.pending, (state) => { state.mutationError = null })
-      .addCase(updateCampingPlace.fulfilled, adapter.upsertOne)
+      .addCase(updateCampingPlace.fulfilled, campingPlaces.upsertOne)
       .addCase(updateCampingPlace.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(deleteCampingPlace.pending, (state) => { state.mutationError = null })
-      .addCase(deleteCampingPlace.fulfilled, adapter.removeOne)
+      .addCase(deleteCampingPlace.fulfilled, campingPlaces.removeOne)
       .addCase(deleteCampingPlace.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
   },
 })
 
 export default campingPlacesSlice.reducer
 export const { receiveUpserted: receiveCampingPlaceFromWebSocket, receiveDeleted: receiveCampingPlaceDeletedFromWebSocket } = campingPlacesSlice.actions
-export const campingPlacesSelectors = adapter.getSelectors((state: RootState) => state.campingPlaces)
+export const campingPlacesSelectors = campingPlaces.getSelectors((state: RootState) => state.campingPlaces)

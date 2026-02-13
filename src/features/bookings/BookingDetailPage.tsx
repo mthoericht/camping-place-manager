@@ -14,7 +14,7 @@ export default function BookingDetailPage()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const bookingId = Number(id)
-  const { booking, statusChanges, handleStatusChange } = useBookingDetail(bookingId)
+  const { booking, statusChanges, handleStatusChange } = useBookingDetail(bookingId);
 
   if (!booking) return <p className="text-muted-foreground">Laden...</p>
 

@@ -4,7 +4,7 @@ import type { Booking, BookingFormData, BookingStatus, BookingStatusChange } fro
 import type { RootState } from './store'
 import type { LoadingStatus } from './types'
 
-const adapter = createEntityAdapter<Booking>()
+const bookings = createEntityAdapter<Booking>()
 
 export const fetchBookings = createAsyncThunk<Booking[], Record<string, string> | undefined, { rejectValue: string }>('bookings/fetchAll', async (filters, { rejectWithValue }) =>
 {
@@ -93,7 +93,7 @@ export const fetchBookingStatusChanges = createAsyncThunk<BookingStatusChange[],
 
 const bookingsSlice = createSlice({
   name: 'bookings',
-  initialState: adapter.getInitialState({
+  initialState: bookings.getInitialState({
     status: 'idle' as LoadingStatus,
     error: null as string | null,
     mutationError: null as string | null,
@@ -102,11 +102,11 @@ const bookingsSlice = createSlice({
   reducers: {
     receiveUpserted(state, action: PayloadAction<Booking>)
     {
-      adapter.upsertOne(state, action.payload)
+      bookings.upsertOne(state, action.payload)
     },
     receiveDeleted(state, action: PayloadAction<number>)
     {
-      adapter.removeOne(state, action.payload)
+      bookings.removeOne(state, action.payload)
       delete state.statusChanges[action.payload]
     },
   },
@@ -114,24 +114,24 @@ const bookingsSlice = createSlice({
   {
     builder
       .addCase(fetchBookings.pending, (state) => { state.status = 'loading'; state.error = null })
-      .addCase(fetchBookings.fulfilled, (state, action) => { state.status = 'succeeded'; adapter.setAll(state, action.payload) })
+      .addCase(fetchBookings.fulfilled, (state, action) => { state.status = 'succeeded'; bookings.setAll(state, action.payload) })
       .addCase(fetchBookings.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload ?? 'Fehler' })
-      .addCase(fetchBookingById.fulfilled, adapter.upsertOne)
+      .addCase(fetchBookingById.fulfilled, bookings.upsertOne)
       .addCase(createBooking.pending, (state) => { state.mutationError = null })
-      .addCase(createBooking.fulfilled, adapter.addOne)
+      .addCase(createBooking.fulfilled, bookings.addOne)
       .addCase(createBooking.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(updateBooking.pending, (state) => { state.mutationError = null })
-      .addCase(updateBooking.fulfilled, adapter.upsertOne)
+      .addCase(updateBooking.fulfilled, bookings.upsertOne)
       .addCase(updateBooking.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(deleteBooking.pending, (state) => { state.mutationError = null })
       .addCase(deleteBooking.fulfilled, (state, action) => 
       {
-        adapter.removeOne(state, action.payload)
+        bookings.removeOne(state, action.payload)
         delete state.statusChanges[action.payload]
       })
       .addCase(deleteBooking.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(changeBookingStatus.pending, (state) => { state.mutationError = null })
-      .addCase(changeBookingStatus.fulfilled, adapter.upsertOne)
+      .addCase(changeBookingStatus.fulfilled, bookings.upsertOne)
       .addCase(changeBookingStatus.rejected, (state, action) => { state.mutationError = action.payload ?? 'Fehler' })
       .addCase(fetchBookingStatusChanges.fulfilled, (state, action) => 
       {
@@ -143,4 +143,4 @@ const bookingsSlice = createSlice({
 
 export default bookingsSlice.reducer
 export const { receiveUpserted: receiveBookingFromWebSocket, receiveDeleted: receiveBookingDeletedFromWebSocket } = bookingsSlice.actions
-export const bookingsSelectors = adapter.getSelectors((state: RootState) => state.bookings)
+export const bookingsSelectors = bookings.getSelectors((state: RootState) => state.bookings)

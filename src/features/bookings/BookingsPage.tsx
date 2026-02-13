@@ -20,24 +20,24 @@ import { useBookingFormItems } from './useBookingFormItems'
 
 export default function BookingsPage() 
 {
-  const bookings = useAppSelector(bookingsSelectors.selectAll)
-  const bookingsStatus = useAppSelector((state) => state.bookings.status)
-  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status)
-  const campingItemsStatus = useAppSelector((state) => state.campingItems.status)
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit, places, items, calcTotalPrice } = useBookingCrud()
+  const bookings = useAppSelector(bookingsSelectors.selectAll);
+  const bookingsStatus = useAppSelector((state) => state.bookings.status);
+  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status);
+  const campingItemsStatus = useAppSelector((state) => state.campingItems.status);
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit, places, items, calcTotalPrice } = useBookingCrud();
   const handleDelete = useConfirmDelete(deleteBooking, {
     confirmMessage: 'Buchung wirklich löschen?',
     successMessage: 'Buchung gelöscht',
     errorMessage: 'Fehler beim Löschen',
-  })
+  });
 
-  useFetchWhenIdle(() => fetchBookings(), bookingsStatus)
-  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus)
-  useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus)
-  useOpenEditFromLocationState(openEdit)
+  useFetchWhenIdle(() => fetchBookings(), bookingsStatus);
+  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus);
+  useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus);
+  useOpenEditFromLocationState(openEdit);
 
-  const { selectedPlace, totalItemSize, sizeError } = getBookingFormDerived(form, places, items)
-  const { addItem, removeItem } = useBookingFormItems(setForm)
+  const { selectedPlace, totalItemSize, sizeError } = getBookingFormDerived(form, places, items);
+  const { addItem, removeItem } = useBookingFormItems(setForm);
 
   return (
     <div className="space-y-6">
