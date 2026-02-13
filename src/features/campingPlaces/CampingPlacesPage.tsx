@@ -15,7 +15,7 @@ import { fetchCampingPlaces, deleteCampingPlace, campingPlacesSelectors } from '
 export default function CampingPlacesPage()
 {
   const places = useAppSelector(campingPlacesSelectors.selectAll)
-  const campingPlaceStatus = useAppSelector((state) => state.campingPlaces.status)
+  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status)
 
   const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingPlaceCrud()
   const handleDelete = useConfirmDelete(deleteCampingPlace, {
@@ -24,7 +24,7 @@ export default function CampingPlacesPage()
     errorMessage: 'Fehler beim Löschen',
   })
 
-  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlaceStatus)
+  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus)
 
   return (
     <div className="space-y-6">
@@ -35,7 +35,7 @@ export default function CampingPlacesPage()
         <CampingPlaceFormContent campingPlaceId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
       </FormDialog>
 
-      {campingPlaceStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
+      {campingPlacesStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {places.map((place) => (
@@ -46,7 +46,7 @@ export default function CampingPlacesPage()
             onDelete={handleDelete}
           />
         ))}
-        {places.length === 0 && campingPlaceStatus !== 'loading' && (
+        {places.length === 0 && campingPlacesStatus !== 'loading' && (
           <Card className="col-span-full">
             <CardContent><EmptyState icon={<MapPin />} message="Keine Stellplätze vorhanden" /></CardContent>
           </Card>
