@@ -1,6 +1,23 @@
 import { describe, it, expect } from 'vitest'
 import reducer, { fetchBookings, deleteBooking, fetchBookingStatusChanges, bookingsSelectors } from '@/store/bookingsSlice'
-import type { Booking, BookingStatusChange } from '@/api/types'
+import { receiveCampingPlaceFromWebSocket } from '@/store/campingPlacesSlice'
+import { receiveCampingItemFromWebSocket } from '@/store/campingItemsSlice'
+import type { Booking, BookingStatusChange, CampingPlace, CampingItem, BookingItemData } from '@/api/types'
+
+const mockCampingPlace = (overrides: Partial<CampingPlace> = {}): CampingPlace => ({
+  id: 1, name: 'Platz A', description: null, location: 'Nord', size: 50, price: 25,
+  amenities: 'Strom', isActive: true, createdAt: '', updatedAt: '', ...overrides
+})
+
+const mockCampingItem = (overrides: Partial<CampingItem> = {}): CampingItem => ({
+  id: 5, name: 'Zelt', category: 'Unterkunft', size: 10, description: null,
+  isActive: true, createdAt: '', updatedAt: '', ...overrides
+})
+
+const mockBookingItem = (overrides: Partial<BookingItemData> = {}): BookingItemData => ({
+  id: 1, bookingId: 1, campingItemId: 5, quantity: 2,
+  campingItem: mockCampingItem(), createdAt: '', updatedAt: '', ...overrides
+})
 
 const mockBooking = (overrides: Partial<Booking> = {}): Booking => ({
   id: 1,
@@ -58,5 +75,47 @@ describe('bookingsSlice', () =>
     ]
     const state = reducer(undefined, fetchBookingStatusChanges.fulfilled(changes, 'requestId', 5))
     expect(state.statusChanges[5]).toEqual(changes)
+  })
+
+  it('updates embedded campingPlace when receiveCampingPlaceFromWebSocket is dispatched', () =>
+  {
+    const booking = mockBooking({ campingPlaceId: 1, campingPlace: mockCampingPlace({ id: 1, name: 'Old Name' }) })
+    const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
+    const state = reducer(initial, receiveCampingPlaceFromWebSocket(mockCampingPlace({ id: 1, name: 'New Name' })))
+    const updated = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    expect(updated?.campingPlace.name).toBe('New Name')
+  })
+
+  it('does not affect bookings with different campingPlaceId', () =>
+  {
+    const booking = mockBooking({ campingPlaceId: 1, campingPlace: mockCampingPlace({ id: 1, name: 'Original' }) })
+    const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
+    const state = reducer(initial, receiveCampingPlaceFromWebSocket(mockCampingPlace({ id: 99, name: 'Other' })))
+    const unchanged = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    expect(unchanged?.campingPlace.name).toBe('Original')
+  })
+
+  it('updates embedded campingItem in bookingItems when receiveCampingItemFromWebSocket is dispatched', () =>
+  {
+    const booking = mockBooking({
+      campingPlace: mockCampingPlace(),
+      bookingItems: [mockBookingItem({ campingItemId: 5, campingItem: mockCampingItem({ id: 5, name: 'Old Item' }) })]
+    })
+    const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
+    const state = reducer(initial, receiveCampingItemFromWebSocket(mockCampingItem({ id: 5, name: 'Updated Item' })))
+    const updated = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    expect(updated?.bookingItems[0].campingItem.name).toBe('Updated Item')
+  })
+
+  it('does not affect bookingItems with different campingItemId', () =>
+  {
+    const booking = mockBooking({
+      campingPlace: mockCampingPlace(),
+      bookingItems: [mockBookingItem({ campingItemId: 5, campingItem: mockCampingItem({ id: 5, name: 'Original Item' }) })]
+    })
+    const initial = reducer(undefined, fetchBookings.fulfilled([booking], '', undefined))
+    const state = reducer(initial, receiveCampingItemFromWebSocket(mockCampingItem({ id: 99, name: 'Other Item' })))
+    const unchanged = bookingsSelectors.selectById({ bookings: state } as never, 1)
+    expect(unchanged?.bookingItems[0].campingItem.name).toBe('Original Item')
   })
 })

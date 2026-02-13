@@ -49,3 +49,27 @@ test.describe('Signup-Link', () =>
     await expect(page.getByLabel('Passwort')).toBeVisible()
   })
 })
+
+test.describe('Logout (eingeloggt)', () => 
+{
+  test('Logout leitet auf Login-Seite weiter', async ({ page }) => 
+  {
+    await page.goto('/bookings')
+    await expect(page.getByRole('heading', { name: 'Buchungen' })).toBeVisible()
+
+    const logoutBtn = page.locator('header .flex.items-center.gap-2 button').last()
+    await logoutBtn.click()
+    await expect(page).toHaveURL(/\/login/)
+  })
+})
+
+test.describe('Auth Guard', () => 
+{
+  test.use({ storageState: { cookies: [], origins: [] } })
+
+  test('Geschützte Route leitet unauthentifiziert auf Login', async ({ page }) => 
+  {
+    await page.goto('/bookings')
+    await expect(page).toHaveURL(/\/login/)
+  })
+})

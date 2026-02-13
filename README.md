@@ -169,7 +169,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 - `npm run test:e2e:ui` — E2E tests with Playwright UI
 - `npm run test:e2e:install` — Install Playwright browsers
 
-**Test database:** Integration tests use a separate SQLite file `data/test.db`. The setup (`vitest.setup.integration.ts`) sets `DATABASE_URL` to this file, runs `prisma db push`, and installs the Supertest fetch adapter; test files use `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`) which call the test API (`POST /api/test/clear-db`, `POST /api/test/login`), so the development database (`data/dev.db`) is **never modified**. **E2E tests (Playwright)** use the same `data/test.db`: `globalSetup` (`test/e2e/globalSetup.ts`) runs `prisma db push` and seeds a test user (`e2e@test.de` / `test1234`); the `webServer` is started with `DATABASE_URL` pointing to the test DB. The auth setup (`test/e2e/0-auth.setup.ts`) runs first in the single Playwright project and saves auth state to `test/e2e/.auth/user.json`. **Vor `npm run test:e2e` bitte `npm run dev` beenden**, damit der E2E-Server auf Port 5173 starten kann. Test output directories (`test-results`, `playwright-report`, `blob-report`, `coverage`, `test/e2e/.auth`) are in `.gitignore`.
+**Test database:** Integration tests use a separate SQLite file `data/test.db`. The setup (`vitest.setup.integration.ts`) sets `DATABASE_URL` to this file, runs `prisma db push`, and installs the Supertest fetch adapter; test files use `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`) which call the test API (`POST /api/test/clear-db`, `POST /api/test/login`), so the development database (`data/dev.db`) is **never modified**. **E2E tests (Playwright)** use the same `data/test.db`: `globalSetup` (`test/e2e/globalSetup.ts`) runs `prisma db push` and seeds a test user (`e2e@test.de` / `test1234`); the `webServer` is started with `DATABASE_URL` pointing to the test DB. The auth setup (`test/e2e/0-auth.setup.ts`) runs first in the single Playwright project and saves auth state to `test/e2e/.auth/user.json`. **Before running `npm run test:e2e`, stop `npm run dev`** so the E2E server can start on port 5173. Test output directories (`test-results`, `playwright-report`, `blob-report`, `coverage`, `test/e2e/.auth`) are in `.gitignore`.
 
 ### Storybook
 
@@ -179,11 +179,24 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 
 ```
 ├── test/                        # All tests and Storybook stories
-│   ├── unit/                    # Unit tests (Vitest, jsdom)
+│   ├── unit/                    # Unit tests (Vitest, jsdom + server-unit node)
 │   │   ├── authSlice.test.ts
-│   │   ├── bookingsSlice.test.ts
+│   │   ├── bookingsSlice.test.ts    # Includes cross-slice sync (embedded entity updates)
 │   │   ├── bookingPrice.test.ts
-│   │   └── dateUtils.test.ts
+│   │   ├── campingItemsSlice.test.ts
+│   │   ├── campingPlacesSlice.test.ts
+│   │   ├── dateUtils.test.ts
+│   │   ├── useConfirmDelete.test.ts
+│   │   ├── useCrud.test.ts
+│   │   ├── useSyncEditFormFromStore.test.ts
+│   │   ├── useWebSocketSync.test.ts
+│   │   ├── validateBookingFormSize.test.ts
+│   │   └── server/                  # Server unit tests (Vitest, node)
+│   │       ├── auth.middleware.test.ts
+│   │       ├── error.middleware.test.ts
+│   │       ├── bookings.controller.broadcast.test.ts
+│   │       ├── campingItems.controller.broadcast.test.ts
+│   │       └── campingPlaces.controller.broadcast.test.ts
 │   ├── integration/             # API integration tests (Vitest, frontend API + test DB, no server imports)
 │   │   ├── helpers.ts           # clearDb(), loginTestUser() via POST /api/test/clear-db, /api/test/login
 │   │   ├── auth.integration.test.ts
@@ -198,6 +211,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── auth.spec.ts
 │   │   ├── analytics.spec.ts
 │   │   ├── bookings.spec.ts
+│   │   ├── camping-items.spec.ts
 │   │   └── camping-places.spec.ts
 │   └── storybook/               # Storybook stories (mirror src: components/, features/)
 │       ├── components/ui/
@@ -273,11 +287,11 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   ├── hooks/
 │   │   ├── use-mobile.ts        # Mobile breakpoint (responsive)
 │   │   ├── useConfirmDelete.ts  # Confirm dialog + delete + toast
-│   │   ├── useFetchWhenIdle.ts  # Dispatch fetch when slice status is idle
-│   │   ├── useWebSocketSync.ts  # WebSocket connection; dispatches receive*FromWebSocket on server events
-│   │   ├── useFormDialog.ts     # Create-only dialog (open/close, form state)
 │   │   ├── useCrud.ts           # CRUD dialog + submit (openCreate, openEdit, form, handleSubmit)
-│   │   └── useOpenEditFromLocationState.ts  # Open edit from location.state (e.g. detail → list)
+│   │   ├── useFetchWhenIdle.ts  # Dispatch fetch when slice status is idle
+│   │   ├── useOpenEditFromLocationState.ts  # Open edit from location.state (e.g. detail → list)
+│   │   ├── useSyncEditFormFromStore.ts  # Sync edit form when entity updated/deleted via WebSocket
+│   │   └── useWebSocketSync.ts  # WebSocket connection; dispatches receive*FromWebSocket on server events
 │   ├── features/
 │   │   ├── auth/
 │   │   │   ├── LoginPage.tsx
@@ -365,6 +379,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - `authSlice`: Auth state (employee, token, login/signup/logout)
    - Thunks call into the API layer (`src/api/*.ts`), not the fetch client directly
    - Normalized state for performant selectors
+   - Cross-slice sync: `bookingsSlice` listens for camping place and item updates (via WebSocket or thunk) and patches embedded entity references in bookings
    - UI slice for theme, sidebar state, and mobile navigation
 
 3. **API Layer** (`src/api/`)
@@ -376,7 +391,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - `useConfirmDelete`: Confirm dialog, dispatch delete thunk, success/error toasts
    - `useFetchWhenIdle`: Dispatch a fetch thunk when the slice status is `idle`
    - `useWebSocketSync`: Connects to `ws://…/ws`, parses server events (e.g. `bookings/created`, `bookings/updated`, `bookings/deleted`), dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so Redux state stays in sync across tabs and users; reconnects after disconnect
-   - `useFormDialog`: Create-only dialog (open/close, form state)
+   - `useSyncEditFormFromStore`: Syncs an open edit form with the Redux store — closes the dialog when the entity is deleted, or updates the form when the entity is modified (e.g. via WebSocket)
    - `useCrud`: CRUD dialog + form state + submit (openCreate, openEdit, form, handleSubmit, optional validate); used by all CRUD pages
    - `useOpenEditFromLocationState`: Open edit dialog when navigating with `location.state` (e.g. from booking detail page)
    - `use-mobile`: Breakpoint hook for responsive behaviour

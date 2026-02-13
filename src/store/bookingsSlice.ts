@@ -1,8 +1,38 @@
 import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit'
 import * as bookingsApi from '@/api/bookings'
-import type { Booking, BookingFormData, BookingStatus, BookingStatusChange } from '@/api/types'
+import type { Booking, BookingFormData, BookingStatus, BookingStatusChange, CampingPlace, CampingItem } from '@/api/types'
 import type { RootState } from './store'
 import type { LoadingStatus } from './types'
+import { receiveCampingPlaceFromWebSocket, updateCampingPlace } from './campingPlacesSlice'
+import { receiveCampingItemFromWebSocket, updateCampingItem } from './campingItemsSlice'
+
+function updateEmbeddedCampingPlace(state: ReturnType<typeof bookings.getInitialState>, place: CampingPlace)
+{
+  for (const id of state.ids)
+  {
+    const booking = state.entities[id]
+    if (booking && booking.campingPlaceId === place.id)
+    {
+      booking.campingPlace = place
+    }
+  }
+}
+
+function updateEmbeddedCampingItem(state: ReturnType<typeof bookings.getInitialState>, item: CampingItem)
+{
+  for (const id of state.ids)
+  {
+    const booking = state.entities[id]
+    if (!booking) continue
+    for (const bi of booking.bookingItems)
+    {
+      if (bi.campingItemId === item.id)
+      {
+        bi.campingItem = item
+      }
+    }
+  }
+}
 
 const bookings = createEntityAdapter<Booking>()
 
@@ -137,6 +167,22 @@ const bookingsSlice = createSlice({
       {
         const bookingId = action.meta.arg
         state.statusChanges[bookingId] = action.payload
+      })
+      .addCase(receiveCampingPlaceFromWebSocket, (state, action) =>
+      {
+        updateEmbeddedCampingPlace(state, action.payload)
+      })
+      .addCase(updateCampingPlace.fulfilled, (state, action) =>
+      {
+        updateEmbeddedCampingPlace(state, action.payload)
+      })
+      .addCase(receiveCampingItemFromWebSocket, (state, action) =>
+      {
+        updateEmbeddedCampingItem(state, action.payload)
+      })
+      .addCase(updateCampingItem.fulfilled, (state, action) =>
+      {
+        updateEmbeddedCampingItem(state, action.payload)
       })
   },
 })
