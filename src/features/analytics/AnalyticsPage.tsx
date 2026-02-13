@@ -12,11 +12,11 @@ import { fetchAnalytics } from '@/store/analyticsSlice'
 export default function AnalyticsPage()
 {
   const dispatch = useAppDispatch()
-  const { data, status } = useAppSelector((s) => s.analytics)
+  const { data, status: analyticsStatus } = useAppSelector((state) => state.analytics)
 
   useEffect(() => { dispatch(fetchAnalytics()) }, [dispatch])
 
-  if (status === 'loading' || !data) return <p className="text-muted-foreground">Laden...</p>
+  if (analyticsStatus === 'loading' || !data) return <p className="text-muted-foreground">Laden...</p>
 
   return (
     <div className="space-y-6">

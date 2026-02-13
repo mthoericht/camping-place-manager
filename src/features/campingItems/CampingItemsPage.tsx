@@ -15,7 +15,7 @@ import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/s
 export default function CampingItemsPage()
 {
   const items = useAppSelector(campingItemsSelectors.selectAll)
-  const status = useAppSelector((s) => s.campingItems.status)
+  const campingItemStatus = useAppSelector((state) => state.campingItems.status)
 
   const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingItemCrud()
   const handleDelete = useConfirmDelete(deleteCampingItem, {
@@ -24,7 +24,7 @@ export default function CampingItemsPage()
     errorMessage: 'Fehler beim Löschen',
   })
 
-  useFetchWhenIdle(() => fetchCampingItems(), status)
+  useFetchWhenIdle(() => fetchCampingItems(), campingItemStatus)
 
   return (
     <div className="space-y-6">
@@ -35,7 +35,7 @@ export default function CampingItemsPage()
         <CampingItemFormContent campingItemId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />
       </FormDialog>
 
-      {status === 'loading' && <p className="text-muted-foreground">Laden...</p>}
+      {campingItemStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map((item) => (
@@ -46,7 +46,7 @@ export default function CampingItemsPage()
             onDelete={handleDelete}
           />
         ))}
-        {items.length === 0 && status !== 'loading' && (
+        {items.length === 0 && campingItemStatus !== 'loading' && (
           <Card className="col-span-full">
             <CardContent><EmptyState icon={<Package />} message="Keine Camping-Items vorhanden" /></CardContent>
           </Card>

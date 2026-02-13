@@ -19,9 +19,9 @@ export default function Topbar()
 {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const theme = useAppSelector((s) => s.ui.theme)
-  const mobileNavOpen = useAppSelector((s) => s.ui.mobileNavOpen)
-  const employee = useAppSelector((s) => s.auth.employee)
+  const theme = useAppSelector((state) => state.ui.theme)
+  const mobileNavOpen = useAppSelector((state) => state.ui.mobileNavOpen)
+  const employee = useAppSelector((state) => state.auth.employee)
   const location = useLocation()
 
   useEffect(() => 

@@ -11,8 +11,8 @@ import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState'
 import { useAppSelector } from '@/store/hooks'
 import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice'
-import { fetchCampingPlaces, campingPlacesSelectors } from '@/store/campingPlacesSlice'
-import { fetchCampingItems, campingItemsSelectors } from '@/store/campingItemsSlice'
+import { fetchCampingPlaces } from '@/store/campingPlacesSlice'
+import { fetchCampingItems } from '@/store/campingItemsSlice'
 import { useBookingCrud } from './useBookingCrud'
 import { statusLabels, statusColors } from './constants'
 import { getBookingFormDerived } from './useBookingFormDerived'
@@ -21,9 +21,9 @@ import { useBookingFormItems } from './useBookingFormItems'
 export default function BookingsPage() 
 {
   const bookings = useAppSelector(bookingsSelectors.selectAll)
-  const bStatus = useAppSelector((s) => s.bookings.status)
-  const placesStatus = useAppSelector((s) => s.campingPlaces.status)
-  const itemsStatus = useAppSelector((s) => s.campingItems.status)
+  const bookingsStatus = useAppSelector((state) => state.bookings.status)
+  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status)
+  const campingItemsStatus = useAppSelector((state) => state.campingItems.status)
   const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit, places, items, calcTotalPrice } = useBookingCrud()
   const handleDelete = useConfirmDelete(deleteBooking, {
     confirmMessage: 'Buchung wirklich löschen?',
@@ -31,9 +31,9 @@ export default function BookingsPage()
     errorMessage: 'Fehler beim Löschen',
   })
 
-  useFetchWhenIdle(() => fetchBookings(), bStatus)
-  useFetchWhenIdle(() => fetchCampingPlaces(), placesStatus)
-  useFetchWhenIdle(() => fetchCampingItems(), itemsStatus)
+  useFetchWhenIdle(() => fetchBookings(), bookingsStatus)
+  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus)
+  useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus)
   useOpenEditFromLocationState(openEdit)
 
   const { selectedPlace, totalItemSize, sizeError } = getBookingFormDerived(form, places, items)
@@ -62,7 +62,7 @@ export default function BookingsPage()
         />
       </FormDialog>
 
-      {bStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
+      {bookingsStatus === 'loading' && <p className="text-muted-foreground">Laden...</p>}
 
       <div className="grid gap-4">
         {bookings.map((booking) => (
@@ -75,7 +75,7 @@ export default function BookingsPage()
             onDelete={handleDelete}
           />
         ))}
-        {bookings.length === 0 && bStatus !== 'loading' && (
+        {bookings.length === 0 && bookingsStatus !== 'loading' && (
           <Card><CardContent><EmptyState icon={<Calendar />} message="Keine Buchungen vorhanden" /></CardContent></Card>
         )}
       </div>

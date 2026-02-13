@@ -7,7 +7,7 @@ import { fetchMe } from '@/store/authSlice'
 export default function AuthGuard({ children }: { children: React.ReactNode })
 {
   const dispatch = useAppDispatch()
-  const { token, employee, status } = useAppSelector((s) => s.auth)
+  const { token, employee, status } = useAppSelector((state) => state.auth)
 
   useEffect(() =>
   {

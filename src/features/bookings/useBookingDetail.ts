@@ -18,8 +18,8 @@ export function useBookingDetail(bookingId: number): {
 }
 {
   const dispatch = useAppDispatch()
-  const booking = useAppSelector((s) => bookingsSelectors.selectById(s, bookingId))
-  const statusChanges = useAppSelector((s) => s.bookings.statusChanges[bookingId] ?? EMPTY_STATUS_CHANGES)
+  const booking = useAppSelector((state) => bookingsSelectors.selectById(state, bookingId))
+  const statusChanges = useAppSelector((state) => state.bookings.statusChanges[bookingId] ?? EMPTY_STATUS_CHANGES)
 
   useEffect(() => 
   {

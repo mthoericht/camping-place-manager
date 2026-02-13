@@ -12,7 +12,7 @@ import { login, clearError } from '@/store/authSlice'
 export default function LoginPage()
 {
   const dispatch = useAppDispatch()
-  const { token, status, error } = useAppSelector((s) => s.auth)
+  const { token, status, error } = useAppSelector((state) => state.auth)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
