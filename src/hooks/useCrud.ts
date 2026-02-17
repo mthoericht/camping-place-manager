@@ -86,7 +86,7 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
   }, [emptyForm])
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) =>
+    async (e: { preventDefault(): void }) =>
     {
       e.preventDefault()
 

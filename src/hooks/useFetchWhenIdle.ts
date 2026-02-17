@@ -8,10 +8,7 @@ import type { LoadingStatus } from '@/store/types'
  * @param thunk - Redux thunk to dispatch
  * @param status - Current loading status; thunk runs when this is 'idle'
  */
-export function useFetchWhenIdle(
-  thunk: () => unknown,
-  status: LoadingStatus
-)
+export function useFetchWhenIdle(thunk: () => unknown, status: LoadingStatus)
 {
   const dispatch = useAppDispatch();
   const thunkRef = useRef(thunk);

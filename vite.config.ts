@@ -29,6 +29,9 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    cssMinify: true
+  },
   test: {
     projects: [
       {

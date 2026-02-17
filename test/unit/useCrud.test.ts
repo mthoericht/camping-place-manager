@@ -70,7 +70,7 @@ describe('useCrud', () =>
     act(() => result.current.setForm({ name: 'New' }))
 
     const fakeEvent = { preventDefault: vi.fn() }
-    await act(async () => result.current.handleSubmit(fakeEvent as any))
+    await act(async () => result.current.handleSubmit(fakeEvent))
 
     expect(fakeEvent.preventDefault).toHaveBeenCalled()
     expect(options.create).toHaveBeenCalledWith({ name: 'New' })
@@ -87,7 +87,7 @@ describe('useCrud', () =>
     act(() => result.current.setForm({ name: 'Updated' }))
 
     const fakeEvent = { preventDefault: vi.fn() }
-    await act(async () => result.current.handleSubmit(fakeEvent as any))
+    await act(async () => result.current.handleSubmit(fakeEvent))
 
     expect(options.update).toHaveBeenCalledWith({ id: 5, data: { name: 'Updated' } })
     expect(toast.success).toHaveBeenCalledWith('Aktualisiert')
@@ -102,7 +102,7 @@ describe('useCrud', () =>
     act(() => result.current.openCreate())
 
     const fakeEvent = { preventDefault: vi.fn() }
-    await act(async () => result.current.handleSubmit(fakeEvent as any))
+    await act(async () => result.current.handleSubmit(fakeEvent))
 
     expect(toast.error).toHaveBeenCalledWith('Validation error')
     expect(options.create).not.toHaveBeenCalled()
@@ -117,7 +117,7 @@ describe('useCrud', () =>
     act(() => result.current.openCreate())
 
     const fakeEvent = { preventDefault: vi.fn() }
-    await act(async () => result.current.handleSubmit(fakeEvent as any))
+    await act(async () => result.current.handleSubmit(fakeEvent))
 
     expect(toast.error).toHaveBeenCalledWith('Server error')
     expect(result.current.isOpen).toBe(true)
