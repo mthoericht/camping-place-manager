@@ -1,10 +1,11 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
-import type { CampingItemFormData } from '@/api/types'
-import { categories } from '../constants'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import type { CampingItemFormData } from '@/api/types';
+import { categories } from '../constants';
 
 export type CampingItemFormContentProps = {
   /** Camping item id when editing, or null for create mode. */
@@ -25,10 +26,10 @@ export default function CampingItemFormContent({
 {
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{campingItemId != null ? 'Camping-Item bearbeiten' : 'Neues Camping-Item'}</h2>
-        <p className="text-sm text-muted-foreground">Geben Sie die Details des Camping-Items ein</p>
-      </div>
+      <DialogHeader>
+        <DialogTitle>{campingItemId != null ? 'Camping-Item bearbeiten' : 'Neues Camping-Item'}</DialogTitle>
+        <DialogDescription>Geben Sie die Details des Camping-Items ein</DialogDescription>
+      </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="space-y-2">
           <Label htmlFor="name">Name</Label>
@@ -61,5 +62,5 @@ export default function CampingItemFormContent({
         <Button type="submit">{campingItemId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
-  )
+  );
 }

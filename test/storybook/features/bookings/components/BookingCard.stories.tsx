@@ -1,9 +1,9 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { MemoryRouter } from 'react-router-dom'
-import { fn } from 'storybook/test'
-import BookingCard from '@/features/bookings/components/BookingCard'
-import { statusLabels, statusColors } from '@/features/bookings/constants'
-import type { Booking } from '@/api/types'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { MemoryRouter } from 'react-router-dom';
+import { fn } from 'storybook/test';
+import BookingCard from '@/features/bookings/components/BookingCard';
+import { statusLabels, statusColors } from '@/features/bookings/constants';
+import type { Booking } from '@/api/types';
 
 const mockBooking: Booking = {
   id: 1,
@@ -35,7 +35,7 @@ const mockBooking: Booking = {
   statusChanges: [],
   createdAt: '',
   updatedAt: '',
-}
+};
 
 const meta = {
   title: 'Features/Bookings/BookingCard',
@@ -53,9 +53,9 @@ const meta = {
     onEdit: fn(),
     onDelete: fn(),
   },
-} satisfies Meta<typeof BookingCard>
+} satisfies Meta<typeof BookingCard>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
@@ -64,7 +64,7 @@ export const Default: Story = {
     statusLabels,
     statusColors,
   },
-}
+};
 
 export const Pending: Story = {
   args: {
@@ -72,7 +72,7 @@ export const Pending: Story = {
     statusLabels,
     statusColors,
   },
-}
+};
 
 export const WithoutItems: Story = {
   args: {
@@ -80,4 +80,4 @@ export const WithoutItems: Story = {
     statusLabels,
     statusColors,
   },
-}
+};

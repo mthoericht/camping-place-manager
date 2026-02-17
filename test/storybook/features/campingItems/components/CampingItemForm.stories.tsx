@@ -1,11 +1,11 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import type React from 'react'
-import { useState, useEffect } from 'react'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { FormDialog } from '@/components/ui/dialog'
-import CampingItemFormContent from '@/features/campingItems/components/CampingItemFormContent'
-import type { CampingItemFormData } from '@/api/types'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import type React from 'react';
+import { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Dialog, FormDialog } from '@/components/ui/dialog';
+import CampingItemFormContent from '@/features/campingItems/components/CampingItemFormContent';
+import type { CampingItemFormData } from '@/api/types';
 
 const emptyForm: CampingItemFormData = {
   name: '',
@@ -13,7 +13,7 @@ const emptyForm: CampingItemFormData = {
   size: 0,
   description: '',
   isActive: true,
-}
+};
 
 const filledForm: CampingItemFormData = {
   name: 'Familienzelt',
@@ -21,40 +21,42 @@ const filledForm: CampingItemFormData = {
   size: 25,
   description: '4-Personen-Zelt',
   isActive: true,
-}
+};
 
-const formContainerClass = 'max-w-lg rounded-lg border bg-background p-6 shadow-lg'
+const formContainerClass = 'max-w-lg rounded-lg border bg-background p-6 shadow-lg';
 
 function CampingItemFormDialogWrapper({ initialForm, campingItemId }: { initialForm: CampingItemFormData; campingItemId: number | null })
 {
-  const [form, setForm] = useState<CampingItemFormData>(initialForm)
-  const [open, setOpen] = useState(false)
-  const openCreate = () => { setForm(emptyForm); setOpen(true) }
+  const [form, setForm] = useState<CampingItemFormData>(initialForm);
+  const [open, setOpen] = useState(false);
+  const openCreate = () => { setForm(emptyForm); setOpen(true); };
   return (
     <>
       <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Camping-Item</Button>
       <FormDialog open={open} onOpenChange={(v) => (v ? openCreate() : setOpen(false))}>
-        <CampingItemFormContent campingItemId={campingItemId} form={form} setForm={setForm} onSubmit={(e) => { e.preventDefault(); setOpen(false) }} onClose={() => setOpen(false)} />
+        <CampingItemFormContent campingItemId={campingItemId} form={form} setForm={setForm} onSubmit={(e) => { e.preventDefault(); setOpen(false); }} onClose={() => setOpen(false)} />
       </FormDialog>
     </>
-  )
+  );
 }
 
 function CampingItemFormContentWrapper({ initialForm, campingItemId }: { initialForm: CampingItemFormData; campingItemId: number | null })
 {
-  const [form, setForm] = useState<CampingItemFormData>(initialForm)
-  useEffect(() => { setForm(initialForm) }, [initialForm])
+  const [form, setForm] = useState<CampingItemFormData>(initialForm);
+  useEffect(() => { setForm(initialForm); }, [initialForm]);
   return (
-    <div className={formContainerClass}>
-      <CampingItemFormContent
-        campingItemId={campingItemId}
-        form={form}
-        setForm={setForm}
-        onSubmit={(e) => e.preventDefault()}
-        onClose={() => undefined}
-      />
-    </div>
-  )
+    <Dialog open>
+      <div className={formContainerClass}>
+        <CampingItemFormContent
+          campingItemId={campingItemId}
+          form={form}
+          setForm={setForm}
+          onSubmit={(e) => e.preventDefault()}
+          onClose={() => undefined}
+        />
+      </div>
+    </Dialog>
+  );
 }
 
 const meta = {
@@ -62,9 +64,9 @@ const meta = {
   component: CampingItemFormContent,
   parameters: { layout: 'centered' },
   tags: ['autodocs'],
-} satisfies Meta<typeof CampingItemFormContent>
+} satisfies Meta<typeof CampingItemFormContent>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 type FormStory = {
@@ -75,33 +77,33 @@ type FormStory = {
 
 export const Create: FormStory = {
   render: () => <CampingItemFormDialogWrapper initialForm={emptyForm} campingItemId={null} />,
-}
+};
 
 export const CreateContent: FormStory = {
   render: () => <CampingItemFormContentWrapper initialForm={emptyForm} campingItemId={null} />,
   parameters: { docs: { description: { story: 'Formular-Inhalt direkt im Storybook-Container.' } } },
-}
+};
 
 function CampingItemFormDialogEditWrapper()
 {
-  const [form, setForm] = useState<CampingItemFormData>(emptyForm)
-  const [open, setOpen] = useState(false)
-  const [campingItemId, setCampingItemId] = useState<number | null>(null)
-  const openEdit = () => { setForm(filledForm); setCampingItemId(1); setOpen(true) }
+  const [form, setForm] = useState<CampingItemFormData>(emptyForm);
+  const [open, setOpen] = useState(false);
+  const [campingItemId, setCampingItemId] = useState<number | null>(null);
+  const openEdit = () => { setForm(filledForm); setCampingItemId(1); setOpen(true); };
   return (
     <>
       <Button onClick={openEdit}>Bearbeiten</Button>
-      <FormDialog open={open} onOpenChange={(v) => { if (!v) setOpen(false) }}>
-        <CampingItemFormContent campingItemId={campingItemId} form={form} setForm={setForm} onSubmit={(e) => { e.preventDefault(); setOpen(false) }} onClose={() => setOpen(false)} />
+      <FormDialog open={open} onOpenChange={(v) => { if (!v) setOpen(false); }}>
+        <CampingItemFormContent campingItemId={campingItemId} form={form} setForm={setForm} onSubmit={(e) => { e.preventDefault(); setOpen(false); }} onClose={() => setOpen(false)} />
       </FormDialog>
     </>
-  )
+  );
 }
 
 export const Edit: FormStory = {
   render: () => <CampingItemFormDialogEditWrapper />,
   parameters: { docs: { description: { story: 'Klick auf „Bearbeiten“ öffnet den Dialog mit ausgefüllten Camping-Item-Daten.' } } },
-}
+};
 
 export const EditContent: FormStory = {
   args: {
@@ -113,8 +115,8 @@ export const EditContent: FormStory = {
   },
   render: (args) =>
   {
-    const initialForm: CampingItemFormData = { ...filledForm, ...args }
-    return <CampingItemFormContentWrapper initialForm={initialForm} campingItemId={1} />
+    const initialForm: CampingItemFormData = { ...filledForm, ...args };
+    return <CampingItemFormContentWrapper initialForm={initialForm} campingItemId={1} />;
   },
   parameters: { docs: { description: { story: 'Formular-Inhalt mit über Controls änderbaren Ausgangsdaten.' } } },
-}
+};

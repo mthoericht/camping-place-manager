@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { mergeClasses } from '@/lib/utils'
+import type { ReactNode } from 'react';
+import { mergeClasses } from '@/lib/utils';
 
 interface EmptyStateProps {
   icon: ReactNode
@@ -19,5 +19,5 @@ export default function EmptyState({ icon, message, className }: EmptyStateProps
       <div className="mb-4 [&>svg]:h-12 [&>svg]:w-12">{icon}</div>
       <p>{message}</p>
     </div>
-  )
+  );
 }

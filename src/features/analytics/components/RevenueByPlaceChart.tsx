@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 type DataPoint = { name: string; revenue: number; bookings: number }
 
@@ -24,5 +24,5 @@ export default function RevenueByPlaceChart({ data }: { data: DataPoint[] })
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

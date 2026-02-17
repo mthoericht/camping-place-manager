@@ -1,22 +1,22 @@
-import { useEffect } from 'react'
-import { Euro, Calendar, Tent, Package } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import PageHeader from '@/components/layout/PageHeader'
-import StatCard from './components/StatCard'
-import RevenueByMonthChart from './components/RevenueByMonthChart'
-import BookingsByStatusChart from './components/BookingsByStatusChart'
-import RevenueByPlaceChart from './components/RevenueByPlaceChart'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { fetchAnalytics } from '@/store/analyticsSlice'
+import { useEffect } from 'react';
+import { Euro, Calendar, Tent, Package } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import PageHeader from '@/components/layout/PageHeader';
+import StatCard from './components/StatCard';
+import RevenueByMonthChart from './components/RevenueByMonthChart';
+import BookingsByStatusChart from './components/BookingsByStatusChart';
+import RevenueByPlaceChart from './components/RevenueByPlaceChart';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { fetchAnalytics } from '@/store/analyticsSlice';
 
 export default function AnalyticsPage()
 {
-  const dispatch = useAppDispatch()
-  const { data, status: analyticsStatus } = useAppSelector((state) => state.analytics)
+  const dispatch = useAppDispatch();
+  const { data, status: analyticsStatus } = useAppSelector((state) => state.analytics);
 
-  useEffect(() => { dispatch(fetchAnalytics()) }, [dispatch])
+  useEffect(() => { dispatch(fetchAnalytics()); }, [dispatch]);
 
-  if (analyticsStatus === 'loading' || !data) return <p className="text-muted-foreground">Laden...</p>
+  if (analyticsStatus === 'loading' || !data) return <p className="text-muted-foreground">Laden...</p>;
 
   return (
     <div className="space-y-6">
@@ -43,5 +43,5 @@ export default function AnalyticsPage()
         </div>
       </CardContent></Card>
     </div>
-  )
+  );
 }

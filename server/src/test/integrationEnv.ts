@@ -1,7 +1,7 @@
-import { vi } from 'vitest'
-import request from 'supertest'
-import { createApp } from '../app'
-import { clearTestDb } from './clearTestDb'
+import { vi } from 'vitest';
+import request from 'supertest';
+import { createApp } from '../app';
+import { clearTestDb } from './clearTestDb';
 
 /**
  * Returns a fetch-like function that forwards HTTP requests to the Express app
@@ -16,26 +16,26 @@ function createFetchAdapter(app: ReturnType<typeof createApp>)
   {
     const path = typeof url === 'string' && url.startsWith('http')
       ? new URL(url).pathname
-      : String(url)
-    const method = (init?.method ?? 'GET').toLowerCase()
-    const bodyPayload = bodyFromInit(init?.body, method)
+      : String(url);
+    const method = (init?.method ?? 'GET').toLowerCase();
+    const bodyPayload = bodyFromInit(init?.body, method);
 
-    const agent = getSupertestAgent(app)
-    let req = agent[method](path).set('Content-Type', 'application/json')
+    const agent = getSupertestAgent(app);
+    let req = agent[method](path).set('Content-Type', 'application/json');
     if (init?.headers)
     {
-      const hdrs = init.headers as Record<string, string>
+      const hdrs = init.headers as Record<string, string>;
       for (const [k, v] of Object.entries(hdrs))
       {
-        req = (req as { set: (k: string, v: string) => typeof req }).set(k, v)
+        req = (req as { set: (k: string, v: string) => typeof req }).set(k, v);
       }
     }
     if (bodyPayload !== undefined)
-      req = (req as { send: (b: unknown) => typeof req }).send(bodyPayload)
+      req = (req as { send: (b: unknown) => typeof req }).send(bodyPayload);
 
-    const res = (await req) as { status: number; body: unknown }
-    return toFetchLikeResponse(res)
-  }
+    const res = (await req) as { status: number; body: unknown };
+    return toFetchLikeResponse(res);
+  };
 }
 
 /**
@@ -47,8 +47,8 @@ function createFetchAdapter(app: ReturnType<typeof createApp>)
  */
 function bodyFromInit(body: RequestInit['body'], method: string): unknown
 {
-  if (body === undefined || method === 'get') return undefined
-  return typeof body === 'string' ? JSON.parse(body) : body
+  if (body === undefined || method === 'get') return undefined;
+  return typeof body === 'string' ? JSON.parse(body) : body;
 }
 
 /**
@@ -63,7 +63,7 @@ function toFetchLikeResponse(res: { status: number; body: unknown }): FetchLikeR
     ok: res.status >= 200 && res.status < 300,
     status: res.status,
     json: () => Promise.resolve(res.body as Record<string, unknown>)
-  }
+  };
 }
 
 type SupertestAgent = Record<string, (path: string) => { set: (k: string, v: string) => unknown; send?: (b?: unknown) => unknown }>
@@ -78,10 +78,10 @@ type FetchLikeResponse = { ok: boolean; status: number; json: () => Promise<Reco
  */
 function getSupertestAgent(app: ReturnType<typeof createApp>): SupertestAgent
 {
-  return request(app) as unknown as SupertestAgent
+  return request(app) as unknown as SupertestAgent;
 }
 
-export { clearTestDb } from './clearTestDb'
+export { clearTestDb } from './clearTestDb';
 
 /**
  * Creates a test user via the auth service and stubs `localStorage` so the
@@ -91,22 +91,22 @@ export { clearTestDb } from './clearTestDb'
  */
 export async function loginTestUser(): Promise<string>
 {
-  const { signup, login } = await import('../services/auth.service')
-  let token: string
+  const { signup, login } = await import('../services/auth.service');
+  let token: string;
   try
   {
-    ;({ token } = await signup({ email: 'test@test.de', fullName: 'Test User', password: 'test1234' }))
+    ;({ token } = await signup({ email: 'test@test.de', fullName: 'Test User', password: 'test1234' }));
   }
   catch
   {
-    ;({ token } = await login({ email: 'test@test.de', password: 'test1234' }))
+    ;({ token } = await login({ email: 'test@test.de', password: 'test1234' }));
   }
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => key === 'auth_token' ? token : null,
     setItem: () => {},
     removeItem: () => {},
-  })
-  return token
+  });
+  return token;
 }
 
 /**
@@ -117,6 +117,6 @@ export async function loginTestUser(): Promise<string>
  */
 export function installIntegrationFetch(): void
 {
-  const app = createApp()
-  vi.stubGlobal('fetch', createFetchAdapter(app))
+  const app = createApp();
+  vi.stubGlobal('fetch', createFetchAdapter(app));
 }

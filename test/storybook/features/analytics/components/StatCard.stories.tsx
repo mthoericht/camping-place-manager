@@ -1,15 +1,15 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Euro, Calendar, Tent, Package } from 'lucide-react'
-import StatCard from '@/features/analytics/components/StatCard'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { Euro, Calendar, Tent, Package } from 'lucide-react';
+import StatCard from '@/features/analytics/components/StatCard';
 
 const meta = {
   title: 'Features/Analytics/StatCard',
   component: StatCard,
   parameters: { layout: 'centered' },
   tags: ['autodocs'],
-} satisfies Meta<typeof StatCard>
+} satisfies Meta<typeof StatCard>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Revenue: Story = {
@@ -19,7 +19,7 @@ export const Revenue: Story = {
     subtitle: 'Aus 12 bestätigten Buchungen',
     icon: Euro,
   },
-}
+};
 
 export const Bookings: Story = {
   args: {
@@ -28,7 +28,7 @@ export const Bookings: Story = {
     subtitle: '5 ausstehend',
     icon: Calendar,
   },
-}
+};
 
 export const Places: Story = {
   args: {
@@ -37,7 +37,7 @@ export const Places: Story = {
     subtitle: '6 aktiv',
     icon: Tent,
   },
-}
+};
 
 export const Items: Story = {
   args: {
@@ -46,4 +46,4 @@ export const Items: Story = {
     subtitle: '12 aktiv',
     icon: Package,
   },
-}
+};

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react'
-import { useAppDispatch } from '@/store/hooks'
-import type { AppDispatch } from '@/store/store'
-import type { LoadingStatus } from '@/store/types'
+import { useEffect, useRef } from 'react';
+import { useAppDispatch } from '@/store/hooks';
+import type { AppDispatch } from '@/store/store';
+import type { LoadingStatus } from '@/store/types';
 
 /**
  * Dispatches the given thunk when the loading status becomes idle.

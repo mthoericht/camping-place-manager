@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { fn } from 'storybook/test'
-import CampingItemCard from '@/features/campingItems/components/CampingItemCard'
-import type { CampingItem } from '@/api/types'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import CampingItemCard from '@/features/campingItems/components/CampingItemCard';
+import type { CampingItem } from '@/api/types';
 
 const mockItem: CampingItem = {
   id: 1,
@@ -12,7 +12,7 @@ const mockItem: CampingItem = {
   isActive: true,
   createdAt: '',
   updatedAt: '',
-}
+};
 
 const meta = {
   title: 'Features/CampingItems/CampingItemCard',
@@ -23,19 +23,19 @@ const meta = {
     onEdit: fn(),
     onDelete: fn(),
   },
-} satisfies Meta<typeof CampingItemCard>
+} satisfies Meta<typeof CampingItemCard>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: { item: mockItem },
-}
+};
 
 export const Inactive: Story = {
   args: { item: { ...mockItem, isActive: false, name: 'Reserve-Pavillon' } },
-}
+};
 
 export const OtherCategory: Story = {
   args: { item: { ...mockItem, category: 'Other', name: 'Zusatzausrüstung' } },
-}
+};

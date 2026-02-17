@@ -150,7 +150,7 @@ function FormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={contentClassName}>{children}</DialogContent>
     </Dialog>
-  )
+  );
 }
 
 export {

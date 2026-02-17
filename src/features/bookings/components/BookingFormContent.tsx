@@ -1,13 +1,14 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Textarea } from '@/components/ui/textarea'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Package, AlertCircle, X } from 'lucide-react'
-import type { BookingFormData, BookingStatus, CampingPlace, CampingItem } from '@/api/types'
-import { statusLabels } from '../constants'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Package, AlertCircle, X } from 'lucide-react';
+import type { BookingFormData, BookingStatus, CampingPlace, CampingItem } from '@/api/types';
+import { statusLabels } from '../constants';
 
 export type BookingFormContentProps = {
   /** Booking id when editing, or null for create mode. */
@@ -44,10 +45,10 @@ export default function BookingFormContent({
 {
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{bookingId != null ? 'Buchung bearbeiten' : 'Neue Buchung erstellen'}</h2>
-        <p className="text-sm text-muted-foreground">{bookingId != null ? 'Buchungsdetails anpassen' : 'Geben Sie die Buchungsdetails ein'}</p>
-      </div>
+      <DialogHeader>
+        <DialogTitle>{bookingId != null ? 'Buchung bearbeiten' : 'Neue Buchung erstellen'}</DialogTitle>
+        <DialogDescription>{bookingId != null ? 'Buchungsdetails anpassen' : 'Geben Sie die Buchungsdetails ein'}</DialogDescription>
+      </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2"><Label>Gast Name</Label><Input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} required /></div>
@@ -91,7 +92,7 @@ export default function BookingFormContent({
           </div>
           {(form.bookingItems ?? []).map((bi, idx) =>
           {
-            const item = items.find((i) => i.id === bi.campingItemId)
+            const item = items.find((i) => i.id === bi.campingItemId);
             return (
               <div key={idx} className="flex items-center justify-between p-2 bg-muted rounded-md">
                 <div className="flex items-center gap-2">
@@ -101,7 +102,7 @@ export default function BookingFormContent({
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => removeItem(idx)}><X className="h-4 w-4" /></Button>
               </div>
-            )
+            );
           })}
           <Select onValueChange={addItem}>
             <SelectTrigger><SelectValue placeholder="Item hinzufügen..." /></SelectTrigger>
@@ -115,5 +116,5 @@ export default function BookingFormContent({
         <Button type="submit" disabled={!!sizeError}>{bookingId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect } from 'react';
 
 type EntityWithUpdatedAt = { id: number; updatedAt: string }
 
@@ -22,15 +22,15 @@ export function useSyncEditFormFromStore<TEntity extends EntityWithUpdatedAt, TF
 {
   useEffect(() => 
   {
-    if (!editing) return
+    if (!editing) return;
     if (storeEntity === undefined) 
     {
-      close()
-      return
+      close();
+      return;
     }
     if (storeEntity.updatedAt !== editing.updatedAt) 
     {
-      setForm(toForm(storeEntity))
+      setForm(toForm(storeEntity));
     }
   }, [editing, storeEntity, close, setForm, toForm]);
 }

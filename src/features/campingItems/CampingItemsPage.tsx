@@ -1,16 +1,16 @@
-import { Package, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { FormDialog } from '@/components/ui/dialog'
-import PageHeader from '@/components/layout/PageHeader'
-import EmptyState from '@/components/layout/EmptyState'
-import CampingItemCard from './components/CampingItemCard'
-import CampingItemFormContent from './components/CampingItemFormContent'
-import { useCampingItemCrud } from './useCampingItemCrud'
-import { useConfirmDelete } from '@/hooks/useConfirmDelete'
-import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
-import { useAppSelector } from '@/store/hooks'
-import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice'
+import { Package, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { FormDialog } from '@/components/ui/dialog';
+import PageHeader from '@/components/layout/PageHeader';
+import EmptyState from '@/components/layout/EmptyState';
+import CampingItemCard from './components/CampingItemCard';
+import CampingItemFormContent from './components/CampingItemFormContent';
+import { useCampingItemCrud } from './useCampingItemCrud';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
+import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
+import { useAppSelector } from '@/store/hooks';
+import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice';
 
 export default function CampingItemsPage()
 {
@@ -53,5 +53,5 @@ export default function CampingItemsPage()
         )}
       </div>
     </div>
-  )
+  );
 }

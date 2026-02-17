@@ -1,13 +1,13 @@
-import { useCrud } from '@/hooks/useCrud'
-import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice'
-import { campingPlacesSelectors } from '@/store/campingPlacesSlice'
-import { campingItemsSelectors } from '@/store/campingItemsSlice'
-import { toDateInputValue } from '@/lib/dateUtils'
-import { calcBookingTotalPrice } from '@shared/bookingPrice'
-import { calcTotalItemSize } from './useBookingFormDerived'
-import type { BookingFormData, Booking, CampingPlace, CampingItem } from '@/api/types'
+import { useCrud } from '@/hooks/useCrud';
+import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice';
+import { campingPlacesSelectors } from '@/store/campingPlacesSlice';
+import { campingItemsSelectors } from '@/store/campingItemsSlice';
+import { toDateInputValue } from '@/lib/dateUtils';
+import { calcBookingTotalPrice } from '@shared/bookingPrice';
+import { calcTotalItemSize } from './useBookingFormDerived';
+import type { BookingFormData, Booking, CampingPlace, CampingItem } from '@/api/types';
 
 const emptyForm: BookingFormData = {
   campingPlaceId: 0,
@@ -21,7 +21,7 @@ const emptyForm: BookingFormData = {
   status: 'PENDING',
   notes: '',
   bookingItems: [],
-}
+};
 
 /** Maps a persisted booking entity to local form state, converting dates to input-compatible strings. */
 function bookingToForm(booking: Booking): BookingFormData
@@ -38,7 +38,7 @@ function bookingToForm(booking: Booking): BookingFormData
     status: booking.status,
     notes: booking.notes ?? '',
     bookingItems: (booking.bookingItems ?? []).map((bi) => ({ campingItemId: bi.campingItemId, quantity: bi.quantity })),
-  }
+  };
 }
 
 /**
@@ -47,8 +47,8 @@ function bookingToForm(booking: Booking): BookingFormData
  */
 function calcTotalPrice(startDate: string, endDate: string, place: CampingPlace | undefined): number
 {
-  if (!place) return 0
-  return calcBookingTotalPrice(startDate, endDate, place.price)
+  if (!place) return 0;
+  return calcBookingTotalPrice(startDate, endDate, place.price);
 }
 
 /**
@@ -57,13 +57,13 @@ function calcTotalPrice(startDate: string, endDate: string, place: CampingPlace 
  */
 export function validateBookingFormSize(form: BookingFormData, places: CampingPlace[], items: CampingItem[]): string | null
 {
-  const place = places.find((p) => p.id === form.campingPlaceId)
-  const total = calcTotalItemSize(form.bookingItems ?? [], items)
+  const place = places.find((p) => p.id === form.campingPlaceId);
+  const total = calcTotalItemSize(form.bookingItems ?? [], items);
   if (place && total > place.size)
   {
-    return 'Die Gesamtgröße der Items überschreitet die Stellplatzgröße'
+    return 'Die Gesamtgröße der Items überschreitet die Stellplatzgröße';
   }
-  return null
+  return null;
 }
 
 /**
@@ -76,9 +76,9 @@ export function validateBookingFormSize(form: BookingFormData, places: CampingPl
  */
 export function useBookingCrud()
 {
-  const dispatch = useAppDispatch()
-  const places = useAppSelector(campingPlacesSelectors.selectAll)
-  const items = useAppSelector(campingItemsSelectors.selectAll)
+  const dispatch = useAppDispatch();
+  const places = useAppSelector(campingPlacesSelectors.selectAll);
+  const items = useAppSelector(campingItemsSelectors.selectAll);
 
   const crud = useCrud<BookingFormData, Booking, BookingFormData>({
     emptyForm,
@@ -91,15 +91,15 @@ export function useBookingCrud()
     update: ({ id, data }) => dispatch(updateBooking({ id, data })).unwrap(),
     messages: { create: 'Buchung erstellt', update: 'Buchung aktualisiert' },
     validate: (form) => validateBookingFormSize(form, places, items)
-  })
+  });
 
-  const { editing, close, setForm } = crud
-  const editingId = editing?.id ?? null
+  const { editing, close, setForm } = crud;
+  const editingId = editing?.id ?? null;
   const storeBooking = useAppSelector((state) =>
     editingId != null ? bookingsSelectors.selectById(state, editingId) : undefined
-  )
+  );
   //sync the edit form from the store when the entity is updated via WebSocket or deleted
   useSyncEditFormFromStore(editing, storeBooking, close, setForm, bookingToForm);
 
-  return { ...crud, places, items, calcTotalPrice }
+  return { ...crud, places, items, calcTotalPrice };
 }

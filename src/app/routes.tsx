@@ -1,13 +1,13 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import AppLayout from '@/components/layout/AppLayout'
-import CampingPlacesPage from '@/features/campingPlaces/CampingPlacesPage'
-import CampingItemsPage from '@/features/campingItems/CampingItemsPage'
-import BookingsPage from '@/features/bookings/BookingsPage'
-import BookingDetailPage from '@/features/bookings/BookingDetailPage'
-import AnalyticsPage from '@/features/analytics/AnalyticsPage'
-import LoginPage from '@/features/auth/LoginPage'
-import SignupPage from '@/features/auth/SignupPage'
-import AuthGuard from '@/features/auth/AuthGuard'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import AppLayout from '@/components/layout/AppLayout';
+import CampingPlacesPage from '@/features/campingPlaces/CampingPlacesPage';
+import CampingItemsPage from '@/features/campingItems/CampingItemsPage';
+import BookingsPage from '@/features/bookings/BookingsPage';
+import BookingDetailPage from '@/features/bookings/BookingDetailPage';
+import AnalyticsPage from '@/features/analytics/AnalyticsPage';
+import LoginPage from '@/features/auth/LoginPage';
+import SignupPage from '@/features/auth/SignupPage';
+import AuthGuard from '@/features/auth/AuthGuard';
 
 export default function AppRoutes() 
 {
@@ -31,5 +31,5 @@ export default function AppRoutes()
         <Route path="*" element={<Navigate to="/bookings" replace />} />
       </Route>
     </Routes>
-  )
+  );
 }

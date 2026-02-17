@@ -1,4 +1,4 @@
-import type { BookingStatus } from '@/api/types'
+import type { BookingStatus } from '@/api/types';
 
 export const statusLabels: Record<BookingStatus, string> = {
   PENDING: 'Ausstehend',
@@ -6,7 +6,7 @@ export const statusLabels: Record<BookingStatus, string> = {
   PAID: 'Bezahlt',
   CANCELLED: 'Storniert',
   COMPLETED: 'Abgeschlossen',
-}
+};
 
 export const statusColors: Record<BookingStatus, string> = {
   PENDING: 'bg-yellow-500',
@@ -14,4 +14,4 @@ export const statusColors: Record<BookingStatus, string> = {
   PAID: 'bg-blue-500',
   CANCELLED: 'bg-red-500',
   COMPLETED: 'bg-gray-500',
-}
+};

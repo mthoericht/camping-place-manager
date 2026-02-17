@@ -1,35 +1,35 @@
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { Tent, MapPin, Package, Calendar, BarChart3, Menu, Sun, Moon, LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { setMobileNavOpen, toggleTheme } from '@/store/uiSlice'
-import { logout } from '@/store/authSlice'
-import { useEffect } from 'react'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
-import { mergeClasses } from '@/lib/utils'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Tent, MapPin, Package, Calendar, BarChart3, Menu, Sun, Moon, LogOut } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { setMobileNavOpen, toggleTheme } from '@/store/uiSlice';
+import { logout } from '@/store/authSlice';
+import { useEffect } from 'react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { mergeClasses } from '@/lib/utils';
 
 const navItems = [
   { to: '/bookings', label: 'Buchungen', icon: Calendar },
   { to: '/camping-places', label: 'Stellplätze', icon: MapPin },
   { to: '/camping-items', label: 'Ausrüstung', icon: Package },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
-]
+];
 
 export default function Topbar() 
 {
-  const dispatch = useAppDispatch()
-  const navigate = useNavigate()
-  const theme = useAppSelector((state) => state.ui.theme)
-  const mobileNavOpen = useAppSelector((state) => state.ui.mobileNavOpen)
-  const employee = useAppSelector((state) => state.auth.employee)
-  const location = useLocation()
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const theme = useAppSelector((state) => state.ui.theme);
+  const mobileNavOpen = useAppSelector((state) => state.ui.mobileNavOpen);
+  const employee = useAppSelector((state) => state.auth.employee);
+  const location = useLocation();
 
   useEffect(() => 
   {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
-  }, [theme])
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
 
-  const isActive = (path: string) => location.pathname.startsWith(path)
+  const isActive = (path: string) => location.pathname.startsWith(path);
 
   const navLinks = (
     <nav
@@ -53,7 +53,7 @@ export default function Topbar()
         </NavLink>
       ))}
     </nav>
-  )
+  );
 
   return (
     <>
@@ -80,7 +80,7 @@ export default function Topbar()
                   {employee.fullName}
                 </span>
               )}
-              <Button variant="ghost" size="icon" onClick={() => { dispatch(logout()); navigate('/login') }}>
+              <Button variant="ghost" size="icon" onClick={() => { dispatch(logout()); navigate('/login'); }}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
@@ -115,5 +115,5 @@ export default function Topbar()
         </SheetContent>
       </Sheet>
     </>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { type LucideIcon } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type LucideIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export type StatCardProps = {
   title: string
@@ -21,5 +21,5 @@ export default function StatCard({ title, value, subtitle, icon: Icon }: StatCar
         {subtitle != null && <p className="text-xs text-muted-foreground">{subtitle}</p>}
       </CardContent>
     </Card>
-  )
+  );
 }

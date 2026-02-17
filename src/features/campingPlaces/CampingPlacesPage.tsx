@@ -1,30 +1,30 @@
-import { MapPin, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { FormDialog } from '@/components/ui/dialog'
-import PageHeader from '@/components/layout/PageHeader'
-import EmptyState from '@/components/layout/EmptyState'
-import CampingPlaceCard from './components/CampingPlaceCard'
-import CampingPlaceFormContent from './components/CampingPlaceFormContent'
-import { useCampingPlaceCrud } from './useCampingPlaceCrud'
-import { useConfirmDelete } from '@/hooks/useConfirmDelete'
-import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
-import { useAppSelector } from '@/store/hooks'
-import { fetchCampingPlaces, deleteCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice'
+import { MapPin, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { FormDialog } from '@/components/ui/dialog';
+import PageHeader from '@/components/layout/PageHeader';
+import EmptyState from '@/components/layout/EmptyState';
+import CampingPlaceCard from './components/CampingPlaceCard';
+import CampingPlaceFormContent from './components/CampingPlaceFormContent';
+import { useCampingPlaceCrud } from './useCampingPlaceCrud';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
+import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
+import { useAppSelector } from '@/store/hooks';
+import { fetchCampingPlaces, deleteCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice';
 
 export default function CampingPlacesPage()
 {
-  const places = useAppSelector(campingPlacesSelectors.selectAll)
-  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status)
+  const places = useAppSelector(campingPlacesSelectors.selectAll);
+  const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status);
 
-  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingPlaceCrud()
+  const { editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit } = useCampingPlaceCrud();
   const handleDelete = useConfirmDelete(deleteCampingPlace, {
     confirmMessage: 'Stellplatz wirklich löschen?',
     successMessage: 'Stellplatz gelöscht',
     errorMessage: 'Fehler beim Löschen',
-  })
+  });
 
-  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus)
+  useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus);
 
   return (
     <div className="space-y-6">
@@ -53,5 +53,5 @@ export default function CampingPlacesPage()
         )}
       </div>
     </div>
-  )
+  );
 }

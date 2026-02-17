@@ -1,9 +1,9 @@
-import { Package, Pencil, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import type { CampingItem } from '@/api/types'
-import { categories, getCategoryColor } from '../constants'
+import { Package, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import type { CampingItem } from '@/api/types';
+import { categories, getCategoryColor } from '../constants';
 
 export type CampingItemCardProps = {
   item: CampingItem
@@ -46,5 +46,5 @@ export default function CampingItemCard({ item, onEdit, onDelete }: CampingItemC
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { useCrud } from '@/hooks/useCrud'
-import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { createCampingPlace, updateCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice'
-import type { CampingPlaceFormData, CampingPlace } from '@/api/types'
+import { useCrud } from '@/hooks/useCrud';
+import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createCampingPlace, updateCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice';
+import type { CampingPlaceFormData, CampingPlace } from '@/api/types';
 
 const emptyForm: CampingPlaceFormData = {
   name: '',
@@ -12,7 +12,7 @@ const emptyForm: CampingPlaceFormData = {
   price: 0,
   amenities: '',
   isActive: true,
-}
+};
 
 /** Maps a persisted camping place entity to local form state. */
 function campingPlaceToForm(place: CampingPlace): CampingPlaceFormData
@@ -25,7 +25,7 @@ function campingPlaceToForm(place: CampingPlace): CampingPlaceFormData
     price: place.price,
     amenities: place.amenities,
     isActive: place.isActive,
-  }
+  };
 }
 
 /**
@@ -37,7 +37,7 @@ function campingPlaceToForm(place: CampingPlace): CampingPlaceFormData
  */
 export function useCampingPlaceCrud()
 {
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
   const crud = useCrud<CampingPlaceFormData, CampingPlace>({
     emptyForm,
     toForm: campingPlaceToForm,
@@ -45,14 +45,14 @@ export function useCampingPlaceCrud()
     create: (data) => dispatch(createCampingPlace(data)).unwrap(),
     update: ({ id, data }) => dispatch(updateCampingPlace({ id, data })).unwrap(),
     messages: { create: 'Stellplatz erstellt', update: 'Stellplatz aktualisiert' },
-  })
+  });
 
-  const { editing, close, setForm } = crud
-  const editingId = editing?.id ?? null
+  const { editing, close, setForm } = crud;
+  const editingId = editing?.id ?? null;
   const storeEntity = useAppSelector((state) =>
     editingId != null ? campingPlacesSelectors.selectById(state, editingId) : undefined
-  )
-  useSyncEditFormFromStore(editing, storeEntity, close, setForm, campingPlaceToForm)
+  );
+  useSyncEditFormFromStore(editing, storeEntity, close, setForm, campingPlaceToForm);
 
-  return crud
+  return crud;
 }

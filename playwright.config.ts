@@ -1,8 +1,8 @@
-import { defineConfig, devices } from '@playwright/test'
-import path from 'node:path'
+import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
 
-const testDbPath = path.join(process.cwd(), 'data', 'test.db')
-const databaseUrl = `file:${testDbPath}`
+const testDbPath = path.join(process.cwd(), 'data', 'test.db');
+const databaseUrl = `file:${testDbPath}`;
 
 export default defineConfig({
   testDir: './test/e2e',
@@ -36,4 +36,4 @@ export default defineConfig({
     },
   },
   globalSetup: './test/e2e/globalSetup.ts',
-})
+});

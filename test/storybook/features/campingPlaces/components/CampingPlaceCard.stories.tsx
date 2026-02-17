@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import { fn } from 'storybook/test'
-import CampingPlaceCard from '@/features/campingPlaces/components/CampingPlaceCard'
-import type { CampingPlace } from '@/api/types'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
+import CampingPlaceCard from '@/features/campingPlaces/components/CampingPlaceCard';
+import type { CampingPlace } from '@/api/types';
 
 const mockPlace: CampingPlace = {
   id: 1,
@@ -14,7 +14,7 @@ const mockPlace: CampingPlace = {
   isActive: true,
   createdAt: '',
   updatedAt: '',
-}
+};
 
 const meta = {
   title: 'Features/CampingPlaces/CampingPlaceCard',
@@ -25,18 +25,18 @@ const meta = {
     onEdit: fn(),
     onDelete: fn(),
   },
-} satisfies Meta<typeof CampingPlaceCard>
+} satisfies Meta<typeof CampingPlaceCard>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: { place: mockPlace },
-}
+};
 
 export const Inactive: Story = {
   args: { place: { ...mockPlace, isActive: false, name: 'Platz B2' } },
-}
+};
 
 export const Minimal: Story = {
   args: {
@@ -47,4 +47,4 @@ export const Minimal: Story = {
       name: 'Platz C3',
     },
   },
-}
+};

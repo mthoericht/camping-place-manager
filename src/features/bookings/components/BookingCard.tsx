@@ -1,10 +1,10 @@
-import { useNavigate } from 'react-router-dom'
-import { Calendar, Users, MapPin, Package, Eye, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import type { Booking, BookingStatus } from '@/api/types'
-import { statusLabels, statusColors } from '../constants'
+import { useNavigate } from 'react-router-dom';
+import { Calendar, Users, MapPin, Package, Eye, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import type { Booking, BookingStatus } from '@/api/types';
+import { statusLabels, statusColors } from '../constants';
 
 type StatusLabels = Record<BookingStatus, string>
 type StatusColors = Record<BookingStatus, string>
@@ -19,7 +19,7 @@ export type BookingCardProps = {
 
 export default function BookingCard({ booking, statusLabels: labels, statusColors: colors, onEdit, onDelete }: BookingCardProps)
 {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <Card>
       <CardHeader>
@@ -52,5 +52,5 @@ export default function BookingCard({ booking, statusLabels: labels, statusColor
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import type { Request, Response, NextFunction } from 'express'
-import { verifyToken } from '../services/auth.service'
-import { HttpError } from './error.middleware'
+import type { Request, Response, NextFunction } from 'express';
+import { verifyToken } from '../services/auth.service';
+import { HttpError } from './error.middleware';
 
 /**
  * Express request type with optional employee id set by requireAuth after JWT verification.
@@ -16,20 +16,20 @@ export interface AuthRequest extends Request
  */
 export function requireAuth(req: AuthRequest, _res: Response, next: NextFunction)
 {
-  const header = req.headers.authorization
+  const header = req.headers.authorization;
   if (!header?.startsWith('Bearer '))
   {
-    return next(new HttpError(401, 'Authentifizierung erforderlich.'))
+    return next(new HttpError(401, 'Authentifizierung erforderlich.'));
   }
 
   try
   {
-    const payload = verifyToken(header.slice(7))
-    req.employeeId = payload.id
-    next()
+    const payload = verifyToken(header.slice(7));
+    req.employeeId = payload.id;
+    next();
   }
   catch (err)
   {
-    next(err)
+    next(err);
   }
 }

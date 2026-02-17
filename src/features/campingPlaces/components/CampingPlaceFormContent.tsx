@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import type { CampingPlaceFormData } from '@/api/types'
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import type { CampingPlaceFormData } from '@/api/types';
 
 export type CampingPlaceFormContentProps = {
   /** Camping place id when editing, or null for create mode. */
@@ -24,10 +25,10 @@ export default function CampingPlaceFormContent({
 {
   return (
     <form onSubmit={onSubmit}>
-      <div className="flex flex-col gap-2 text-center sm:text-left">
-        <h2 className="text-lg font-semibold leading-none">{campingPlaceId != null ? 'Stellplatz bearbeiten' : 'Neuer Stellplatz'}</h2>
-        <p className="text-sm text-muted-foreground">Geben Sie die Details des Stellplatzes ein</p>
-      </div>
+      <DialogHeader>
+        <DialogTitle>{campingPlaceId != null ? 'Stellplatz bearbeiten' : 'Neuer Stellplatz'}</DialogTitle>
+        <DialogDescription>Geben Sie die Details des Stellplatzes ein</DialogDescription>
+      </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -67,5 +68,5 @@ export default function CampingPlaceFormContent({
         <Button type="submit">{campingPlaceId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
-  )
+  );
 }

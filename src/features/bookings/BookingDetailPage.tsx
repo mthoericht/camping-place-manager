@@ -1,22 +1,22 @@
-import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Calendar, Users, MapPin, Package, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
-import { statusLabels, statusColors } from './constants'
-import { useBookingDetail } from './useBookingDetail'
-import type { BookingStatus } from '@/api/types'
+import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Calendar, Users, MapPin, Package, Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { statusLabels, statusColors } from './constants';
+import { useBookingDetail } from './useBookingDetail';
+import type { BookingStatus } from '@/api/types';
 
 export default function BookingDetailPage() 
 {
-  const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const bookingId = Number(id)
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const bookingId = Number(id);
   const { booking, statusChanges, handleStatusChange } = useBookingDetail(bookingId);
 
-  if (!booking) return <p className="text-muted-foreground">Laden...</p>
+  if (!booking) return <p className="text-muted-foreground">Laden...</p>;
 
   return (
     <div className="space-y-6">
@@ -86,5 +86,5 @@ export default function BookingDetailPage()
         </div>
       </div>
     </div>
-  )
+  );
 }

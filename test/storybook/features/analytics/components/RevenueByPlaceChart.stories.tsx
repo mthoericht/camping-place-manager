@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from '@storybook/react-vite'
-import type { ReactNode } from 'react'
-import RevenueByPlaceChart from '@/features/analytics/components/RevenueByPlaceChart'
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import type { ReactNode } from 'react';
+import RevenueByPlaceChart from '@/features/analytics/components/RevenueByPlaceChart';
 
 function ChartWrapper({ children }: { children: ReactNode })
 {
-  return <div style={{ width: 500 }}>{children}</div>
+  return <div style={{ width: 500 }}>{children}</div>;
 }
 
 const mockData = [
@@ -13,7 +13,7 @@ const mockData = [
   { name: 'Platz C3', revenue: 2100, bookings: 28 },
   { name: 'Platz D4', revenue: 1800, bookings: 22 },
   { name: 'Platz E5', revenue: 1500, bookings: 18 },
-]
+];
 
 const meta = {
   title: 'Features/Analytics/RevenueByPlaceChart',
@@ -27,11 +27,11 @@ const meta = {
       </ChartWrapper>
     ),
   ],
-} satisfies Meta<typeof RevenueByPlaceChart>
+} satisfies Meta<typeof RevenueByPlaceChart>;
 
-export default meta
+export default meta;
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: { data: mockData },
-}
+};

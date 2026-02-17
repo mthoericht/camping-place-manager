@@ -1,19 +1,19 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import * as authApi from '@/api/auth'
-import { clearDb } from './helpers'
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import * as authApi from '@/api/auth';
+import { clearDb } from './helpers';
 
-let authToken: string | null = null
+let authToken: string | null = null;
 
 beforeEach(async () =>
 {
-  await clearDb()
-  authToken = null
+  await clearDb();
+  authToken = null;
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => (key === 'auth_token' ? authToken : null),
-    setItem: (key: string, value: string) => { if (key === 'auth_token') authToken = value },
-    removeItem: () => { authToken = null },
-  })
-})
+    setItem: (key: string, value: string) => { if (key === 'auth_token') authToken = value; },
+    removeItem: () => { authToken = null; },
+  });
+});
 
 describe('API Integration: Auth', () =>
 {
@@ -23,14 +23,14 @@ describe('API Integration: Auth', () =>
       email: 'neu@test.de',
       fullName: 'Neuer User',
       password: 'geheim123',
-    })
-    expect(res.token).toBeTruthy()
+    });
+    expect(res.token).toBeTruthy();
     expect(res.employee).toMatchObject({
       email: 'neu@test.de',
       fullName: 'Neuer User',
-    })
-    expect(res.employee.id).toBeGreaterThan(0)
-  })
+    });
+    expect(res.employee.id).toBeGreaterThan(0);
+  });
 
   it('signup throws 409 when email already exists', async () =>
   {
@@ -38,13 +38,13 @@ describe('API Integration: Auth', () =>
       email: 'doppel@test.de',
       fullName: 'Erster',
       password: 'pass1',
-    })
+    });
     await expect(authApi.signupApi({
       email: 'doppel@test.de',
       fullName: 'Zweiter',
       password: 'pass2',
-    })).rejects.toMatchObject({ status: 409 })
-  })
+    })).rejects.toMatchObject({ status: 409 });
+  });
 
   it('login returns token and employee for valid credentials', async () =>
   {
@@ -52,14 +52,14 @@ describe('API Integration: Auth', () =>
       email: 'login@test.de',
       fullName: 'Login User',
       password: 'passwort',
-    })
-    const res = await authApi.loginApi({ email: 'login@test.de', password: 'passwort' })
-    expect(res.token).toBeTruthy()
+    });
+    const res = await authApi.loginApi({ email: 'login@test.de', password: 'passwort' });
+    expect(res.token).toBeTruthy();
     expect(res.employee).toMatchObject({
       email: 'login@test.de',
       fullName: 'Login User',
-    })
-  })
+    });
+  });
 
   it('login throws 401 for wrong password', async () =>
   {
@@ -67,20 +67,20 @@ describe('API Integration: Auth', () =>
       email: 'wrong@test.de',
       fullName: 'User',
       password: 'richtig',
-    })
+    });
     await expect(authApi.loginApi({
       email: 'wrong@test.de',
       password: 'falsch',
-    })).rejects.toMatchObject({ status: 401 })
-  })
+    })).rejects.toMatchObject({ status: 401 });
+  });
 
   it('login throws 401 for unknown email', async () =>
   {
     await expect(authApi.loginApi({
       email: 'unbekannt@test.de',
       password: 'irgendwas',
-    })).rejects.toMatchObject({ status: 401 })
-  })
+    })).rejects.toMatchObject({ status: 401 });
+  });
 
   it('getMe returns employee when valid token is in localStorage', async () =>
   {
@@ -88,15 +88,15 @@ describe('API Integration: Auth', () =>
       email: 'me@test.de',
       fullName: 'Me User',
       password: 'secret',
-    })
-    authToken = signupRes.token
-    const me = await authApi.getMeApi()
+    });
+    authToken = signupRes.token;
+    const me = await authApi.getMeApi();
     expect(me).toMatchObject({
       email: 'me@test.de',
       fullName: 'Me User',
-    })
-    expect(me.id).toBe(signupRes.employee.id)
-  })
+    });
+    expect(me.id).toBe(signupRes.employee.id);
+  });
 
   it('getMe throws 401 when no token in localStorage', async () =>
   {
@@ -104,14 +104,14 @@ describe('API Integration: Auth', () =>
       email: 'nologin@test.de',
       fullName: 'User',
       password: 'x',
-    })
-    expect(authToken).toBeNull()
-    await expect(authApi.getMeApi()).rejects.toMatchObject({ status: 401 })
-  })
+    });
+    expect(authToken).toBeNull();
+    await expect(authApi.getMeApi()).rejects.toMatchObject({ status: 401 });
+  });
 
   it('getMe throws 401 when token is invalid', async () =>
   {
-    authToken = 'invalid.jwt.token'
-    await expect(authApi.getMeApi()).rejects.toMatchObject({ status: 401 })
-  })
-})
+    authToken = 'invalid.jwt.token';
+    await expect(authApi.getMeApi()).rejects.toMatchObject({ status: 401 });
+  });
+});

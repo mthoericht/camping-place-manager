@@ -1,18 +1,18 @@
-import { useEffect, useRef } from 'react'
-import { useAppDispatch } from '@/store/hooks'
+import { useEffect, useRef } from 'react';
+import { useAppDispatch } from '@/store/hooks';
 import {
   receiveBookingFromWebSocket,
   receiveBookingDeletedFromWebSocket,
-} from '@/store/bookingsSlice'
+} from '@/store/bookingsSlice';
 import {
   receiveCampingPlaceFromWebSocket,
   receiveCampingPlaceDeletedFromWebSocket,
-} from '@/store/campingPlacesSlice'
+} from '@/store/campingPlacesSlice';
 import {
   receiveCampingItemFromWebSocket,
   receiveCampingItemDeletedFromWebSocket,
-} from '@/store/campingItemsSlice'
-import type { AppDispatch } from '@/store/store'
+} from '@/store/campingItemsSlice';
+import type { AppDispatch } from '@/store/store';
 
 export type WebSocketMessage =
   | { type: 'bookings/created' | 'bookings/updated'; payload: import('@/api/types').Booking }
@@ -28,91 +28,108 @@ export function handleWebSocketMessage(msg: WebSocketMessage, dispatch: AppDispa
   {
     case 'bookings/created':
     case 'bookings/updated':
-      dispatch(receiveBookingFromWebSocket(msg.payload))
-      break
+      dispatch(receiveBookingFromWebSocket(msg.payload));
+      break;
     case 'bookings/deleted':
-      dispatch(receiveBookingDeletedFromWebSocket(msg.payload.id))
-      break
+      dispatch(receiveBookingDeletedFromWebSocket(msg.payload.id));
+      break;
     case 'campingPlaces/created':
     case 'campingPlaces/updated':
-      dispatch(receiveCampingPlaceFromWebSocket(msg.payload))
-      break
+      dispatch(receiveCampingPlaceFromWebSocket(msg.payload));
+      break;
     case 'campingPlaces/deleted':
-      dispatch(receiveCampingPlaceDeletedFromWebSocket(msg.payload.id))
-      break
+      dispatch(receiveCampingPlaceDeletedFromWebSocket(msg.payload.id));
+      break;
     case 'campingItems/created':
     case 'campingItems/updated':
-      dispatch(receiveCampingItemFromWebSocket(msg.payload))
-      break
+      dispatch(receiveCampingItemFromWebSocket(msg.payload));
+      break;
     case 'campingItems/deleted':
-      dispatch(receiveCampingItemDeletedFromWebSocket(msg.payload.id))
-      break
+      dispatch(receiveCampingItemDeletedFromWebSocket(msg.payload.id));
+      break;
   }
 }
 
 function getWebSocketUrl(): string
 {
-  if (typeof window === 'undefined') return ''
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/ws`
+  if (typeof window === 'undefined') return '';
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${window.location.host}/ws`;
 }
 
 export function useWebSocketSync()
 {
-  const dispatch = useAppDispatch()
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const dispatch = useAppDispatch();
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() =>
   {
-    const url = getWebSocketUrl()
-    if (!url) return
+    const url = getWebSocketUrl();
+    if (!url) return;
 
-    let webSocketConnection: WebSocket | null = null
-    let closed = false
+    let webSocketConnection: WebSocket | null = null;
+    let closed = false;
 
     const connect = () =>
     {
-      webSocketConnection = new WebSocket(url)
+      webSocketConnection = new WebSocket(url);
 
       webSocketConnection.onmessage = (event) =>
       {
+        //on strict mode, this will be called twice, so we need to check if the connection is closed
+        if (closed) return;
+        
         try
         {
-          const msg = JSON.parse(event.data) as WebSocketMessage
-          handleWebSocketMessage(msg, dispatch)
+          const msg = JSON.parse(event.data) as WebSocketMessage;
+          handleWebSocketMessage(msg, dispatch);
         }
         catch
         {
           // ignore invalid messages
         }
-      }
+      };
 
       webSocketConnection.onclose = () =>
       {
-        webSocketConnection = null
+        webSocketConnection = null;
         if (!closed && typeof window !== 'undefined')
         {
-          reconnectTimeoutRef.current = setTimeout(connect, 3000)
+          reconnectTimeoutRef.current = setTimeout(connect, 3000);
         }
-      }
+      };
 
       webSocketConnection.onerror = () =>
       {
-        webSocketConnection?.close()
-      }
-    }
+        if (!closed) webSocketConnection?.close();
+      };
+    };
 
-    connect()
+    connect();
 
     return () =>
     {
-      closed = true
+      closed = true;
       if (reconnectTimeoutRef.current)
       {
-        clearTimeout(reconnectTimeoutRef.current)
-        reconnectTimeoutRef.current = undefined
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = undefined;
       }
-      webSocketConnection?.close()
-    }
-  }, [dispatch])
+      if (webSocketConnection)
+      {
+        if (webSocketConnection.readyState === WebSocket.CONNECTING)
+        {
+          const ws = webSocketConnection;
+          ws.onopen = () => ws.close();
+          ws.onclose = () => {};
+          ws.onerror = () => {};
+          ws.onmessage = () => {};
+        }
+        else
+        {
+          webSocketConnection.close();
+        }
+      }
+    };
+  }, [dispatch]);
 }

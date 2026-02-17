@@ -20,6 +20,7 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      'semi': ['error', 'always'],
       'brace-style': ['error', 'allman', { allowSingleLine: true }],
       indent: ['error', 2, {
         SwitchCase: 1,

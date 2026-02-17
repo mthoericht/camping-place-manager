@@ -1,4 +1,4 @@
-const baseUrl = import.meta.env.VITE_API_BASE_URL ?? ''
+const baseUrl = import.meta.env.VITE_API_BASE_URL ?? '';
 
 /**
  * Error thrown by the API client when a request returns a non-ok response.
@@ -31,24 +31,24 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T>
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(init?.headers as Record<string, string> ?? {}),
-  }
+  };
 
   if (token)
   {
-    headers['Authorization'] = `Bearer ${token}`
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
   const res = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers,
-  })
+  });
 
   if (!res.ok) 
   {
-    const body = await res.json().catch(() => ({ error: res.statusText }))
-    throw new ApiError(res.status, body.error ?? res.statusText)
+    const body = await res.json().catch(() => ({ error: res.statusText }));
+    throw new ApiError(res.status, body.error ?? res.statusText);
   }
 
   if (res.status === 204) return undefined as T;
-  return res.json() as Promise<T>
+  return res.json() as Promise<T>;
 }

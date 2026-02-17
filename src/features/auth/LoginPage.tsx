@@ -1,28 +1,28 @@
-import { useState } from 'react'
-import { Link, Navigate } from 'react-router-dom'
-import { Tent, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { login, clearError } from '@/store/authSlice'
+import { useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { Tent, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { login, clearError } from '@/store/authSlice';
 
 export default function LoginPage()
 {
-  const dispatch = useAppDispatch()
-  const { token, status, error } = useAppSelector((state) => state.auth)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const dispatch = useAppDispatch();
+  const { token, status, error } = useAppSelector((state) => state.auth);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  if (token && status === 'succeeded') return <Navigate to="/bookings" replace />
+  if (token && status === 'succeeded') return <Navigate to="/bookings" replace />;
 
   const handleSubmit = (e: React.FormEvent) =>
   {
-    e.preventDefault()
-    dispatch(login({ email, password }))
-  }
+    e.preventDefault();
+    dispatch(login({ email, password }));
+  };
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -48,7 +48,7 @@ export default function LoginPage()
                 type="email"
                 placeholder="name@beispiel.de"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); dispatch(clearError()) }}
+                onChange={(e) => { setEmail(e.target.value); dispatch(clearError()); }}
                 required
               />
             </div>
@@ -59,7 +59,7 @@ export default function LoginPage()
                 type="password"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); dispatch(clearError()) }}
+                onChange={(e) => { setPassword(e.target.value); dispatch(clearError()); }}
                 required
               />
             </div>
@@ -76,5 +76,5 @@ export default function LoginPage()
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import type { BookingFormData, CampingPlace, CampingItem } from '@/api/types'
+import type { BookingFormData, CampingPlace, CampingItem } from '@/api/types';
 
 /**
  * Computes the total size (m²) of all booking items by summing each item's size × quantity.
@@ -13,9 +13,9 @@ export function calcTotalItemSize(
 {
   return bookingItems.reduce((s, bi) =>
   {
-    const item = items.find((i) => i.id === bi.campingItemId)
-    return s + (item?.size ?? 0) * bi.quantity
-  }, 0)
+    const item = items.find((i) => i.id === bi.campingItemId);
+    return s + (item?.size ?? 0) * bi.quantity;
+  }, 0);
 }
 
 /**
@@ -35,11 +35,11 @@ export function getBookingFormDerived(
   sizeError: string | null
 }
 {
-  const selectedPlace = places.find((p) => p.id === form.campingPlaceId)
-  const totalItemSize = calcTotalItemSize(form.bookingItems ?? [], items)
+  const selectedPlace = places.find((p) => p.id === form.campingPlaceId);
+  const totalItemSize = calcTotalItemSize(form.bookingItems ?? [], items);
   const sizeError = selectedPlace && totalItemSize > selectedPlace.size
     ? `Gesamtfläche (${totalItemSize} m²) überschreitet Stellplatzgröße (${selectedPlace.size} m²)`
-    : null
+    : null;
 
-  return { selectedPlace, totalItemSize, sizeError }
+  return { selectedPlace, totalItemSize, sizeError };
 }

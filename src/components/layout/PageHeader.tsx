@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from 'react';
 
 interface PageHeaderProps {
   title: string
@@ -16,5 +16,5 @@ export default function PageHeader({ title, description, children }: PageHeaderP
       </div>
       {children}
     </div>
-  )
+  );
 }

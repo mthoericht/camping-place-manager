@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 type DataPoint = { name: string; value: number; color: string }
 
@@ -30,5 +30,5 @@ export default function BookingsByStatusChart({ data }: { data: DataPoint[] })
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

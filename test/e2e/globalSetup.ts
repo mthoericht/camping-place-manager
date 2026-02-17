@@ -1,5 +1,5 @@
-import { execSync } from 'node:child_process'
-import path from 'node:path'
+import { execSync } from 'node:child_process';
+import path from 'node:path';
 
 /**
  * Sets up the test environment by:
@@ -9,9 +9,9 @@ import path from 'node:path'
  */
 async function globalSetup(): Promise<void> 
 {
-  const root = process.cwd()
-  const testDbPath = path.join(root, 'data', 'test.db')
-  process.env.DATABASE_URL = `file:${testDbPath}`
+  const root = process.cwd();
+  const testDbPath = path.join(root, 'data', 'test.db');
+  process.env.DATABASE_URL = `file:${testDbPath}`;
 
   execSync('npx prisma db push', {
     cwd: root,
@@ -26,4 +26,4 @@ async function globalSetup(): Promise<void>
   });
 }
 
-export default globalSetup
+export default globalSetup;

@@ -1,22 +1,22 @@
-import { Calendar, Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { FormDialog } from '@/components/ui/dialog'
-import PageHeader from '@/components/layout/PageHeader'
-import EmptyState from '@/components/layout/EmptyState'
-import BookingCard from './components/BookingCard'
-import BookingFormContent from './components/BookingFormContent'
-import { useConfirmDelete } from '@/hooks/useConfirmDelete'
-import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle'
-import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState'
-import { useAppSelector } from '@/store/hooks'
-import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice'
-import { fetchCampingPlaces } from '@/store/campingPlacesSlice'
-import { fetchCampingItems } from '@/store/campingItemsSlice'
-import { useBookingCrud } from './useBookingCrud'
-import { statusLabels, statusColors } from './constants'
-import { getBookingFormDerived } from './useBookingFormDerived'
-import { useBookingFormItems } from './useBookingFormItems'
+import { Calendar, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { FormDialog } from '@/components/ui/dialog';
+import PageHeader from '@/components/layout/PageHeader';
+import EmptyState from '@/components/layout/EmptyState';
+import BookingCard from './components/BookingCard';
+import BookingFormContent from './components/BookingFormContent';
+import { useConfirmDelete } from '@/hooks/useConfirmDelete';
+import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
+import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState';
+import { useAppSelector } from '@/store/hooks';
+import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice';
+import { fetchCampingPlaces } from '@/store/campingPlacesSlice';
+import { fetchCampingItems } from '@/store/campingItemsSlice';
+import { useBookingCrud } from './useBookingCrud';
+import { statusLabels, statusColors } from './constants';
+import { getBookingFormDerived } from './useBookingFormDerived';
+import { useBookingFormItems } from './useBookingFormItems';
 
 export default function BookingsPage() 
 {
@@ -80,5 +80,5 @@ export default function BookingsPage()
         )}
       </div>
     </div>
-  )
+  );
 }

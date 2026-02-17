@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi } from 'vitest';
 
 /**
  * Clears the test database via POST /api/test/clear-db. Call in beforeEach so each
@@ -7,8 +7,8 @@ import { vi } from 'vitest'
  */
 export async function clearDb(): Promise<void>
 {
-  const res = await fetch('/api/test/clear-db', { method: 'POST' })
-  if (!res.ok) throw new Error(`clear-db failed: ${res.status}`)
+  const res = await fetch('/api/test/clear-db', { method: 'POST' });
+  if (!res.ok) throw new Error(`clear-db failed: ${res.status}`);
 }
 
 /**

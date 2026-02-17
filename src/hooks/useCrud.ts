@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react'
-import { toast } from 'sonner'
+import { useState, useCallback } from 'react';
+import { toast } from 'sonner';
 
 type CrudMode<TEntity> =
   | { type: 'create' }
@@ -57,44 +57,44 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
   validate,
 }: UseCrudOptions<TForm, TEntity, TPayload>)
 {
-  const [mode, setMode] = useState<CrudMode<TEntity> | null>(null)
-  const [form, setForm] = useState<TForm>(emptyForm)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mode, setMode] = useState<CrudMode<TEntity> | null>(null);
+  const [form, setForm] = useState<TForm>(emptyForm);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isOpen = mode !== null
-  const editing = mode?.type === 'edit' ? mode.entity : null
+  const isOpen = mode !== null;
+  const editing = mode?.type === 'edit' ? mode.entity : null;
 
   const openCreate = useCallback(() =>
   {
-    setMode({ type: 'create' })
-    setForm(emptyForm)
-  }, [emptyForm])
+    setMode({ type: 'create' });
+    setForm(emptyForm);
+  }, [emptyForm]);
 
   const openEdit = useCallback(
     (entity: TEntity) =>
     {
-      setMode({ type: 'edit', entity })
-      setForm(toForm(entity))
+      setMode({ type: 'edit', entity });
+      setForm(toForm(entity));
     },
     [toForm]
-  )
+  );
 
   const close = useCallback(() =>
   {
-    setMode(null)
-    setForm(emptyForm)
-  }, [emptyForm])
+    setMode(null);
+    setForm(emptyForm);
+  }, [emptyForm]);
 
   const handleSubmit = useCallback(
     async (e: { preventDefault(): void }) =>
     {
-      e.preventDefault()
+      e.preventDefault();
 
-      const validationError = validate?.(form) ?? null
+      const validationError = validate?.(form) ?? null;
       if (validationError)
       {
-        toast.error(validationError)
-        return
+        toast.error(validationError);
+        return;
       }
 
       const payload = buildPayload(form);      
@@ -102,27 +102,27 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
         ? () => update({ id: editing.id, data: payload })
         : () => create(payload);
 
-      const successMessage = editing ? messages.update : messages.create
+      const successMessage = editing ? messages.update : messages.create;
 
       try
       {
-        setIsSubmitting(true)
-        await doSave()
-        toast.success(successMessage)
-        close()
+        setIsSubmitting(true);
+        await doSave();
+        toast.success(successMessage);
+        close();
       }
       catch (err: unknown)
       {
-        const message = typeof err === 'string' ? err : err instanceof Error ? err.message : 'Fehler'
-        toast.error(message)
+        const message = typeof err === 'string' ? err : err instanceof Error ? err.message : 'Fehler';
+        toast.error(message);
       }
       finally
       {
-        setIsSubmitting(false)
+        setIsSubmitting(false);
       }
     },
     [validate, form, buildPayload, editing, update, create, messages, close]
-  )
+  );
 
   return {
     isOpen,
@@ -136,7 +136,7 @@ export function useCrud<TForm, TEntity extends { id: number }, TPayload = TForm>
     handleSubmit,
     dialogProps: {
       open: isOpen,
-      onOpenChange: (openValue: boolean) => { if (!openValue) close() },
+      onOpenChange: (openValue: boolean) => { if (!openValue) close(); },
     },
-  }
+  };
 }

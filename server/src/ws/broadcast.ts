@@ -1,23 +1,23 @@
-import type { WebSocket } from 'ws'
+import type { WebSocket } from 'ws';
 
-const clients = new Set<WebSocket>()
+const clients = new Set<WebSocket>();
 
 export function addClient(ws: WebSocket)
 {
-  clients.add(ws)
+  clients.add(ws);
 }
 
 export function removeClient(ws: WebSocket)
 {
-  clients.delete(ws)
+  clients.delete(ws);
 }
 
 export function broadcast(data: object)
 {
-  const message = JSON.stringify(data)
+  const message = JSON.stringify(data);
   for (const ws of clients)
   {
     if (ws.readyState === 1)
-      ws.send(message)
+      ws.send(message);
   }
 }

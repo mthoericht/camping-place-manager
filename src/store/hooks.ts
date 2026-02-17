@@ -5,17 +5,17 @@
  * Without these: useSelector((state: RootState) => ...), useDispatch() as AppDispatch
  * With these:    useAppSelector((state) => ...), useAppDispatch()
  */
-import { useDispatch, useSelector } from 'react-redux'
-import type { RootState, AppDispatch } from './store'
+import { useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from './store';
 
 /** Typed dispatch for the app store. */
 export function useAppDispatch(): AppDispatch
 {
-  return useDispatch()
+  return useDispatch();
 };
 
 /** Typed selector: reads from the app store with full RootState inference. */
 export function useAppSelector<T>(selector: (state: RootState) => T): T
 {
-  return useSelector(selector)
+  return useSelector(selector);
 };

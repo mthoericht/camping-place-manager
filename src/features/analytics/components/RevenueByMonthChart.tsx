@@ -1,5 +1,5 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 type DataPoint = { month: string; revenue: number }
 
@@ -24,5 +24,5 @@ export default function RevenueByMonthChart({ data }: { data: DataPoint[] })
         </ResponsiveContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
