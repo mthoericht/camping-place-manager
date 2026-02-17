@@ -13,6 +13,7 @@ export type CampingItemCardProps = {
 
 export default function CampingItemCard({ item, onEdit, onDelete }: CampingItemCardProps)
 {
+  //Compound component pattern (UI components that are composed of other UI components)
   return (
     <Card>
       <CardHeader>

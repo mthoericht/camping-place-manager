@@ -7,6 +7,7 @@ import { logout } from '@/store/authSlice';
 import { useEffect } from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { mergeClasses } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const navItems = [
   { to: '/bookings', label: 'Buchungen', icon: Calendar },
@@ -23,11 +24,17 @@ export default function Topbar()
   const mobileNavOpen = useAppSelector((state) => state.ui.mobileNavOpen);
   const employee = useAppSelector((state) => state.auth.employee);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
-  useEffect(() => 
+  useEffect(() =>
   {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+  useEffect(() =>
+  {
+    if (!isMobile) dispatch(setMobileNavOpen(false));
+  }, [isMobile, dispatch]);
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
