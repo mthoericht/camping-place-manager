@@ -5,7 +5,7 @@ import { calcBookingTotalPrice } from '../../../shared/bookingPrice';
 const bookingInclude = {
   campingPlace: true,
   bookingItems: { include: { campingItem: true } },
-  statusChanges: { orderBy: { changedAt: 'asc' as const } },
+  statusChanges: { orderBy: { changedAt: 'asc' as const }, include: { employee: { select: { id: true, fullName: true } } } },
 };
 
 export async function getAllBookings(filters: Record<string, string>) 
@@ -31,7 +31,7 @@ export async function createBooking(data: {
   customerPhone?: string; startDate?: string; endDate?: string
   guests: number; totalPrice: number; status?: string; notes?: string
   bookingItems?: Array<{ campingItemId: number; quantity: number }>
-}) 
+}, employeeId?: number)
 {
   const place = await prisma.campingPlace.findUnique({ where: { id: data.campingPlaceId } });
   if (!place) throw new HttpError(400, 'Stellplatz existiert nicht.');
@@ -72,7 +72,7 @@ export async function createBooking(data: {
     }
 
     await tx.bookingStatusChange.create({
-      data: { bookingId: booking.id, status: booking.status, changedAt: new Date() },
+      data: { bookingId: booking.id, status: booking.status, changedAt: new Date(), employeeId: employeeId ?? undefined },
     });
 
     return tx.booking.findUnique({ where: { id: booking.id }, include: bookingInclude });
@@ -138,24 +138,26 @@ export async function deleteBooking(id: number)
   });
 }
 
-export async function changeBookingStatus(id: number, status: string) 
+export async function changeBookingStatus(id: number, status: string, employeeId?: number)
 {
-  return prisma.$transaction(async (tx) => 
+  return prisma.$transaction(async (tx) =>
   {
     const booking = await tx.booking.update({
       where: { id }, data: { status }, include: bookingInclude,
     });
     await tx.bookingStatusChange.create({
-      data: { bookingId: id, status, changedAt: new Date() },
+      data: { bookingId: id, status, changedAt: new Date(), employeeId: employeeId ?? undefined },
     });
     return booking;
   });
 }
 
-export async function getBookingStatusChanges(bookingId: number) 
+export async function getBookingStatusChanges(bookingId: number)
 {
   return prisma.bookingStatusChange.findMany({
-    where: { bookingId }, orderBy: { changedAt: 'asc' },
+    where: { bookingId },
+    orderBy: { changedAt: 'asc' },
+    include: { employee: { select: { id: true, fullName: true } } },
   });
 }
 

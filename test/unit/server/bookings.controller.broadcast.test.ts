@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as bookingsController from '../../../server/src/controllers/bookings.controller';
 import * as broadcastModule from '../../../server/src/ws/broadcast';
 import * as service from '../../../server/src/services/bookings.service';
+import type { AuthRequest } from '../../../server/src/middleware/auth.middleware';
 
 vi.mock('../../../server/src/ws/broadcast', () => ({ broadcast: vi.fn() }));
 vi.mock('../../../server/src/services/bookings.service', () => ({
@@ -96,7 +97,10 @@ describe('bookings.controller broadcast', () =>
   {
     vi.mocked(service.changeBookingStatus).mockResolvedValue(fakeBooking);
     const res = mockRes();
-    await bookingsController.changeStatus(mockReq({ status: 'CONFIRMED' }, { id: '1' }), res, mockNext);
+    const req = mockReq({ status: 'CONFIRMED' }, { id: '1' }) as AuthRequest;
+    req.employeeId = 1;
+    await bookingsController.changeStatus(req, res, mockNext);
+    expect(service.changeBookingStatus).toHaveBeenCalledWith(1, 'CONFIRMED', 1);
     expect(mockBroadcast).toHaveBeenCalledWith({ type: 'bookings/updated', payload: fakeBooking });
   });
 });

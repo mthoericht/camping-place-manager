@@ -75,22 +75,26 @@ model BookingItem {
 }
 
 model BookingStatusChange {
-  id        Int      @id @default(autoincrement())
-  bookingId Int
-  status    String
-  changedAt DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  bookingId  Int
+  status     String
+  changedAt  DateTime @default(now())
+  employeeId Int?
 
-  booking   Booking  @relation(fields: [bookingId], references: [id])
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  employee   Employee? @relation(fields: [employeeId], references: [id])
 
   @@index([bookingId])
   @@index([changedAt])
+  @@index([employeeId])
 }
 
 model Employee {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  fullName  String
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   Int                   @id @default(autoincrement())
+  email                String                @unique
+  fullName             String
+  password             String
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  bookingStatusChanges BookingStatusChange[]
 }

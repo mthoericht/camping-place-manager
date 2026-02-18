@@ -57,6 +57,8 @@ export interface BookingStatusChange {
   bookingId: number
   status: BookingStatus
   changedAt: string
+  employeeId?: number | null
+  employee?: { id: number; fullName: string } | null
 }
 
 export interface Booking {

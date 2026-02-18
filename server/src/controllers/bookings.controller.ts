@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import type { AuthRequest } from '../middleware/auth.middleware';
 import * as service from '../services/bookings.service';
 import { HttpError } from '../middleware/error.middleware';
 import { validate } from '../middleware/validate';
@@ -25,9 +26,9 @@ export async function getById(req: Request, res: Response, next: NextFunction)
   catch (err) { next(err); }
 }
 
-export async function create(req: Request, res: Response, next: NextFunction) 
+export async function create(req: AuthRequest, res: Response, next: NextFunction)
 {
-  try 
+  try
   {
     validate(req.body, [
       { field: 'campingPlaceId', required: true, type: 'number', min: 1 },
@@ -35,7 +36,7 @@ export async function create(req: Request, res: Response, next: NextFunction)
       { field: 'customerEmail', required: true, type: 'string' },
       { field: 'guests', required: true, type: 'number', min: 1 },
     ]);
-    const booking = await service.createBooking(req.body);
+    const booking = await service.createBooking(req.body, req.employeeId);
     broadcast({ type: 'bookings/created', payload: booking });
     res.status(201).json(booking);
   }
@@ -65,14 +66,14 @@ export async function remove(req: Request, res: Response, next: NextFunction)
   catch (err) { next(err); }
 }
 
-export async function changeStatus(req: Request, res: Response, next: NextFunction) 
+export async function changeStatus(req: AuthRequest, res: Response, next: NextFunction)
 {
-  try 
+  try
   {
     validate(req.body, [
       { field: 'status', required: true, type: 'string', oneOf: ['PENDING', 'CONFIRMED', 'PAID', 'CANCELLED', 'COMPLETED'] },
     ]);
-    const booking = await service.changeBookingStatus(Number(req.params.id), req.body.status);
+    const booking = await service.changeBookingStatus(Number(req.params.id), req.body.status, req.employeeId);
     broadcast({ type: 'bookings/updated', payload: booking });
     res.json(booking);
   }

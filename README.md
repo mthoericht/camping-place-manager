@@ -6,7 +6,7 @@ A modern camping place management application built with React, TypeScript, Expr
 
 - 🏕️ **Camping Place Management**: Add, edit, and manage camping places
 - 🎒 **Camping Items Management**: Manage camping equipment and items inventory
-- 📅 **Booking System**: Handle customer bookings and reservations (default view), including status timeline
+- 📅 **Booking System**: Handle customer bookings and reservations (default view), filter by status, place (incl. inactive), and search by name/email/phone, including status timeline
 - 📊 **Analytics**: Revenue, occupancy, and statistics
 - 🔄 **Real-time Updates**: WebSocket sync so list and entity data stay in sync across tabs and users (create/update/delete for bookings, camping places, and camping items)
 - 🎨 **Modern UI**: Responsive interface with Tailwind CSS and dark mode
@@ -125,6 +125,8 @@ DATABASE_URL="file:../data/dev.db"
 - `bookingId`: Reference to booking
 - `status`: Status at time of change
 - `changedAt`: Timestamp of the status change (defaults to `now()`, used for timeline on booking detail page)
+- `employeeId`: Optional reference to the employee who made the change (from JWT on status change / create)
+- `employee`: Optional relation; API returns `{ id, fullName }` for display in the status timeline
 
 #### Employee
 
@@ -133,6 +135,7 @@ DATABASE_URL="file:../data/dev.db"
 - `fullName`: Full name of the employee
 - `password`: Bcrypt-hashed password
 - `createdAt`/`updatedAt`: Timestamps
+- `bookingStatusChanges`: Relation to status changes made by this employee
 
 ### Delete Protection
 
@@ -395,7 +398,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - `useCrud`: CRUD dialog + form state + submit (openCreate, openEdit, form, handleSubmit, optional validate); used by all CRUD pages
    - `useOpenEditFromLocationState`: Open edit dialog when navigating with `location.state` (e.g. from booking detail page)
    - `use-mobile`: Breakpoint hook for responsive behaviour
-   - **Feature-level hooks** (e.g. `src/features/bookings/`): `useBookingFormDerived` (selectedPlace, totalItemSize, sizeError), `useBookingFormItems` (addItem, removeItem for booking items)
+   - **Feature-level hooks** (e.g. `src/features/bookings/`): `useFilteredBookings` (status, place, search by name/email/phone), `useBookingFormDerived` (selectedPlace, totalItemSize, sizeError), `useBookingFormItems` (addItem, removeItem for booking items)
 
 5. **Shared & lib**
    - `shared/`: Code used by both frontend and backend (e.g. `bookingPrice.ts` for total price calculation). Frontend resolves `@shared` via Vite/tsconfig to `./shared`.
@@ -452,7 +455,7 @@ Real-time: After any create/update/delete (bookings, camping places, camping ite
 | PATCH  | `/api/bookings/:id`               | Update booking           |
 | DELETE | `/api/bookings/:id`               | Delete booking           |
 | POST   | `/api/bookings/:id/status`        | Change booking status    |
-| GET    | `/api/bookings/:id/status-changes`| Get status history       |
+| GET    | `/api/bookings/:id/status-changes`| Get status history (each entry may include employee who made the change) |
 | GET    | `/api/bookings/:id/items`         | Get booking items        |
 | POST   | `/api/bookings/:id/items`         | Add item to booking      |
 | DELETE | `/api/bookings/:id/items/:itemId` | Remove item from booking |

@@ -189,7 +189,7 @@ Zusätzliche Slice-Felder (z. B. `statusChanges` pro Booking) liegen außerhal
 ## Slice-Typen im Projekt
 
 - **auth:** Kein EntityAdapter. State: employee, token, status, error. Thunks: login, signup, fetchMe. Reducers: logout, clearError. Spezial: Token in localStorage, Initialisierung aus localStorage.
-- **bookings, campingPlaces, campingItems:** EntityAdapter + status/error/mutationError. CRUD-Thunks; bei bookings zusätzlich changeBookingStatus und fetchBookingStatusChanges (statusChanges pro id).
+- **bookings, campingPlaces, campingItems:** EntityAdapter + status/error/mutationError. CRUD-Thunks; bei bookings zusätzlich changeBookingStatus und fetchBookingStatusChanges (statusChanges pro id; Einträge optional mit Mitarbeiter für Anzeige in der Status-Timeline).
 - **analytics:** Kein Adapter. State: data, status, error. Ein Thunk: fetchAnalytics.
 - **ui:** Nur synchrone Reducer (sidebarCollapsed, mobileNavOpen, theme). Keine Thunks.
 

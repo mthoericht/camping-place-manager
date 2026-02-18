@@ -1,8 +1,9 @@
-import { Calendar, Plus } from 'lucide-react';
+import { Calendar, Plus, Search } from 'lucide-react';
 import type { BookingStatus } from '@/api/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FormDialog } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
@@ -13,7 +14,7 @@ import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState';
 import { useAppSelector } from '@/store/store';
 import { fetchBookings, deleteBooking } from '@/store/bookingsSlice';
-import { fetchCampingPlaces } from '@/store/campingPlacesSlice';
+import { fetchCampingPlaces, campingPlacesSelectors } from '@/store/campingPlacesSlice';
 import { fetchCampingItems } from '@/store/campingItemsSlice';
 import { useBookingCrud } from './useBookingCrud';
 import { useFilteredBookings } from './useFilteredBookings';
@@ -23,7 +24,8 @@ import { useBookingFormItems } from './useBookingFormItems';
 
 export default function BookingsPage() 
 {
-  const { statusFilter, setStatusFilter, bookings } = useFilteredBookings();
+  const { statusFilter, setStatusFilter, placeFilter, setPlaceFilter, searchTerm, setSearchTerm, bookings } = useFilteredBookings();
+  const allPlaces = useAppSelector(campingPlacesSelectors.selectAll);
   const bookingsStatus = useAppSelector((state) => state.bookings.status);
   const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status);
   const campingItemsStatus = useAppSelector((state) => state.campingItems.status);
@@ -45,7 +47,17 @@ export default function BookingsPage()
   return (
     <div className="space-y-6">
       <PageHeader title="Buchungen" description="Verwalten Sie alle Campingplatz-Buchungen">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[12rem] max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              type="search"
+              placeholder="Name, E-Mail, Telefon…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           <Select value={statusFilter || 'all'} onValueChange={(filter) => setStatusFilter(filter === 'all' ? '' : (filter as BookingStatus))}>
             <SelectTrigger className="w-[11rem]">
               <SelectValue placeholder="Status" />
@@ -54,6 +66,17 @@ export default function BookingsPage()
               <SelectItem value="all">Alle</SelectItem>
               {BOOKING_STATUSES.map((status) => (
                 <SelectItem key={status} value={status}>{statusLabels[status]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={placeFilter === '' ? 'all' : String(placeFilter)} onValueChange={(v) => setPlaceFilter(v === 'all' ? '' : Number(v))}>
+            <SelectTrigger className="w-[14rem]">
+              <SelectValue placeholder="Stellplatz" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle Stellplätze</SelectItem>
+              {allPlaces.map((p) => (
+                <SelectItem key={p.id} value={String(p.id)}>{p.name}{!p.isActive ? ' (inaktiv)' : ''}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -92,7 +115,14 @@ export default function BookingsPage()
           />
         ))}
         {bookings.length === 0 && bookingsStatus !== 'loading' && (
-          <Card><CardContent><EmptyState icon={<Calendar />} message="Keine Buchungen vorhanden" /></CardContent></Card>
+          <Card>
+            <CardContent>
+              <EmptyState
+                icon={<Calendar />}
+                message={searchTerm.trim() || placeFilter !== '' || statusFilter !== '' ? 'Keine Buchungen passen zu den Filtern' : 'Keine Buchungen vorhanden'}
+              />
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

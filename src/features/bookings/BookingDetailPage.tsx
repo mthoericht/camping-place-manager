@@ -74,9 +74,12 @@ export default function BookingDetailPage()
               {statusChanges.length > 0 ? (
                 <div className="space-y-3">
                   {statusChanges.map((sc) => (
-                    <div key={sc.id} className="flex items-center justify-between text-sm">
+                    <div key={sc.id} className="flex items-center justify-between gap-2 text-sm">
                       <Badge variant="outline">{statusLabels[sc.status] ?? sc.status}</Badge>
-                      <span className="text-muted-foreground">{new Date(sc.changedAt).toLocaleString('de-DE')}</span>
+                      <span className="text-muted-foreground shrink-0">
+                        {new Date(sc.changedAt).toLocaleString('de-DE')}
+                        {sc.employee?.fullName ? ` · von ${sc.employee.fullName}` : ''}
+                      </span>
                     </div>
                   ))}
                 </div>

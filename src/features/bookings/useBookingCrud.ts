@@ -1,8 +1,9 @@
+import { useEffect, useMemo, useRef } from 'react';
 import { useCrud } from '@/hooks/useCrud';
 import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice';
-import { selectActiveCampingPlaces } from '@/store/campingPlacesSlice';
+import { selectActiveCampingPlaces, campingPlacesSelectors } from '@/store/campingPlacesSlice';
 import { selectActiveCampingItems } from '@/store/campingItemsSlice';
 import { toDateInputValue } from '@/lib/dateUtils';
 import { calcBookingTotalPrice } from '@shared/bookingPrice';
@@ -67,30 +68,40 @@ export function validateBookingFormSize(form: BookingFormData, places: CampingPl
 }
 
 /**
- * Provides CRUD dialog state and handlers for bookings.
- * Wires Redux thunks into the generic {@link useCrud} hook and adds
- * domain-specific logic: automatic total price calculation and
- * validation that booking items do not exceed the camping place size.
+ * CRUD state and handlers for the booking dialog. Uses {@link useCrud} with Redux thunks for create/update
+ * and adds booking-specific behaviour: total price from dates and place rate, and validation that the
+ * total size of booking items does not exceed the selected camping place size.
  *
- * @returns CRUD state and handlers, plus `places`, `items`, and `calcTotalPrice` for form components.
+ * Place list for the form: only active camping places are selectable for new bookings. When editing,
+ * the current booking's place is always included so it remains selected even if that place is now inactive.
+ * Items list is restricted to active camping items only.
+ *
+ * @returns CRUD state (editing, form, setForm, openCreate, openEdit, close, dialogProps, handleSubmit),
+ *   plus `places` (camping places for the place selector), `items` (active camping items), and `calcTotalPrice`
+ *   for use in the booking form.
  */
 export function useBookingCrud()
 {
   const dispatch = useAppDispatch();
-  const places = useAppSelector(selectActiveCampingPlaces);
+  const activePlaces = useAppSelector(selectActiveCampingPlaces);
   const items = useAppSelector(selectActiveCampingItems);
+  const getPlacesRef = useRef<() => CampingPlace[]>(() => activePlaces);
 
   const crud = useCrud<BookingFormData, Booking, BookingFormData>({
     emptyForm,
     toForm: bookingToForm,
-    buildPayload: (form) => ({
-      ...form,
-      totalPrice: calcTotalPrice(form.startDate ?? '', form.endDate ?? '', places.find((p) => p.id === form.campingPlaceId)),
-    }),
+    buildPayload: (form) =>
+    {
+      const places = getPlacesRef.current();
+      return {
+        ...form,
+        totalPrice: calcTotalPrice(form.startDate ?? '', form.endDate ?? '', places.find((p) => p.id === form.campingPlaceId)),
+      };
+    },
     create: (data) => dispatch(createBooking(data)).unwrap(),
     update: ({ id, data }) => dispatch(updateBooking({ id, data })).unwrap(),
     messages: { create: 'Buchung erstellt', update: 'Buchung aktualisiert' },
-    validate: (form) => validateBookingFormSize(form, places, items)
+    validate: (form) => validateBookingFormSize(form, getPlacesRef.current(), items),
   });
 
   const { editing, close, setForm } = crud;
@@ -98,7 +109,23 @@ export function useBookingCrud()
   const storeBooking = useAppSelector((state) =>
     editingId != null ? bookingsSelectors.selectById(state, editingId) : undefined
   );
-  //sync the edit form from the store when the entity is updated via WebSocket or deleted
+  const currentPlaceId = storeBooking?.campingPlaceId ?? editing?.campingPlaceId ?? null;
+  const currentPlaceFromStore = useAppSelector((state) =>  currentPlaceId != null ? campingPlacesSelectors.selectById(state, currentPlaceId) : undefined);
+
+  /** Active places for the selector; when editing, the current booking's place is prepended if it is inactive so it stays selectable. */
+  const places = useMemo((): CampingPlace[] =>
+  {
+    // no editing or current place not in store -> only active places
+    if (!currentPlaceId || !currentPlaceFromStore) return activePlaces;
+    // currentPlaceId is in activePlaces, so return activePlaces
+    if (activePlaces.some((p) => p.id === currentPlaceId)) return activePlaces;
+
+    // currentPlaceId is not in activePlaces, so prepend the current place from store
+    return [currentPlaceFromStore, ...activePlaces];
+  }, [activePlaces, currentPlaceId, currentPlaceFromStore]);
+
+  useEffect(() => { getPlacesRef.current = () => places; }, [places]);
+
   useSyncEditFormFromStore(editing, storeBooking, close, setForm, bookingToForm);
 
   return { ...crud, places, items, calcTotalPrice };

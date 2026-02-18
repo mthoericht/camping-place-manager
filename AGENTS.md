@@ -140,7 +140,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `src/components/layout/PageHeader.tsx` | Page title + description + optional actions |
 | `src/components/layout/EmptyState.tsx` | Empty list state (icon + message) |
 | `src/features/bookings/useBookingCrud.ts` | Booking CRUD hook (calcTotalPrice, bookingToForm, validate); uses `@shared/bookingPrice` |
-| `src/features/bookings/useFilteredBookings.ts` | Filter state and memoized list by booking status ('' = all); used on BookingsPage |
+| `src/features/bookings/useFilteredBookings.ts` | Filter state and memoized list by status, place (incl. inactive), and search (name, email, phone); used on BookingsPage |
 | `src/lib/dateUtils.ts` | Date helpers (e.g. toDateInputValue for inputs) |
 | `server/src/app.ts` | Express app setup |
 | `server/src/index.ts` | HTTP server + WebSocket server on path /ws (ws package) |
@@ -157,7 +157,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `test/unit/useCrud.test.ts` | Unit tests for CRUD hook (dialog state, submit, validation, errors) |
 | `test/unit/useConfirmDelete.test.ts` | Unit tests for confirm-delete hook (confirm, dispatch, toasts) |
 | `test/unit/useSyncEditFormFromStore.test.ts` | Unit tests for store-to-form sync (delete→close, update→setForm) |
-| `test/unit/useFilteredBookings.test.ts` | Unit tests for status filter hook (all vs. by status) |
+| `test/unit/useFilteredBookings.test.ts` | Unit tests for filter hook (status, search by name/email/phone, place filter, combined) |
 | `test/unit/campingPlacesSlice.test.ts` | Unit tests for campingPlaces reducer (CRUD + WS) |
 | `test/unit/campingItemsSlice.test.ts` | Unit tests for campingItems reducer (CRUD + WS) |
 | `test/unit/server/*.broadcast.test.ts` | Server unit: controller calls broadcast after CRUD |
