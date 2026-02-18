@@ -1,5 +1,5 @@
 import { useEffect, useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { fetchBookingById, changeBookingStatus, fetchBookingStatusChanges, bookingsSelectors } from '@/store/bookingsSlice';
 import { toast } from 'sonner';
 import type { Booking, BookingStatus, BookingStatusChange } from '@/api/types';

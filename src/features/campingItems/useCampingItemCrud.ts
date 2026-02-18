@@ -1,6 +1,6 @@
 import { useCrud } from '@/hooks/useCrud';
 import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { createCampingItem, updateCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice';
 import type { CampingItemFormData, CampingItem } from '@/api/types';
 

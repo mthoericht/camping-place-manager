@@ -1,6 +1,6 @@
 import type { AsyncThunk } from '@reduxjs/toolkit';
 import { useCallback } from 'react';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/store/store';
 import { toast } from 'sonner';
 
 /**

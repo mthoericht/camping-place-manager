@@ -65,7 +65,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 - **Framework**: React 19 + Vite (no Next.js)
 - **State Management**: Redux Toolkit (`src/store/`)
   - One slice per entity using `createEntityAdapter` + `createAsyncThunk`
-  - Typed hooks: `useAppDispatch`, `useAppSelector` from `@/store/hooks`
+  - Typed hooks: `useAppDispatch`, `useAppSelector` from `@/store/store`
 - **Routing**: React Router v7 (`react-router-dom`). Routes in `src/app/routes.tsx`, app shell in `src/app/App.tsx`. Default route is `/bookings` (no dashboard). Navigation in Topbar: Bookings, Stellplätze, Ausrüstung, Analytics.
 - **UI Components**: shadcn/ui (Radix-based) in `src/components/ui/`
 - **Styling**: Tailwind CSS v4, theme in `src/styles/theme.css`

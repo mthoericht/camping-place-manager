@@ -6,7 +6,7 @@ import StatCard from './components/StatCard';
 import RevenueByMonthChart from './components/RevenueByMonthChart';
 import BookingsByStatusChart from './components/BookingsByStatusChart';
 import RevenueByPlaceChart from './components/RevenueByPlaceChart';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { fetchAnalytics } from '@/store/analyticsSlice';
 
 export default function AnalyticsPage()

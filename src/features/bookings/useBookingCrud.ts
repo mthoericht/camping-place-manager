@@ -1,6 +1,6 @@
 import { useCrud } from '@/hooks/useCrud';
 import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice';
 import { campingPlacesSelectors } from '@/store/campingPlacesSlice';
 import { campingItemsSelectors } from '@/store/campingItemsSlice';

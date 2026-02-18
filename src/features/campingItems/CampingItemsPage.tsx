@@ -9,7 +9,7 @@ import CampingItemFormContent from './components/CampingItemFormContent';
 import { useCampingItemCrud } from './useCampingItemCrud';
 import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/store';
 import { fetchCampingItems, deleteCampingItem, campingItemsSelectors } from '@/store/campingItemsSlice';
 
 export default function CampingItemsPage()

@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
 const mockDispatch = vi.fn();
-vi.mock('@/store/hooks', () => ({
+vi.mock('@/store/store', () => ({
   useAppDispatch: () => mockDispatch,
   useAppSelector: vi.fn(),
 }));

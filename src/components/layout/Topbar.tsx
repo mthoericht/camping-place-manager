@@ -1,7 +1,7 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Tent, MapPin, Package, Calendar, BarChart3, Menu, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import { setMobileNavOpen, toggleTheme } from '@/store/uiSlice';
 import { logout } from '@/store/authSlice';
 import { useEffect } from 'react';

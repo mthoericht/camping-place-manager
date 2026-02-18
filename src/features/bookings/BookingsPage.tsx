@@ -9,7 +9,7 @@ import BookingFormContent from './components/BookingFormContent';
 import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/store';
 import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice';
 import { fetchCampingPlaces } from '@/store/campingPlacesSlice';
 import { fetchCampingItems } from '@/store/campingItemsSlice';

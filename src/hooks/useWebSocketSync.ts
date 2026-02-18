@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@/store/store';
 import {
   receiveBookingFromWebSocket,
   receiveBookingDeletedFromWebSocket,

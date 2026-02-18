@@ -54,7 +54,7 @@ Statt `useDispatch` und `useSelector` von `react-redux` werden die typisierten V
 So bleiben Typen beim Lesen und Dispatchen durchgängig stimmig. Neue Komponenten sollten nur diese Hooks importieren.
 
 ```tsx
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 
 const dispatch = useAppDispatch();
 const bookings = useAppSelector(bookingsSelectors.selectAll);
@@ -206,7 +206,7 @@ export type LoadingStatus = 'idle' | 'loading' | 'succeeded' | 'failed';
 
 ## Konventionen in Kürze
 
-1. **Immer nur** `useAppDispatch` und `useAppSelector` aus `@/store/hooks` verwenden.
+1. **Immer nur** `useAppDispatch` und `useAppSelector` aus `@/store/store` verwenden.
 2. **Async-Logik** nur in createAsyncThunk; API-Calls in den Thunks, keine fetches direkt in Komponenten für Store-Daten.
 3. **Fehlerbehandlung:** In Thunks `rejectWithValue` mit Fehlermeldung; in extraReducers `action.payload ?? action.error.message ?? 'Fehler'` für Anzeige.
 4. **Entity-Listen:** createEntityAdapter nutzen; zusätzliche Felder (status, error, mutationError, statusChanges) im getInitialState bzw. in extraReducers pflegen.

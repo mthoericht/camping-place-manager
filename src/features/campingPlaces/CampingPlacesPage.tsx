@@ -9,7 +9,7 @@ import CampingPlaceFormContent from './components/CampingPlaceFormContent';
 import { useCampingPlaceCrud } from './useCampingPlaceCrud';
 import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from '@/store/store';
 import { fetchCampingPlaces, deleteCampingPlace, campingPlacesSelectors } from '@/store/campingPlacesSlice';
 
 export default function CampingPlacesPage()
