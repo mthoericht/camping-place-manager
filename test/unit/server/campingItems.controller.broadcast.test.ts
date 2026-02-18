@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as campingItemsController from '../../../server/src/controllers/campingItems.controller';
-import * as broadcastModule from '../../../server/src/ws/broadcast';
+import * as broadcastModule from '../../../server/src/websockets/broadcast';
 import * as service from '../../../server/src/services/campingItems.service';
 
 vi.mock('../../../server/src/ws/broadcast', () => ({ broadcast: vi.fn() }));
@@ -16,11 +16,13 @@ const mockBroadcast = vi.mocked(broadcastModule.broadcast);
 
 const mockReq = (body: object = {}, params: Record<string, string> = {}) =>
   ({ body, params, query: {} }) as unknown as Parameters<typeof campingItemsController.create>[0];
+
 const mockRes = () =>
 {
   const res = { status: vi.fn().mockReturnThis(), json: vi.fn(), end: vi.fn() };
   return res as unknown as Parameters<typeof campingItemsController.create>[1];
 };
+
 const mockNext = vi.fn();
 
 const fakeItem = {

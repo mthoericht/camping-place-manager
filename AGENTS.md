@@ -163,7 +163,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `test/unit/server/*.broadcast.test.ts` | Server unit: controller calls broadcast after CRUD |
 | `test/unit/server/auth.middleware.test.ts` | Server unit: requireAuth middleware (401, valid token, expired) |
 | `test/unit/server/error.middleware.test.ts` | Server unit: errorHandler (HttpError, generic Error) |
-| `.env` | `DATABASE_URL`, `PORT`, and `JWT_SECRET` |
+| `.env` | `DATABASE_URL`, `HOST`, `PORT`, and `JWT_SECRET` |
 
 ## Delete Protection Rule
 

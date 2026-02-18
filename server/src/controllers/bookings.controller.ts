@@ -3,7 +3,7 @@ import type { AuthRequest } from '../middleware/auth.middleware';
 import * as service from '../services/bookings.service';
 import { HttpError } from '../middleware/error.middleware';
 import { validate } from '../middleware/validate';
-import { broadcast } from '../ws/broadcast';
+import { broadcast } from '../websockets/broadcast';
 
 export async function getAll(req: Request, res: Response, next: NextFunction) 
 {

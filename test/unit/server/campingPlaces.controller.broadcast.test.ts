@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as campingPlacesController from '../../../server/src/controllers/campingPlaces.controller';
-import * as broadcastModule from '../../../server/src/ws/broadcast';
+import * as broadcastModule from '../../../server/src/websockets/broadcast';
 import * as service from '../../../server/src/services/campingPlaces.service';
 
 vi.mock('../../../server/src/ws/broadcast', () => ({ broadcast: vi.fn() }));

@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import * as service from '../services/campingItems.service';
 import { HttpError } from '../middleware/error.middleware';
 import { validate } from '../middleware/validate';
-import { broadcast } from '../ws/broadcast';
+import { broadcast } from '../websockets/broadcast';
 
 export async function getAll(_req: Request, res: Response, next: NextFunction) 
 {
@@ -34,6 +34,7 @@ export async function create(req: Request, res: Response, next: NextFunction)
       { field: 'category', required: true, type: 'string' },
       { field: 'size', required: true, type: 'number', min: 1 },
     ]);
+    
     const item = await service.createCampingItem(req.body);
     broadcast({ type: 'campingItems/created', payload: item });
     res.status(201).json(item);

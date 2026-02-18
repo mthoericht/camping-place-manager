@@ -4,19 +4,23 @@ import { URL } from 'url';
 import { WebSocketServer } from 'ws';
 import { createApp } from './app';
 import { verifyToken } from './services/auth.service';
-import { addClient, removeClient } from './ws/broadcast';
+import { addClient, removeClient } from './websockets/broadcast';
 
 const app = createApp();
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server, path: '/ws' });
+const webSocketServer = new WebSocketServer({ server, path: '/ws' });
 
-wss.on('connection', (ws, req: http.IncomingMessage) =>
+const defaultPort = Number(process.env.PORT ?? 3001);
+const defaultHost = process.env.HOST ?? 'localhost';
+
+webSocketServer.on('connection', (webSocket, req: http.IncomingMessage) =>
 {
-  const token = new URL(req.url ?? '', 'http://localhost').searchParams.get('token');
+  const host = req.headers.host ?? `${defaultHost}:${defaultPort}`;
+  const token = new URL(req.url ?? '', `http://${host}`).searchParams.get('token');
 
   if (!token)
   {
-    ws.close(4001, 'Authentifizierung erforderlich.');
+    webSocket.close(4001, 'Authentifizierung erforderlich.');
     return;
   }
 
@@ -26,18 +30,17 @@ wss.on('connection', (ws, req: http.IncomingMessage) =>
   }
   catch
   {
-    ws.close(4001, 'Ungültiges Token.');
+    webSocket.close(4001, 'Ungültiges Token.');
     return;
   }
 
-  addClient(ws);
-  ws.on('close', () => removeClient(ws));
-  ws.on('error', () => removeClient(ws));
+  addClient(webSocket);
+  webSocket.on('close', () => removeClient(webSocket));
+  webSocket.on('error', () => removeClient(webSocket));
 });
 
-const port = Number(process.env.PORT ?? 3001);
-server.listen(port, () =>
+server.listen(defaultPort, () =>
 {
-  console.log(`API server running on http://localhost:${port}`);
+  console.log(`API server running on http://${defaultHost}:${defaultPort}`);
   console.log(`WebSocket server on path /ws`);
 });

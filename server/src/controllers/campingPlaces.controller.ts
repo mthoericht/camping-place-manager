@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import * as service from '../services/campingPlaces.service';
 import { HttpError } from '../middleware/error.middleware';
 import { validate } from '../middleware/validate';
-import { broadcast } from '../ws/broadcast';
+import { broadcast } from '../websockets/broadcast';
 
 export async function getAll(_req: Request, res: Response, next: NextFunction) 
 {

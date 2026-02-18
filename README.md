@@ -51,7 +51,7 @@ A modern camping place management application built with React, TypeScript, Expr
 
 3. **Configure environment** (optional):
 
-   Create a `.env` file (or use the existing one). For production, set a secure JWT secret:
+   Create a `.env` file (or use the existing one). For production, set a secure JWT secret. Optionally set `HOST` and `PORT` for the API server (defaults: `localhost`, `3001`).
 
    ```
    JWT_SECRET=your-secure-secret-key
