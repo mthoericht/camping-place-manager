@@ -303,8 +303,10 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── bookings/
 │   │   │   ├── constants.ts
 │   │   │   ├── useBookingCrud.ts
+│   │   │   ├── useBookingDetail.ts
 │   │   │   ├── useBookingFormDerived.ts
 │   │   │   ├── useBookingFormItems.ts
+│   │   │   ├── useOpenBookingEditFromLocationState.ts
 │   │   │   ├── BookingsPage.tsx
 │   │   │   ├── BookingDetailPage.tsx
 │   │   │   └── components/
@@ -396,7 +398,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - `useWebSocketSync`: Connects to `ws://…/ws?token=...` (JWT from auth state), parses server events (e.g. `bookings/created`, `bookings/updated`, `bookings/deleted`), dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so Redux state stays in sync across tabs and users; reconnects on token change or disconnect
    - `useSyncEditFormFromStore`: Syncs an open edit form with the Redux store — closes the dialog when the entity is deleted, or updates the form when the entity is modified (e.g. via WebSocket)
    - `useCrud`: CRUD dialog + form state + submit (openCreate, openEdit, form, handleSubmit, optional validate); used by all CRUD pages
-   - `useOpenEditFromLocationState`: Open edit dialog when navigating with `location.state` (e.g. from booking detail page)
+   - `useOpenEditFromLocationState`: Generic hook to open edit dialog when navigating with `location.state`; bookings use `useOpenBookingEditFromLocationState` in the feature
    - `use-mobile`: Breakpoint hook for responsive behaviour
    - **Feature-level hooks** (e.g. `src/features/bookings/`): `useFilteredBookings` (status, place, search by name/email/phone), `useBookingFormDerived` (selectedPlace, totalItemSize, sizeError), `useBookingFormItems` (addItem, removeItem for booking items)
 
@@ -470,7 +472,7 @@ All endpoints except `/api/auth/signup` and `/api/auth/login` require a valid JW
 3. **Create backend**: Service → Controller → Route, register in `routes/index.ts`
 4. **Add API module** (`src/api/<entity>.ts`) — Functions that call `api()` from `client.ts` for each endpoint
 5. **Create Redux slice** (`src/store/`) with Entity Adapter + Thunks that use the API module, register in `store.ts`
-6. **Create feature** (`src/features/<domain>/`): add page(s), optional feature CRUD hook (e.g. `useCampingPlaceCrud`), and `components/` (e.g. `*Card.tsx`, `*FormContent.tsx`). Use `FormDialog` + `*FormContent` in the page; the trigger button is rendered by the page. Use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useCrud` or feature hook, `useOpenEditFromLocationState` where needed) and layout components (`PageHeader`, `EmptyState`)
+6. **Create feature** (`src/features/<domain>/`): add page(s), optional feature CRUD hook (e.g. `useCampingPlaceCrud`), and `components/` (e.g. `*Card.tsx`, `*FormContent.tsx`). Use `FormDialog` + `*FormContent` in the page; the trigger button is rendered by the page. Use shared hooks (`useConfirmDelete`, `useFetchWhenIdle`, `useCrud` or feature hook, `useOpenBookingEditFromLocationState` / `useOpenEditFromLocationState` where needed) and layout components (`PageHeader`, `EmptyState`)
 7. **Add route** in `src/app/routes.tsx` and navigation entry in `src/components/layout/Topbar.tsx`
 8. **Write tests** (Vitest for unit, Playwright for E2E)
 

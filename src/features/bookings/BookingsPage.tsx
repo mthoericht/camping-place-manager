@@ -11,7 +11,7 @@ import BookingCard from './components/BookingCard';
 import BookingFormContent from './components/BookingFormContent';
 import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
-import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState';
+import { useOpenBookingEditFromLocationState } from './useOpenBookingEditFromLocationState';
 import { useAppSelector } from '@/store/store';
 import { fetchBookings, deleteBooking } from '@/store/bookingsSlice';
 import { fetchCampingPlaces, campingPlacesSelectors } from '@/store/campingPlacesSlice';
@@ -39,7 +39,8 @@ export default function BookingsPage()
   useFetchWhenIdle(() => fetchBookings(), bookingsStatus);
   useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus);
   useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus);
-  useOpenEditFromLocationState(openEdit);
+  /** Only when navigating here from the detail page via "Buchung bearbeiten": open the edit dialog immediately. Edit from the list uses openEdit directly (e.g. in BookingCard). */
+  useOpenBookingEditFromLocationState(openEdit);
 
   const { selectedPlace, totalItemSize, sizeError } = getBookingFormDerived(form, places, items);
   const { addItem, removeItem } = useBookingFormItems(setForm);

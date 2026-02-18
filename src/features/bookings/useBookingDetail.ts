@@ -11,11 +11,7 @@ const EMPTY_STATUS_CHANGES: BookingStatusChange[] = [];
  * @param bookingId - ID of the booking to load
  * @returns Booking, status changes list, and handleStatusChange callback
  */
-export function useBookingDetail(bookingId: number): {
-  booking: Booking | undefined
-  statusChanges: BookingStatusChange[]
-  handleStatusChange: (status: BookingStatus) => Promise<void>
-}
+export function useBookingDetail(bookingId: number): {booking: Booking | undefined, statusChanges: BookingStatusChange[], handleStatusChange: (status: BookingStatus) => Promise<void>}
 {
   const dispatch = useAppDispatch();
   const booking = useAppSelector((state) => bookingsSelectors.selectById(state, bookingId));
@@ -27,6 +23,11 @@ export function useBookingDetail(bookingId: number): {
     dispatch(fetchBookingStatusChanges(bookingId));
   }, [dispatch, bookingId]);
 
+  /**
+   * Memoized with useCallback so the function reference stays stable when dispatch and bookingId
+   * are unchanged. Prevents unnecessary re-renders of children that receive this handler (e.g.
+   * status dropdown) and avoids re-running any effects that depend on handleStatusChange.
+   */
   const handleStatusChange = useCallback(async (status: BookingStatus) => 
   {
     try 

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { statusLabels, statusColors } from './constants';
 import { useBookingDetail } from './useBookingDetail';
+import { EDIT_BOOKING_STATE_KEY } from './useOpenBookingEditFromLocationState';
 import type { BookingStatus } from '@/api/types';
 
 export default function BookingDetailPage() 
@@ -27,7 +28,7 @@ export default function BookingDetailPage()
           <p className="text-muted-foreground">{booking.customerEmail}</p>
         </div>
         <Badge className={`ml-auto ${statusColors[booking.status]}`}>{statusLabels[booking.status]}</Badge>
-        <Button variant="outline" size="sm" onClick={() => navigate('/bookings', { state: { editBooking: booking } })}>
+        <Button variant="outline" size="sm" onClick={() => navigate('/bookings', { state: { [EDIT_BOOKING_STATE_KEY]: booking } })}>
           <Pencil className="h-4 w-4 mr-1" />Buchung bearbeiten
         </Button>
       </div>
