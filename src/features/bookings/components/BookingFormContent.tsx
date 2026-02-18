@@ -67,7 +67,7 @@ export default function BookingFormContent({
             <Label>Stellplatz</Label>
             <Select value={form.campingPlaceId ? String(form.campingPlaceId) : ''} onValueChange={(v) => setForm({ ...form, campingPlaceId: Number(v) })}>
               <SelectTrigger><SelectValue placeholder="Stellplatz wählen" /></SelectTrigger>
-              <SelectContent>{places.filter((p) => p.isActive).map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.size} m²)</SelectItem>)}</SelectContent>
+              <SelectContent>{places.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.size} m²)</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function BookingFormContent({
           })}
           <Select onValueChange={addItem}>
             <SelectTrigger><SelectValue placeholder="Item hinzufügen..." /></SelectTrigger>
-            <SelectContent>{items.filter((i) => i.isActive).map((i) => <SelectItem key={i.id} value={String(i.id)}>{i.name} ({i.size} m²)</SelectItem>)}</SelectContent>
+            <SelectContent>{items.map((i) => <SelectItem key={i.id} value={String(i.id)}>{i.name} ({i.size} m²)</SelectItem>)}</SelectContent>
           </Select>
           {sizeError && <Alert variant="destructive"><AlertCircle className="h-4 w-4" /><AlertDescription>{sizeError}</AlertDescription></Alert>}
         </div>

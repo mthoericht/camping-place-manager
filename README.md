@@ -24,7 +24,7 @@ A modern camping place management application built with React, TypeScript, Expr
 - **State Management**: Redux Toolkit
 - **Routing**: React Router v7
 - **Backend**: Express.js, Node.js
-- **Real-time**: WebSocket (`ws`) on path `/ws`; server broadcasts create/update/delete events; frontend syncs Redux state via `useWebSocketSync`
+- **Real-time**: WebSocket (`ws`) on path `/ws?token=...` (JWT-authenticated); server broadcasts create/update/delete events; frontend syncs Redux state via `useWebSocketSync`
 - **Database**: SQLite
 - **ORM**: Prisma
 - **Authentication**: JWT (jsonwebtoken), bcrypt (bcryptjs)
@@ -66,7 +66,7 @@ A modern camping place management application built with React, TypeScript, Expr
 5. **Open in browser:**
    - Frontend: [http://localhost:5173](http://localhost:5173) (opens on Bookings by default)
    - API: [http://localhost:3001/api](http://localhost:3001/api)
-   - WebSocket: `ws://localhost:5173/ws` in dev (proxied to backend); real-time updates for bookings, camping places, and camping items
+   - WebSocket: `ws://localhost:5173/ws?token=...` in dev (proxied to backend); JWT-authenticated real-time updates for bookings, camping places, and camping items
 
 ## Database
 
@@ -124,7 +124,7 @@ DATABASE_URL="file:../data/dev.db"
 - `id`: Auto-increment integer
 - `bookingId`: Reference to booking
 - `status`: Status at time of change
-- `changedAt`: Timestamp of the status change (used for timeline on booking detail page)
+- `changedAt`: Timestamp of the status change (defaults to `now()`, used for timeline on booking detail page)
 
 #### Employee
 
@@ -239,6 +239,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │       ├── middleware/
 │       │   ├── error.middleware.ts
 │       │   ├── auth.middleware.ts
+│       │   ├── validate.ts
 │       ├── routes/
 │       │   ├── index.ts         # Route registry (+ test.routes when DATABASE_URL contains test.db)
 │       │   ├── test.routes.ts   # Test-only: POST /api/test/clear-db, /api/test/login
@@ -273,8 +274,7 @@ Camping places and camping items cannot be deleted while **active bookings** (st
 │   │   ├── analytics.ts         # Analytics API calls
 │   │   ├── auth.ts              # Auth API calls (login, signup, me)
 │   ├── store/
-│   │   ├── store.ts             # Redux store (configureStore)
-│   │   ├── hooks.ts             # Typed useAppDispatch / useAppSelector
+│   │   ├── store.ts             # Redux store, useAppDispatch, useAppSelector
 │   │   ├── bookingsSlice.ts
 │   │   ├── campingPlacesSlice.ts
 │   │   ├── campingItemsSlice.ts
@@ -378,7 +378,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
    - One slice per entity using `createEntityAdapter` + `createAsyncThunk`
    - `authSlice`: Auth state (employee, token, login/signup/logout)
    - Thunks call into the API layer (`src/api/*.ts`), not the fetch client directly
-   - Normalized state for performant selectors
+   - Normalized state for performant selectors; memoized derived selectors via `createSelector` (e.g. `selectActiveCampingPlaces`, `selectActiveBookings`)
    - Cross-slice sync: `bookingsSlice` listens for camping place and item updates (via WebSocket or thunk) and patches embedded entity references in bookings
    - UI slice for theme, sidebar state, and mobile navigation
 
@@ -390,7 +390,7 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 4. **Custom Hooks** (`src/hooks/`)
    - `useConfirmDelete`: Confirm dialog, dispatch delete thunk, success/error toasts
    - `useFetchWhenIdle`: Dispatch a fetch thunk when the slice status is `idle`
-   - `useWebSocketSync`: Connects to `ws://…/ws`, parses server events (e.g. `bookings/created`, `bookings/updated`, `bookings/deleted`), dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so Redux state stays in sync across tabs and users; reconnects after disconnect
+   - `useWebSocketSync`: Connects to `ws://…/ws?token=...` (JWT from auth state), parses server events (e.g. `bookings/created`, `bookings/updated`, `bookings/deleted`), dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so Redux state stays in sync across tabs and users; reconnects on token change or disconnect
    - `useSyncEditFormFromStore`: Syncs an open edit form with the Redux store — closes the dialog when the entity is deleted, or updates the form when the entity is modified (e.g. via WebSocket)
    - `useCrud`: CRUD dialog + form state + submit (openCreate, openEdit, form, handleSubmit, optional validate); used by all CRUD pages
    - `useOpenEditFromLocationState`: Open edit dialog when navigating with `location.state` (e.g. from booking detail page)
@@ -409,9 +409,9 @@ When adding or changing UI elements, keep them consistent with the Figma design 
 
 ### Server Architecture
 
-1. **HTTP + WebSocket** (`server/src/index.ts`) — Creates the HTTP server from the Express app and attaches a WebSocket server on path `/ws`. Clients connect to `/ws`; the server keeps a set of connections and broadcasts JSON messages on create/update/delete (see `server/src/ws/broadcast.ts`).
+1. **HTTP + WebSocket** (`server/src/index.ts`) — Creates the HTTP server from the Express app and attaches a WebSocket server on path `/ws`. Clients connect with a JWT token (`/ws?token=...`); connections without a valid token are rejected (close code `4001`). The server keeps a set of authenticated connections and broadcasts JSON messages on create/update/delete (see `server/src/ws/broadcast.ts`).
 2. **Routes** (`server/src/routes/`) — Define HTTP endpoints and delegate to controllers
-3. **Controllers** (`server/src/controllers/`) — Request/response handling, parameter parsing; after successful create/update/delete (and booking status change), call `broadcast({ type, payload })` so all WebSocket clients receive the event
+3. **Controllers** (`server/src/controllers/`) — Request/response handling, input validation (via `validate()` from `server/src/middleware/validate.ts`), parameter parsing; after successful create/update/delete (and booking status change), call `broadcast({ type, payload })` so all WebSocket clients receive the event
 4. **Services** (`server/src/services/`) — Business logic and Prisma database operations; use `shared/` for domain logic shared with the client (e.g. booking total price)
 5. **Database** (SQLite via Prisma) — File-based, no external database required
 

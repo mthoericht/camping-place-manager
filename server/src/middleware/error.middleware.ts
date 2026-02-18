@@ -10,7 +10,13 @@ export class HttpError extends Error
 
 export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) 
 {
-  const statusCode = err instanceof HttpError ? err.statusCode : 500;
-  const message = err.message || 'Internal Server Error';
-  res.status(statusCode).json({ error: message });
+  if (err instanceof HttpError) 
+  {
+    res.status(err.statusCode).json({ error: err.message });
+    return;
+  }
+
+  console.error(err);
+  const message = process.env.NODE_ENV === 'production' ? 'Interner Serverfehler.' : (err.message || 'Internal Server Error');
+  res.status(500).json({ error: message });
 }

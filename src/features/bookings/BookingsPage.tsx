@@ -1,7 +1,9 @@
 import { Calendar, Plus } from 'lucide-react';
+import type { BookingStatus } from '@/api/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { FormDialog } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PageHeader from '@/components/layout/PageHeader';
 import EmptyState from '@/components/layout/EmptyState';
 import BookingCard from './components/BookingCard';
@@ -10,17 +12,18 @@ import { useConfirmDelete } from '@/hooks/useConfirmDelete';
 import { useFetchWhenIdle } from '@/hooks/useFetchWhenIdle';
 import { useOpenEditFromLocationState } from '@/hooks/useOpenEditFromLocationState';
 import { useAppSelector } from '@/store/store';
-import { fetchBookings, deleteBooking, bookingsSelectors } from '@/store/bookingsSlice';
+import { fetchBookings, deleteBooking } from '@/store/bookingsSlice';
 import { fetchCampingPlaces } from '@/store/campingPlacesSlice';
 import { fetchCampingItems } from '@/store/campingItemsSlice';
 import { useBookingCrud } from './useBookingCrud';
-import { statusLabels, statusColors } from './constants';
+import { useFilteredBookings } from './useFilteredBookings';
+import { BOOKING_STATUSES, statusLabels, statusColors } from './constants';
 import { getBookingFormDerived } from './useBookingFormDerived';
 import { useBookingFormItems } from './useBookingFormItems';
 
 export default function BookingsPage() 
 {
-  const bookings = useAppSelector(bookingsSelectors.selectAll);
+  const { statusFilter, setStatusFilter, bookings } = useFilteredBookings();
   const bookingsStatus = useAppSelector((state) => state.bookings.status);
   const campingPlacesStatus = useAppSelector((state) => state.campingPlaces.status);
   const campingItemsStatus = useAppSelector((state) => state.campingItems.status);
@@ -42,7 +45,20 @@ export default function BookingsPage()
   return (
     <div className="space-y-6">
       <PageHeader title="Buchungen" description="Verwalten Sie alle Campingplatz-Buchungen">
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
+        <div className="flex items-center gap-2">
+          <Select value={statusFilter || 'all'} onValueChange={(filter) => setStatusFilter(filter === 'all' ? '' : (filter as BookingStatus))}>
+            <SelectTrigger className="w-[11rem]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle</SelectItem>
+              {BOOKING_STATUSES.map((status) => (
+                <SelectItem key={status} value={status}>{statusLabels[status]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
+        </div>
       </PageHeader>
       <FormDialog {...dialogProps} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">
         <BookingFormContent

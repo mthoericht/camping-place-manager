@@ -47,7 +47,7 @@ describe('campingPlaces.controller broadcast', () =>
   {
     vi.mocked(service.createCampingPlace).mockResolvedValue(fakePlace);
     const res = mockRes();
-    await campingPlacesController.create(mockReq({}), res, mockNext);
+    await campingPlacesController.create(mockReq({ name: 'Place', location: 'Here', size: 50, price: 20 }), res, mockNext);
     expect(mockBroadcast).toHaveBeenCalledWith({ type: 'campingPlaces/created', payload: fakePlace });
   });
 

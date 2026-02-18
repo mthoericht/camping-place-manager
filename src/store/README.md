@@ -12,8 +12,7 @@ Der Store hält den zentralen Anwendungszustand (Server-Daten, UI-Zustand, Auth)
 
 ## Ordnerstruktur
 
-- **store.ts** – Erstellung des Stores (`configureStore`), Export von `RootState` und `AppDispatch`.
-- **hooks.ts** – Typisierte Hooks `useAppDispatch` und `useAppSelector` (immer diese verwenden, nicht die rohen von `react-redux`).
+- **store.ts** – Erstellung des Stores (`configureStore`), Export von `RootState`, `AppDispatch` sowie der typisierten Hooks `useAppDispatch` und `useAppSelector`.
 - **types.ts** – Gemeinsame Typen (z. B. `LoadingStatus`).
 - **\*Slice.ts** – Ein Slice pro Domäne: auth, bookings, campingPlaces, campingItems, analytics, ui.
 
@@ -40,13 +39,13 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 ```
 
-Neue Slices: Reducer in `store.ts` registrieren und ggf. in `hooks.ts` bzw. in Selectors weiterverwenden.
+Neue Slices: Reducer in `store.ts` registrieren und ggf. in Selectors weiterverwenden.
 
 ---
 
-## useAppDispatch und useAppSelector (hooks.ts)
+## useAppDispatch und useAppSelector (store.ts)
 
-Statt `useDispatch` und `useSelector` von `react-redux` werden die typisierten Varianten aus **hooks.ts** verwendet:
+Statt `useDispatch` und `useSelector` von `react-redux` werden die typisierten Varianten aus **store.ts** verwendet:
 
 - **useAppDispatch()** – liefert `AppDispatch`; damit sind Thunk-Aufrufe und Action-Typen korrekt.
 - **useAppSelector(selector)** – der Selector erhält automatisch `RootState`; Rückgabetyp wird aus dem Selector abgeleitet.
@@ -156,6 +155,8 @@ Für Listen von Objekten mit **eindeutiger Id** (Bookings, CampingPlaces, Campin
 **addOne vs. upsertOne:** `addOne` fügt genau eine neue Entität hinzu (für Create). `upsertOne` fügt ein oder ersetzt eine bestehende (für FetchById, Update, Statusänderung). Bei Create liefert der Server die neue Id; `addOne` reicht. Bei Update soll die vorhandene Entität aktualisiert werden → `upsertOne`.
 
 **Selectors:** `adapter.getSelectors((state: RootState) => state.bookings)` liefert u. a. `selectAll` (Entitäten in Reihenfolge von `ids`), `selectById(id)`, `selectIds`, `selectEntities`. Export als z. B. `bookingsSelectors`; in Komponenten `useAppSelector(bookingsSelectors.selectAll)` oder `useAppSelector(bookingsSelectors.selectById(id))`.
+
+**Memoized Selectors:** Für häufig abgeleitete Daten (z. B. nur aktive Entitäten, Filterung nach Status) werden `createSelector`-basierte Selectors exportiert. Diese werden nur neu berechnet, wenn sich die Eingabedaten ändern, und verhindern so unnötige Re-Renders. Beispiele: `selectActiveCampingPlaces`, `selectActiveCampingItems`, `selectActiveBookings`, `selectBookingsByStatus`. Bei `selectBookingsByStatus(state, status)` bedeutet `status` optional: `null`/`undefined` = alle Buchungen, ansonsten Filter nach diesem Status.
 
 ```tsx
 const adapter = createEntityAdapter<Booking>();

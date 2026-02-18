@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createEntityAdapter, createSelector, type PayloadAction } from '@reduxjs/toolkit';
 import * as campingItemsApi from '@/api/campingItems';
 import type { CampingItem, CampingItemFormData } from '@/api/types';
 import type { RootState } from './store';
@@ -89,3 +89,9 @@ const campingItemsSlice = createSlice({
 export default campingItemsSlice.reducer;
 export const { receiveUpserted: receiveCampingItemFromWebSocket, receiveDeleted: receiveCampingItemDeletedFromWebSocket } = campingItemsSlice.actions;
 export const campingItemsSelectors = campingItems.getSelectors((state: RootState) => state.campingItems);
+
+/** Memoized: only active items (isActive). Used e.g. in the booking form so deactivated items are not selectable. */
+export const selectActiveCampingItems: (state: RootState) => CampingItem[] = createSelector(
+  campingItemsSelectors.selectAll,
+  (items): CampingItem[] => items.filter((i) => i.isActive)
+);

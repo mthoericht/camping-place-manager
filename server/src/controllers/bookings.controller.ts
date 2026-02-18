@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as service from '../services/bookings.service';
 import { HttpError } from '../middleware/error.middleware';
+import { validate } from '../middleware/validate';
 import { broadcast } from '../ws/broadcast';
 
 export async function getAll(req: Request, res: Response, next: NextFunction) 
@@ -28,6 +29,12 @@ export async function create(req: Request, res: Response, next: NextFunction)
 {
   try 
   {
+    validate(req.body, [
+      { field: 'campingPlaceId', required: true, type: 'number', min: 1 },
+      { field: 'customerName', required: true, type: 'string' },
+      { field: 'customerEmail', required: true, type: 'string' },
+      { field: 'guests', required: true, type: 'number', min: 1 },
+    ]);
     const booking = await service.createBooking(req.body);
     broadcast({ type: 'bookings/created', payload: booking });
     res.status(201).json(booking);
@@ -62,9 +69,10 @@ export async function changeStatus(req: Request, res: Response, next: NextFuncti
 {
   try 
   {
-    const { status } = req.body;
-    if (!status) throw new HttpError(400, 'Status is required');
-    const booking = await service.changeBookingStatus(Number(req.params.id), status);
+    validate(req.body, [
+      { field: 'status', required: true, type: 'string', oneOf: ['PENDING', 'CONFIRMED', 'PAID', 'CANCELLED', 'COMPLETED'] },
+    ]);
+    const booking = await service.changeBookingStatus(Number(req.params.id), req.body.status);
     broadcast({ type: 'bookings/updated', payload: booking });
     res.json(booking);
   }

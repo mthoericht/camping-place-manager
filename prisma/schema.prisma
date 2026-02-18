@@ -40,6 +40,10 @@ model Booking {
   campingPlace   CampingPlace  @relation(fields: [campingPlaceId], references: [id])
   bookingItems   BookingItem[]
   statusChanges  BookingStatusChange[]
+
+  @@index([campingPlaceId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 model CampingItem {
@@ -65,15 +69,21 @@ model BookingItem {
 
   booking       Booking     @relation(fields: [bookingId], references: [id])
   campingItem   CampingItem @relation(fields: [campingItemId], references: [id])
+
+  @@index([bookingId])
+  @@index([campingItemId])
 }
 
 model BookingStatusChange {
   id        Int      @id @default(autoincrement())
   bookingId Int
   status    String
-  changedAt DateTime
+  changedAt DateTime @default(now())
 
   booking   Booking  @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@index([changedAt])
 }
 
 model Employee {

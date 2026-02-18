@@ -2,8 +2,8 @@ import { useCrud } from '@/hooks/useCrud';
 import { useSyncEditFormFromStore } from '@/hooks/useSyncEditFormFromStore';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { createBooking, updateBooking, bookingsSelectors } from '@/store/bookingsSlice';
-import { campingPlacesSelectors } from '@/store/campingPlacesSlice';
-import { campingItemsSelectors } from '@/store/campingItemsSlice';
+import { selectActiveCampingPlaces } from '@/store/campingPlacesSlice';
+import { selectActiveCampingItems } from '@/store/campingItemsSlice';
 import { toDateInputValue } from '@/lib/dateUtils';
 import { calcBookingTotalPrice } from '@shared/bookingPrice';
 import { calcTotalItemSize } from './useBookingFormDerived';
@@ -77,8 +77,8 @@ export function validateBookingFormSize(form: BookingFormData, places: CampingPl
 export function useBookingCrud()
 {
   const dispatch = useAppDispatch();
-  const places = useAppSelector(campingPlacesSelectors.selectAll);
-  const items = useAppSelector(campingItemsSelectors.selectAll);
+  const places = useAppSelector(selectActiveCampingPlaces);
+  const items = useAppSelector(selectActiveCampingItems);
 
   const crud = useCrud<BookingFormData, Booking, BookingFormData>({
     emptyForm,

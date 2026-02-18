@@ -26,6 +26,7 @@ describe('errorHandler', () =>
   beforeEach(() =>
   {
     vi.clearAllMocks();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
   it('returns statusCode and message for HttpError', () =>

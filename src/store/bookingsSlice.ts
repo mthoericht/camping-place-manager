@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, createEntityAdapter, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createEntityAdapter, createSelector, type PayloadAction } from '@reduxjs/toolkit';
 import * as bookingsApi from '@/api/bookings';
 import type { Booking, BookingFormData, BookingStatus, BookingStatusChange, CampingPlace, CampingItem } from '@/api/types';
 import type { RootState } from './store';
@@ -190,3 +190,21 @@ const bookingsSlice = createSlice({
 export default bookingsSlice.reducer;
 export const { receiveUpserted: receiveBookingFromWebSocket, receiveDeleted: receiveBookingDeletedFromWebSocket } = bookingsSlice.actions;
 export const bookingsSelectors = bookings.getSelectors((state: RootState) => state.bookings);
+
+/** Memoized: only active bookings (excludes CANCELLED and COMPLETED). */
+export const selectActiveBookings: (state: RootState) => Booking[] = createSelector(
+  bookingsSelectors.selectAll,
+  (all): Booking[] => all.filter((b) => b.status !== 'CANCELLED' && b.status !== 'COMPLETED')
+);
+
+/** Memoized: all bookings or filtered by status. Pass null/undefined for all. Usage: `useAppSelector((state) => selectBookingsByStatus(state, 'PENDING'))` or `selectBookingsByStatus(state)` for all. */
+export const selectBookingsByStatus: (state: RootState, status?: BookingStatus | null) => Booking[] = createSelector(
+  (state: RootState) => state.bookings.ids,
+  (state: RootState) => state.bookings.entities,
+  (_state: RootState, status?: BookingStatus | null) => status,
+  (ids, entities, status): Booking[] =>
+  {
+    const all = ids.map((id) => entities[id]).filter(Boolean) as Booking[];
+    return status == null ? all : all.filter((b) => b.status === status);
+  }
+);

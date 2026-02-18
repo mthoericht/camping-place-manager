@@ -42,7 +42,7 @@ npm run test:coverage    # Coverage report (Vitest)
 npm run test:e2e         # Playwright (E2E tests)
 ```
 
-- **Unit tests**: `test/unit/**/*.test.{ts,tsx}` (excluding `test/unit/server/`) — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests. Covers: all entity slices (bookings incl. cross-slice sync, campingPlaces, campingItems, auth), hooks (`useCrud`, `useConfirmDelete`, `useSyncEditFormFromStore`, `useWebSocketSync`), shared logic (`bookingPrice`, `dateUtils`, `validateBookingFormSize`).
+- **Unit tests**: `test/unit/**/*.test.{ts,tsx}` (excluding `test/unit/server/`) — Vitest, jsdom, setup: `vitest.setup.unit.ts` (includes `@testing-library/jest-dom`). The API (`client.ts`) is only covered via integration tests. Covers: all entity slices (bookings incl. cross-slice sync, campingPlaces, campingItems, auth), hooks (`useCrud`, `useConfirmDelete`, `useSyncEditFormFromStore`, `useWebSocketSync`, `useFilteredBookings`), shared logic (`bookingPrice`, `dateUtils`, `validateBookingFormSize`).
 - **Server unit tests**: `test/unit/server/**/*.test.ts` — Vitest, node. Controllers are tested with mocked service and `ws/broadcast`; assertions ensure `broadcast({ type, payload })` is called after create/update/delete (and booking changeStatus). Middleware tests cover `requireAuth` (401 cases, valid token, expired token) and `errorHandler` (HttpError, generic Error, empty message). Run with all projects (`npm test`) or via the `server-unit` project.
 - **Integration tests**: `test/integration/**/*.integration.test.ts` — Vitest, node. Use only the **frontend API modules**; test files must **not** import from the server. Lifecycle (DB clear, test user login) is done via **test API endpoints** (`POST /api/test/clear-db`, `POST /api/test/login`) called from `test/integration/helpers.ts` (`clearDb()`, `loginTestUser()`). The Supertest fetch adapter is installed once in `vitest.setup.integration.ts` (calls `installIntegrationFetch()` from `server/src/test/integrationEnv.ts`). Setup: `vitest.setup.integration.ts`.
 - **Test DB**: Integration tests use **only** `data/test.db`. `DATABASE_URL` is set to `file:…/data/test.db` in the integration setup **before** any server code/Prisma is loaded; `.env` is not loaded during tests. The existing database (e.g. `data/dev.db`) is **never modified**.
@@ -74,10 +74,10 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 - **Types**: Centralized in `src/api/types.ts` — IDs are `number` (SQLite autoincrement)
 - **API Client**: `src/api/client.ts` — Fetch wrapper, API proxy via Vite (`/api` → port 3001)
 - **Authentication**: JWT token stored in `localStorage` (`auth_token`), automatically attached to all API requests by `client.ts`. Auth state managed in `src/store/authSlice.ts` (employee, token, login/signup/fetchMe thunks, logout). `AuthGuard` component wraps protected routes and redirects to `/login` if unauthenticated. Login/Signup pages are standalone (no AppLayout).
-- **Real-time (WebSocket)**: `useWebSocketSync` (in `src/hooks/useWebSocketSync.ts`) connects to `/ws`, receives server events (`bookings/created`, `bookings/updated`, `bookings/deleted`, and same for `campingPlaces`, `campingItems`), and dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so lists and entities stay in sync across tabs and users. Used once in `App.tsx`. Vite dev proxy: `/ws` → backend port 3001.
+- **Real-time (WebSocket)**: `useWebSocketSync` (in `src/hooks/useWebSocketSync.ts`) connects to `/ws?token=...` (JWT from auth state), receives server events (`bookings/created`, `bookings/updated`, `bookings/deleted`, and same for `campingPlaces`, `campingItems`), and dispatches slice actions (`receiveBookingFromWebSocket`, `receiveBookingDeletedFromWebSocket`, etc.) so lists and entities stay in sync across tabs and users. Reconnects on token change. Used once in `App.tsx`. Vite dev proxy: `/ws` → backend port 3001.
 
 - **Logic: Store vs composables (hooks)**
-  - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Optional: memoized selectors (e.g. `selectActivePlaces`) if the same derived list is used in many places. Entity slices synced via WebSocket export `receiveUpserted`/`receiveDeleted` (as `receive*FromWebSocket` / `receive*DeletedFromWebSocket`) for the hook to dispatch. `bookingsSlice` also listens for campingPlace/campingItem updates (WS + thunk fulfilled) and patches embedded entity references to keep denormalized data consistent.
+  - **Store**: Server state (entities, list status, errors), API cache (e.g. `statusChanges` by id). Keep reducers thin (assign payloads); no business rules in the store beyond “what the server returned”. Use `createSelector` for memoized derived data (e.g. `selectActiveCampingPlaces`, `selectActiveCampingItems`, `selectActiveBookings`, `selectBookingsByStatus`) to avoid unnecessary re-renders. Entity slices synced via WebSocket export `receiveUpserted`/`receiveDeleted` (as `receive*FromWebSocket` / `receive*DeletedFromWebSocket`) for the hook to dispatch. `bookingsSlice` also listens for campingPlace/campingItem updates (WS + thunk fulfilled) and patches embedded entity references to keep denormalized data consistent.
   - **Composables (hooks)**: Form state, dialog open/close, submit flow (dispatch + toast + close), and any derivation from form + store (e.g. `useBookingFormDerived`, `useBookingFormItems`). Entity-specific CRUD config (emptyForm, toForm, getPayload, validate) lives in a feature hook (e.g. `useBookingCrud`, `useCampingPlaceCrud`, `useCampingItemCrud`) so pages stay thin and only orchestrate hooks and UI.
 
 ### Backend (`server/src/`)
@@ -86,8 +86,9 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 - **Layers**: Routes → Controllers → Services → Prisma. After successful create/update/delete (and booking status change), controllers call `broadcast({ type: 'bookings/created' | 'bookings/updated' | 'bookings/deleted', payload })` (and same for `campingPlaces`, `campingItems`) so all connected WebSocket clients receive the event.
 - **Database**: SQLite via Prisma, DB file at `data/dev.db`
 - **Prisma Client**: Singleton in `server/src/prisma/client.ts`
-- **Error Handling**: `HttpError` class in `server/src/middleware/error.middleware.ts`
-- **Authentication**: JWT-based auth via `server/src/middleware/auth.middleware.ts` (`requireAuth` middleware). Auth service in `server/src/services/auth.service.ts` (bcrypt password hashing, JWT token generation/verification). All API routes except `/api/auth/login` and `/api/auth/signup` require a valid `Authorization: Bearer <token>` header. WebSocket connections are not authenticated in the current implementation.
+- **Error Handling**: `HttpError` class in `server/src/middleware/error.middleware.ts`. In production (`NODE_ENV=production`), non-HttpError 500s return a generic `'Interner Serverfehler.'` message (actual error is logged server-side); in development, the original error message is returned for debugging.
+- **Input Validation**: `server/src/middleware/validate.ts` exports a `validate(body, rules)` helper that checks `required`, `type`, `min`, `max`, and `oneOf` constraints, throwing `HttpError(400)` with German messages. Used in all create controllers and auth endpoints.
+- **Authentication**: JWT-based auth via `server/src/middleware/auth.middleware.ts` (`requireAuth` middleware). Auth service in `server/src/services/auth.service.ts` (bcrypt password hashing, JWT token generation/verification). All API routes except `/api/auth/login` and `/api/auth/signup` require a valid `Authorization: Bearer <token>` header. WebSocket connections require a valid JWT token via query parameter (`/ws?token=...`); invalid or missing tokens are rejected with close code `4001`.
 - **Imports**: No `.js` extensions in imports (tsx is used for dev)
 - **Shared logic**: Use `shared/` at project root (e.g. `shared/bookingPrice.ts`) for code shared with frontend; import via relative path (e.g. `../../../shared/bookingPrice`). Server build includes `shared/`; production entry is `node server/dist/server/src/index.js`.
 
@@ -139,9 +140,11 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `src/components/layout/PageHeader.tsx` | Page title + description + optional actions |
 | `src/components/layout/EmptyState.tsx` | Empty list state (icon + message) |
 | `src/features/bookings/useBookingCrud.ts` | Booking CRUD hook (calcTotalPrice, bookingToForm, validate); uses `@shared/bookingPrice` |
+| `src/features/bookings/useFilteredBookings.ts` | Filter state and memoized list by booking status ('' = all); used on BookingsPage |
 | `src/lib/dateUtils.ts` | Date helpers (e.g. toDateInputValue for inputs) |
 | `server/src/app.ts` | Express app setup |
 | `server/src/index.ts` | HTTP server + WebSocket server on path /ws (ws package) |
+| `server/src/middleware/validate.ts` | Input validation helper: `validate(body, rules)` — checks required, type, min, max, oneOf; throws HttpError(400) |
 | `server/src/ws/broadcast.ts` | WebSocket client set; addClient/removeClient/broadcast(data); controllers call broadcast after CRUD |
 | `server/src/routes/index.ts` | API route registry (auth routes public, all others behind requireAuth) |
 | `vitest.setup.unit.ts` | Unit test setup (jsdom, jest-dom) |
@@ -154,6 +157,7 @@ Stories live in `test/storybook/`, mirroring app structure: `components/ui/`, `c
 | `test/unit/useCrud.test.ts` | Unit tests for CRUD hook (dialog state, submit, validation, errors) |
 | `test/unit/useConfirmDelete.test.ts` | Unit tests for confirm-delete hook (confirm, dispatch, toasts) |
 | `test/unit/useSyncEditFormFromStore.test.ts` | Unit tests for store-to-form sync (delete→close, update→setForm) |
+| `test/unit/useFilteredBookings.test.ts` | Unit tests for status filter hook (all vs. by status) |
 | `test/unit/campingPlacesSlice.test.ts` | Unit tests for campingPlaces reducer (CRUD + WS) |
 | `test/unit/campingItemsSlice.test.ts` | Unit tests for campingItems reducer (CRUD + WS) |
 | `test/unit/server/*.broadcast.test.ts` | Server unit: controller calls broadcast after CRUD |

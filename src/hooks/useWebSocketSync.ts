@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useAppDispatch } from '@/store/store';
+import { useAppDispatch, useAppSelector } from '@/store/store';
 import {
   receiveBookingFromWebSocket,
   receiveBookingDeletedFromWebSocket,
@@ -50,21 +50,22 @@ export function handleWebSocketMessage(msg: WebSocketMessage, dispatch: AppDispa
   }
 }
 
-function getWebSocketUrl(): string
+function getWebSocketUrl(token: string | null): string
 {
-  if (typeof window === 'undefined') return '';
+  if (typeof window === 'undefined' || !token) return '';
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}/ws`;
+  return `${protocol}//${window.location.host}/ws?token=${encodeURIComponent(token)}`;
 }
 
 export function useWebSocketSync()
 {
   const dispatch = useAppDispatch();
+  const token = useAppSelector((state) => state.auth.token);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() =>
   {
-    const url = getWebSocketUrl();
+    const url = getWebSocketUrl(token);
     if (!url) return;
 
     let webSocketConnection: WebSocket | null = null;
@@ -131,5 +132,5 @@ export function useWebSocketSync()
         }
       }
     };
-  }, [dispatch]);
+  }, [dispatch, token]);
 }

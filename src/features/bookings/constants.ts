@@ -1,5 +1,7 @@
 import type { BookingStatus } from '@/api/types';
 
+export const BOOKING_STATUSES: BookingStatus[] = ['PENDING', 'CONFIRMED', 'PAID', 'CANCELLED', 'COMPLETED'];
+
 export const statusLabels: Record<BookingStatus, string> = {
   PENDING: 'Ausstehend',
   CONFIRMED: 'Bestätigt',

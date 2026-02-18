@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as service from '../services/campingPlaces.service';
 import { HttpError } from '../middleware/error.middleware';
+import { validate } from '../middleware/validate';
 import { broadcast } from '../ws/broadcast';
 
 export async function getAll(_req: Request, res: Response, next: NextFunction) 
@@ -28,6 +29,12 @@ export async function create(req: Request, res: Response, next: NextFunction)
 {
   try 
   {
+    validate(req.body, [
+      { field: 'name', required: true, type: 'string' },
+      { field: 'location', required: true, type: 'string' },
+      { field: 'size', required: true, type: 'number', min: 1 },
+      { field: 'price', required: true, type: 'number', min: 0 },
+    ]);
     const place = await service.createCampingPlace(req.body);
     broadcast({ type: 'campingPlaces/created', payload: place });
     res.status(201).json(place);

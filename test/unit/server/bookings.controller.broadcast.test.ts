@@ -71,7 +71,7 @@ describe('bookings.controller broadcast', () =>
   {
     vi.mocked(service.createBooking).mockResolvedValue(fakeBooking);
     const res = mockRes();
-    await bookingsController.create(mockReq({}), res, mockNext);
+    await bookingsController.create(mockReq({ campingPlaceId: 1, customerName: 'Test', customerEmail: 'a@b.de', guests: 2 }), res, mockNext);
     expect(mockBroadcast).toHaveBeenCalledTimes(1);
     expect(mockBroadcast).toHaveBeenCalledWith({ type: 'bookings/created', payload: fakeBooking });
   });
