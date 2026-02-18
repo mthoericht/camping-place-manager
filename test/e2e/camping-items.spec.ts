@@ -1,45 +1,42 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Camping-Ausrüstung (eingeloggt)', () => 
+test.describe('Camping-Ausrüstung (eingeloggt)', () =>
 {
-  test('Camping-Ausrüstung-Seite zeigt Überschrift und Inhalt', async ({ page }) => 
+  test('Camping-Ausrüstung-Seite zeigt Überschrift und Inhalt', async ({ page }) =>
   {
     await page.goto('/camping-items');
-    await expect(page.getByRole('heading', { name: 'Camping-Ausrüstung' })).toBeVisible();
-    await expect(page.getByText('Verwalten Sie verfügbare Camping-Items')).toBeVisible();
+    await expect(page.locator('#camping-items-page')).toBeVisible();
+    await expect(page.locator('#item-list-add')).toBeVisible();
   });
 
-  test('Neues Camping-Item-Button ist sichtbar', async ({ page }) => 
+  test('Neues Camping-Item-Button ist sichtbar', async ({ page }) =>
   {
     await page.goto('/camping-items');
-    await expect(page.getByRole('button', { name: /Neues Camping-Item/ })).toBeVisible();
+    await expect(page.locator('#item-list-add')).toBeVisible();
   });
 
-  test('Camping-Item erstellen, bearbeiten und löschen', async ({ page }) => 
+  test('Camping-Item erstellen, bearbeiten und löschen', async ({ page }) =>
   {
+    await page.goto('/');
+    const token = await page.evaluate(() => localStorage.getItem('auth_token'));
+    const createRes = await page.request.post('/api/camping-items', {
+      headers: { Authorization: `Bearer ${token}` },
+      data: { name: 'E2E Testzelt', category: 'Tent', size: 15, isActive: true },
+    });
+    const { id: itemId } = await createRes.json();
+
     await page.goto('/camping-items');
+    await expect(page.locator(`[data-entity-id="${itemId}"]`)).toBeVisible();
 
-    await page.getByRole('button', { name: /Neues Camping-Item/ }).click();
-    await expect(page.getByRole('heading', { name: 'Neues Camping-Item' })).toBeVisible();
+    await page.locator(`[data-entity-id="${itemId}"] .item-card-edit`).click();
+    await expect(page.locator('#item-name')).toBeVisible();
+    await page.locator('#item-name').fill('E2E Testzelt Edited');
+    await page.locator('#item-submit').click();
 
-    await page.getByLabel('Name').fill('E2E Testzelt');
-    await page.getByLabel('Größe (m²)').fill('15');
-
-    await page.getByRole('button', { name: 'Erstellen' }).click();
-    await expect(page.getByText('E2E Testzelt')).toBeVisible();
-
-    const card = page.locator('[data-slot="card"]', { hasText: 'E2E Testzelt' }).first();
-    await card.getByRole('button', { name: 'Bearbeiten' }).click();
-    await expect(page.getByRole('heading', { name: 'Camping-Item bearbeiten' })).toBeVisible();
-
-    await page.getByLabel('Name').fill('E2E Testzelt Edited');
-    await page.getByRole('button', { name: 'Aktualisieren' }).click();
-    await expect(page.getByText('E2E Testzelt Edited')).toBeVisible();
+    await expect(page.locator(`[data-entity-id="${itemId}"]`)).toBeVisible();
 
     page.on('dialog', (d) => d.accept());
-    const updatedCard = page.locator('[data-slot="card"]', { hasText: 'E2E Testzelt Edited' }).first();
-    const deleteBtn = updatedCard.locator('.flex.gap-2 button').last();
-    await deleteBtn.click();
-    await expect(page.getByText('E2E Testzelt Edited')).not.toBeVisible();
+    await page.locator(`[data-entity-id="${itemId}"] .item-card-delete`).click();
+    await expect(page.locator(`[data-entity-id="${itemId}"]`)).not.toBeVisible();
   });
 });

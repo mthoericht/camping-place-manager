@@ -27,9 +27,9 @@ export default function CampingItemsPage()
   useFetchWhenIdle(() => fetchCampingItems(), campingItemsStatus);
 
   return (
-    <div className="space-y-6">
+    <div id="camping-items-page" className="space-y-6">
       <PageHeader title="Camping-Ausrüstung" description="Verwalten Sie verfügbare Camping-Items">
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Camping-Item</Button>
+        <Button id="item-list-add" onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neues Camping-Item</Button>
       </PageHeader>
       <FormDialog {...dialogProps}>
         <CampingItemFormContent campingItemId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />

@@ -13,7 +13,7 @@ export type CampingPlaceCardProps = {
 export default function CampingPlaceCard({ place, onEdit, onDelete }: CampingPlaceCardProps)
 {
   return (
-    <Card>
+    <Card data-entity-id={place.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
@@ -41,10 +41,10 @@ export default function CampingPlaceCard({ place, onEdit, onDelete }: CampingPla
             </div>
           )}
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(place)} className="flex-1">
+            <Button variant="outline" size="sm" onClick={() => onEdit(place)} className="flex-1 place-card-edit">
               <Pencil className="h-4 w-4 mr-1" />Bearbeiten
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(place.id)}>
+            <Button variant="destructive" size="sm" onClick={() => onDelete(place.id)} className="place-card-delete">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

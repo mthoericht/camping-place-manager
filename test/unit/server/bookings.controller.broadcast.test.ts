@@ -4,7 +4,7 @@ import * as broadcastModule from '../../../server/src/websockets/broadcast';
 import * as service from '../../../server/src/services/bookings.service';
 import type { AuthRequest } from '../../../server/src/middleware/auth.middleware';
 
-vi.mock('../../../server/src/ws/broadcast', () => ({ broadcast: vi.fn() }));
+vi.mock('../../../server/src/websockets/broadcast', () => ({ broadcast: vi.fn() }));
 vi.mock('../../../server/src/services/bookings.service', () => ({
   getAllBookings: vi.fn(),
   getBookingById: vi.fn(),

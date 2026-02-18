@@ -25,7 +25,7 @@ export default function LoginPage()
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4">
+    <div id="login-page" className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-2">
@@ -42,9 +42,9 @@ export default function LoginPage()
               </Alert>
             )}
             <div className="flex flex-col gap-2">
-              <Label htmlFor="email">E-Mail</Label>
+              <Label htmlFor="auth-email">E-Mail</Label>
               <Input
-                id="email"
+                id="auth-email"
                 type="email"
                 placeholder="name@beispiel.de"
                 value={email}
@@ -53,9 +53,9 @@ export default function LoginPage()
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="password">Passwort</Label>
+              <Label htmlFor="auth-password">Passwort</Label>
               <Input
-                id="password"
+                id="auth-password"
                 type="password"
                 placeholder="••••••••"
                 value={password}
@@ -63,12 +63,12 @@ export default function LoginPage()
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={status === 'loading'}>
+            <Button type="submit" id="auth-login-submit" className="w-full" disabled={status === 'loading'}>
               {status === 'loading' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Anmelden'}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
               Noch kein Konto?{' '}
-              <Link to="/signup" className="text-primary underline-offset-4 hover:underline">
+              <Link id="auth-signup-link" to="/signup" className="text-primary underline-offset-4 hover:underline">
                 Registrieren
               </Link>
             </p>

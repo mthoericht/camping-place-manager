@@ -51,23 +51,23 @@ export default function BookingFormContent({
       </DialogHeader>
       <div className="grid gap-4 py-4">
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Gast Name</Label><Input value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} required /></div>
-          <div className="space-y-2"><Label>E-Mail</Label><Input type="email" value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} required /></div>
+          <div className="space-y-2"><Label htmlFor="booking-customerName">Gast Name</Label><Input id="booking-customerName" value={form.customerName} onChange={(e) => setForm({ ...form, customerName: e.target.value })} required /></div>
+          <div className="space-y-2"><Label htmlFor="booking-customerEmail">E-Mail</Label><Input id="booking-customerEmail" type="email" value={form.customerEmail} onChange={(e) => setForm({ ...form, customerEmail: e.target.value })} required /></div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Telefon</Label><Input value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Anzahl Gäste</Label><Input type="number" min="1" value={form.guests} onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })} required /></div>
+          <div className="space-y-2"><Label htmlFor="booking-customerPhone">Telefon</Label><Input id="booking-customerPhone" value={form.customerPhone} onChange={(e) => setForm({ ...form, customerPhone: e.target.value })} /></div>
+          <div className="space-y-2"><Label htmlFor="booking-guests">Anzahl Gäste</Label><Input id="booking-guests" type="number" min="1" value={form.guests} onChange={(e) => setForm({ ...form, guests: Number(e.target.value) || 1 })} required /></div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2"><Label>Check-in</Label><Input type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
-          <div className="space-y-2"><Label>Check-out</Label><Input type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
+          <div className="space-y-2"><Label htmlFor="booking-startDate">Check-in</Label><Input id="booking-startDate" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
+          <div className="space-y-2"><Label htmlFor="booking-endDate">Check-out</Label><Input id="booking-endDate" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} required /></div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Stellplatz</Label>
             <Select value={form.campingPlaceId ? String(form.campingPlaceId) : ''} onValueChange={(v) => setForm({ ...form, campingPlaceId: Number(v) })}>
-              <SelectTrigger><SelectValue placeholder="Stellplatz wählen" /></SelectTrigger>
-              <SelectContent>{places.map((p) => <SelectItem key={p.id} value={String(p.id)}>{p.name} ({p.size} m²)</SelectItem>)}</SelectContent>
+              <SelectTrigger id="booking-place-trigger"><SelectValue placeholder="Stellplatz wählen" /></SelectTrigger>
+              <SelectContent>{places.map((p) => <SelectItem key={p.id} value={String(p.id)} data-value={String(p.id)}>{p.name} ({p.size} m²)</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
@@ -113,7 +113,7 @@ export default function BookingFormContent({
       </div>
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button type="button" variant="outline" onClick={onClose}>Abbrechen</Button>
-        <Button type="submit" disabled={!!sizeError}>{bookingId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
+        <Button type="submit" id="booking-submit" disabled={!!sizeError}>{bookingId != null ? 'Aktualisieren' : 'Erstellen'}</Button>
       </div>
     </form>
   );

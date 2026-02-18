@@ -21,7 +21,7 @@ export default function BookingCard({ booking, statusLabels: labels, statusColor
 {
   const navigate = useNavigate();
   return (
-    <Card>
+    <Card data-entity-id={booking.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />{booking.customerName}</CardTitle><CardDescription>{booking.customerEmail}</CardDescription></div>
@@ -45,9 +45,9 @@ export default function BookingCard({ booking, statusLabels: labels, statusColor
             </div>
           )}
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(booking)}><Pencil className="h-4 w-4 mr-1" />Bearbeiten</Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/bookings/${booking.id}`)}><Eye className="h-4 w-4 mr-1" />Details</Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(booking.id)}>Löschen</Button>
+            <Button variant="outline" size="sm" onClick={() => onEdit(booking)} className="booking-card-edit"><Pencil className="h-4 w-4 mr-1" />Bearbeiten</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate(`/bookings/${booking.id}`)} className="booking-card-details"><Eye className="h-4 w-4 mr-1" />Details</Button>
+            <Button variant="destructive" size="sm" onClick={() => onDelete(booking.id)} className="booking-card-delete">Löschen</Button>
           </div>
         </div>
       </CardContent>

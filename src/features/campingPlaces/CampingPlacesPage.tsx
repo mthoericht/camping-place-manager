@@ -27,9 +27,9 @@ export default function CampingPlacesPage()
   useFetchWhenIdle(() => fetchCampingPlaces(), campingPlacesStatus);
 
   return (
-    <div className="space-y-6">
+    <div id="camping-places-page" className="space-y-6">
       <PageHeader title="Stellplätze & Flächen" description="Verwalten Sie alle verfügbaren Plätze">
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neuer Stellplatz</Button>
+        <Button id="place-list-add" onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neuer Stellplatz</Button>
       </PageHeader>
       <FormDialog {...dialogProps} contentClassName="max-w-2xl">
         <CampingPlaceFormContent campingPlaceId={editing?.id ?? null} form={form} setForm={setForm} onSubmit={handleSubmit} onClose={close} />

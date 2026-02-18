@@ -87,7 +87,7 @@ export default function Topbar()
                   {employee.fullName}
                 </span>
               )}
-              <Button variant="ghost" size="icon" onClick={() => { dispatch(logout()); navigate('/login'); }}>
+              <Button id="topbar-logout" variant="ghost" size="icon" onClick={() => { dispatch(logout()); navigate('/login'); }}>
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>

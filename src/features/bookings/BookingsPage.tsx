@@ -46,7 +46,7 @@ export default function BookingsPage()
   const { addItem, removeItem } = useBookingFormItems(setForm);
 
   return (
-    <div className="space-y-6">
+    <div id="bookings-page" className="space-y-6">
       <PageHeader title="Buchungen" description="Verwalten Sie alle Campingplatz-Buchungen">
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[12rem] max-w-xs">
@@ -81,7 +81,7 @@ export default function BookingsPage()
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
+          <Button id="booking-list-add" onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Neue Buchung</Button>
         </div>
       </PageHeader>
       <FormDialog {...dialogProps} contentClassName="max-w-3xl max-h-[90vh] overflow-y-auto">

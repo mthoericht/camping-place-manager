@@ -3,7 +3,7 @@ import * as campingPlacesController from '../../../server/src/controllers/campin
 import * as broadcastModule from '../../../server/src/websockets/broadcast';
 import * as service from '../../../server/src/services/campingPlaces.service';
 
-vi.mock('../../../server/src/ws/broadcast', () => ({ broadcast: vi.fn() }));
+vi.mock('../../../server/src/websockets/broadcast', () => ({ broadcast: vi.fn() }));
 vi.mock('../../../server/src/services/campingPlaces.service', () => ({
   getAllCampingPlaces: vi.fn(),
   getCampingPlaceById: vi.fn(),

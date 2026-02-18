@@ -13,9 +13,8 @@ export type CampingItemCardProps = {
 
 export default function CampingItemCard({ item, onEdit, onDelete }: CampingItemCardProps)
 {
-  //Compound component pattern (UI components that are composed of other UI components)
   return (
-    <Card>
+    <Card data-entity-id={item.id}>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div className="flex items-center gap-2">
@@ -37,10 +36,10 @@ export default function CampingItemCard({ item, onEdit, onDelete }: CampingItemC
             <span className="text-sm font-medium">{item.size} m²</span>
           </div>
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm" onClick={() => onEdit(item)} className="flex-1">
+            <Button variant="outline" size="sm" onClick={() => onEdit(item)} className="flex-1 item-card-edit">
               <Pencil className="h-4 w-4 mr-1" />Bearbeiten
             </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(item.id)}>
+            <Button variant="destructive" size="sm" onClick={() => onDelete(item.id)} className="item-card-delete">
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>

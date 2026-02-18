@@ -19,7 +19,7 @@ export default function AnalyticsPage()
   if (analyticsStatus === 'loading' || !data) return <p className="text-muted-foreground">Laden...</p>;
 
   return (
-    <div className="space-y-6">
+    <div id="analytics-page" className="space-y-6">
       <PageHeader title="Analytics & Berichte" description="Übersicht über Umsatz und Auslastung" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

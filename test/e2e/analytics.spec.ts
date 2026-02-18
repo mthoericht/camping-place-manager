@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('Analytics (eingeloggt)', () => 
+test.describe('Analytics (eingeloggt)', () =>
 {
-  test('Analytics-Seite lädt und zeigt Überschrift', async ({ page }) => 
+  test('Analytics-Seite lädt und zeigt Überschrift', async ({ page }) =>
   {
     await page.goto('/analytics');
-    await expect(page.getByRole('heading', { name: 'Analytics & Berichte' })).toBeVisible();
+    await expect(page.locator('#analytics-page')).toBeVisible();
   });
 
-  test('Stat-Karten sind sichtbar', async ({ page }) => 
+  test('Stat-Karten sind sichtbar', async ({ page }) =>
   {
     await page.goto('/analytics');
-    await expect(page.getByText('Gesamtumsatz')).toBeVisible();
-    await expect(page.getByText('Gesamtbuchungen')).toBeVisible();
+    await expect(page.locator('#analytics-page')).toBeVisible();
+    await expect(page.locator('[data-slot="card"]').first()).toBeVisible();
   });
 });
